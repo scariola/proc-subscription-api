@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
 	xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<flow name="get-bss-msisdn-eligibility-flow"
 		doc:id="03e64505-26a5-49b0-bd7a-6a55d62c32ad">
 		<http:request method="GET" doc:name="Request"
@@ -29,5 +30,23 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 	"brand" : vars.brand."brand-id"
 }]]]></http:query-params>
 		</http:request>
+		<choice doc:name="Choice" doc:id="6ee5c250-9e32-4adc-9876-db02e46a9caf" >
+			<when expression="#[!isEmpty(payload.bundles)]">
+				<ee:transform doc:name="Transform Message" doc:id="be6b58fe-61d8-4d29-8200-ac3c20297bb7" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"expirty_date": "2025-12-31, 23:59:59",
+	"unix_date": "set unix"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Set Spiel Type = ineligible" doc:id="26691d60-f617-4588-8d1e-9b1f6ee5c0cf" />
+			</otherwise>
+		</choice>
 	</flow>
 </mule>

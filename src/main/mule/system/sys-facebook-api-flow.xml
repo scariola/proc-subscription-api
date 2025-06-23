@@ -29,5 +29,29 @@ output application/java
 	"X-Correlation-Id": correlationId
 }]]]></http:headers>
 		</http:request>
+		<choice doc:name="Choice" doc:id="42b7ba53-68ad-47b2-b09e-0d805bc73eff" >
+			<when expression="#[attributes.statusCode == '201']">
+				<choice doc:name="Choice" doc:id="fbb9cc1f-31af-40ba-ba71-762893aca0e1" >
+					<when expression='#[vars.originalPayload.keyword == "BONUS"]'>
+						<flow-ref doc:name='Flow ref to delete-msisdn-whitelist-flow' doc:id="b983ce95-d0c3-4189-9bcf-2fae9cf7902f" name="delete-msisdn-whitelist-flow"/>
+					</when>
+					<otherwise>
+						<logger level="INFO" doc:name="DO NOTHING" doc:id="3c5eb249-428d-4627-8bb0-1c928b81d6ef" />
+					</otherwise>
+				</choice>
+				<ee:transform doc:name="set update log success = 1" doc:id="a8dff01e-ca1a-4ff7-9719-13038f2852b3" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="SYSTEM ERROR" doc:id="e57c5c1b-5f5a-46cd-9d07-9ec8ea9dec0c" />
+			</otherwise>
+		</choice>
 	</flow>
 </mule>

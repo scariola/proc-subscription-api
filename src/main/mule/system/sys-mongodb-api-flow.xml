@@ -1,29 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
 	xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<flow name="get-msisdn-whitelist-flow"
 		doc:id="720e2f54-7f61-49c2-a210-96e358d7d22f">
 		<http:request method="GET" doc:name="Request"
 			doc:id="b6f5ae47-c163-4281-b2b9-23f6dbe84063"
-			config-ref="HTTP_Request_Config_MongoDB_Api" path="${mongodb.path}" >
-			<http:headers ><![CDATA[#[output application/java
+			config-ref="HTTP_Request_Config_MongoDB_Api" path="${mongodb.path}">
+			<http:headers><![CDATA[#[output application/java
 ---
 {
 	"X-Client-Id": p('mongodb.client_id'),
 	"X-Client-Secret": p('mongodb.client_secret'),
 	"X-Correlation-Id": correlationId
 }]]]></http:headers>
-			<http:uri-params ><![CDATA[#[output application/java
+			<http:uri-params><![CDATA[#[output application/java
 ---
 {
 	"msisdn" : vars.originalPayload.full_msisdn
 }]]]></http:uri-params>
 		</http:request>
-			
+		<choice doc:name="Choice" doc:id="8a1d608e-6739-4c3b-b692-b44048ad9d18" >
+			<when expression="#[payload.eligable == true]">
+				<ee:transform doc:name="Transform Message" doc:id="c4f5bddd-f2e0-4af3-a1ea-a48e3b521469" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="noteligable" doc:id="1ddd7597-d99e-4069-ab31-ce4010f1b478" />
+			</otherwise>
+		</choice>
+
+	</flow>
+	<flow name="delete-msisdn-whitelist-flow"
+		doc:id="d9e41f07-8b47-4ab9-b31f-c98be4e0c1de">
+		<http:request method="DELETE" doc:name="Request"
+			doc:id="932ad56b-3baf-4bdb-a351-80292b9e1219"
+			config-ref="HTTP_Request_Config_MongoDB_Api" path="${mongodb.path}">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"X-Client-Id": p('mongodb.client_id'),
+	"X-Client-Secret": p('mongodb.client_secret'),
+	"X-Correlation-Id": correlationId
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"msisdn" : vars.originalPayload.full_msisdn
+}]]]></http:uri-params>
+		</http:request>
+
 	</flow>
 </mule>
