@@ -33,7 +33,7 @@ var brand_flag = if (result.brand_flag == 4) 1 else  result.brand_flag
 ---
 {
   "prefix": result.msisdn_prefix,
-  "brand-id": brand_flag,
+  "brand-id": brand_flag as String,
   "brand-name": result.brand
 }
 ]]></ee:set-payload>

@@ -22,25 +22,37 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<http:uri-params><![CDATA[#[output application/java
 ---
 {
-	"msisdn" : vars.originalPayload.full_msisdn
+	"msisdn" : vars.originalPayload.full_msisdn[2 to 11]
 }]]]></http:uri-params>
 			<http:query-params><![CDATA[#[output application/java
 ---
 {
-	"brand" : vars.brand."brand-id"
+	"brand" : vars.brand[0]."brand-id"
 }]]]></http:query-params>
 		</http:request>
 		<choice doc:name="Choice" doc:id="045ca0fd-a4c4-47ac-a9d0-78f1c17c9b4a" >
-			<when expression='#[!isEmpty(&#10;    payload.bundles filter (&#10;        $.service_id == originalRequest.service_id &#10;        and &#10;        currentDateTime &lt; ($.expiry_date as LocalDateTime {format: "yyyy-MM-dd HH:mm:ss"})&#10;    )&#10;)]'>
+			<when expression='#[!isEmpty(&#10;    payload.bundles filter (&#10;        $.service_id == vars.originalPayload.service_id &#10;        and &#10;        now() &lt; ($.expiry_date as LocalDateTime {format: "yyyy-MM-dd HH:mm:ss"})&#10;    )&#10;)]'>
 				<ee:transform doc:name="Transform Message" doc:id="21ff0281-18a7-40c4-930b-f42279ead70d" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
-output application/java
+output application/json
+
+var filteredData =   payload.bundles filter (
+        $.service_id == vars.originalPayload.service_id 
+        and 
+        now() < ($.expiry_date as LocalDateTime {format: "yyyy-MM-dd HH:mm:ss"})
+    )
+var rawDate = filteredData[0].expiry_date
+var unixFormat = rawDate as LocalDateTime { format: "yyyy-MM-dd HH:mm:ss" } as DateTime as Number
+
 ---
+ 
 {
-	"expiry_date": "nf expiry",
-	"unix_date": "set unix"
-}]]></ee:set-payload>
+  "service_id": filteredData[0].service_id,  
+  "expiry_date": filteredData[0].expiry_date,
+  "unix_expiryDate": unixFormat
+}
+]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
 			</when>

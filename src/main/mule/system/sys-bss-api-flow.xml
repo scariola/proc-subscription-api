@@ -36,11 +36,18 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
+
+var defaultExpiryDate = "2025-12-31 23:59:59"
+var unixFormat = defaultExpiryDate as LocalDateTime { format: "yyyy-MM-dd HH:mm:ss" } as DateTime as Number
+
 ---
+ 
 {
-	"expirty_date": "2025-12-31, 23:59:59",
-	"unix_date": "set unix"
-}]]></ee:set-payload>
+  "service_id": vars.orginalPayload.service_id,  
+  "expiry_date": defaultExpiryDate,
+  "unix_expiryDate": unixFormat
+}
+]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
 			</when>

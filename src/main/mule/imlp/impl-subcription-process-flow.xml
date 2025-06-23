@@ -48,12 +48,16 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<ee:variables>
 				<ee:set-variable variableName="brand"><![CDATA[%dw 2.0
 output application/json
+
+var redis = vars.redisResponse
+var bridge = vars.bridgeResponse
+
+var data = 
+    if (redis.results?) redis.results
+    else bridge          
 ---
-{
-  "prefix": "93640",
-  "brand-id":1 ,
-  "brand-name": "TM"
-}]]></ee:set-variable>
+data
+]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
 		<choice doc:name="Choice"
@@ -82,14 +86,13 @@ output application/java
 							<otherwise>
 								<choice doc:name="Choice" doc:id="692ecaf5-c10d-426a-a4b3-a0b74c4a89b3" >
 									<when expression='#[[1, 2] contains (vars.brand."brand-id")]'>
-										<flow-ref doc:name="flow ref to sys-nf-api-flowFlow" doc:id="e53f264e-dbad-4e45-ad0d-2da43861cbdd" name="sys-nf-api-flowFlow" target="nfResponse"/>
+										<flow-ref doc:name="flow ref to sys-nf-api-flowFlow" doc:id="e53f264e-dbad-4e45-ad0d-2da43861cbdd" name="sys-nf-api-flowFlow"/>
 									</when>
 									<otherwise >
 										<flow-ref doc:name="Flow ref to get-bss-msisdn-eligibility-flow" doc:id="1d0ce3c7-03cb-49a3-a586-ade7661a04b8" name="get-bss-msisdn-eligibility-flow"/>
 									</otherwise>
 								</choice>
-								<flow-ref doc:name="Flow Ref to post-provision-to-facebook-flow" doc:id="3880677b-5ae3-4b60-a48e-3c37eb5dec60" name="post-redis-cache-brand-flow" />
-								<flow-ref doc:name="Flow ref to put-redis-cache-state-flow" doc:id="29692233-4825-4be7-acf8-0b32d3a59939" name="put-redis-cache-state-flow" />
+								<flow-ref doc:name="Flow Ref to post-provision-to-facebook-flow" doc:id="3880677b-5ae3-4b60-a48e-3c37eb5dec60" name="post-provision-to-facebook-flow" />
 							</otherwise>
 						</choice>
 					</when>
@@ -116,6 +119,7 @@ output application/java
 							</when>
 							<otherwise>
 								<flow-ref doc:name="Flow ref to get-msisdn-whitelist-flow" doc:id="d67c1822-b0ed-4cf3-ad8d-242d30028a06" name="get-msisdn-whitelist-flow"/>
+								<flow-ref doc:name="Flow Ref to post-provision-to-facebook-flow" doc:id="e4b5ad03-55ef-4b97-aa55-bb16be9e7668" name="post-provision-to-facebook-flow"/>
 							</otherwise>
 						</choice>
 					</otherwise>
@@ -125,5 +129,6 @@ output application/java
 				<logger level="INFO" doc:name="Raise Error" doc:id="e719fcc9-b14b-41b0-a715-48fe007b860f" />
 			</otherwise>
 		</choice>
+		<flow-ref doc:name="Flow ref to put-redis-cache-state-flow" doc:id="29692233-4825-4be7-acf8-0b32d3a59939" name="put-redis-cache-state-flow" />
 	</sub-flow>
 </mule>

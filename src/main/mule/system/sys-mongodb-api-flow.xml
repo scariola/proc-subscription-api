@@ -30,9 +30,14 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				<ee:transform doc:name="Transform Message" doc:id="c4f5bddd-f2e0-4af3-a1ea-a48e3b521469" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
-output application/java
+output application/json
+
+var bonusExpiry = now() + |P7D| 
 ---
 {
+  "service_id": "bonusfb",
+  "expiry_date": bonusExpiry as LocalDateTime as String { format: "yyyy-MM-dd HH:mm:ss" },
+  "unix_expiryDate": bonusExpiry as Number  
 }]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
@@ -45,9 +50,9 @@ output application/java
 	</flow>
 	<flow name="delete-msisdn-whitelist-flow"
 		doc:id="d9e41f07-8b47-4ab9-b31f-c98be4e0c1de">
-		<http:request method="DELETE" doc:name="Request"
-			doc:id="932ad56b-3baf-4bdb-a351-80292b9e1219"
-			config-ref="HTTP_Request_Config_MongoDB_Api" path="${mongodb.path}">
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="a155c2f5-2082-41ed-9629-a3226064a779">
+				<try doc:name="Try" doc:id="1504182f-000c-4b33-9a38-b8a70daa65be" >
+				<http:request method="DELETE" doc:name="Request" doc:id="932ad56b-3baf-4bdb-a351-80292b9e1219" config-ref="HTTP_Request_Config_MongoDB_Api" path="${mongodb.path}">
 			<http:headers><![CDATA[#[output application/java
 ---
 {
@@ -61,6 +66,13 @@ output application/java
 	"msisdn" : vars.originalPayload.full_msisdn
 }]]]></http:uri-params>
 		</http:request>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="4e6ccaf2-3003-4706-8603-3cd9c660db32" type="ANY">
+						<logger level="INFO" doc:name="Logger" doc:id="89cdaaf9-f903-491d-9497-90c2e10d37b4" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+			</until-successful>
 
 	</flow>
 </mule>
