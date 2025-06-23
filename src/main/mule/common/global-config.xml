@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+	xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:mongodb="http://www.mulesoft.org/schema/mule/mongodb"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/mongodb http://www.mulesoft.org/schema/mule/mongodb/current/mule-mongodb.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+	<http:listener-config
+		name="HTTP_Listener_Config_proc_subscriptions_api">
+		<http:listener-connection host="${app.host}"
+			port="${http.port}" />
+	</http:listener-config>
+	<apikit:config name="proc-subscription-api-config"
+		api="resource::19504067-e1e3-45dd-943a-e163098ddbed:proc-subscription-api:1.0.1:raml:zip:proc-subscription-api.raml"
+		outboundHeadersMapName="outboundHeaders"
+		httpStatusVarName="httpStatus" />
+	<secure-properties:config
+		name="Secure_Properties_Config" doc:name="Secure Properties Config"
+		doc:id="7323084e-a018-4176-8c9c-0122e01411f0"
+		file="config/${env}/secure-config.properties" key="${secure.key}">
+		<secure-properties:encrypt
+			algorithm="Blowfish" />
+	</secure-properties:config>
+	<configuration-properties
+		doc:name="Configuration properties"
+		doc:id="fbe68e34-2c55-4396-9c98-e055a874fd34"
+		file="config/${env}/config.properties" />
+	<http:request-config
+		name="HTTP_Request_Config_Bridge_Api"
+		doc:name="HTTP Request configuration"
+		doc:id="7bc0d957-1cfe-4188-8c1e-7ea35a61fe01">
+		<http:request-connection host="${bridge.host}" />
+	</http:request-config>
+	<http:request-config
+		name="HTTP_Request_Config_NF_Api"
+		doc:name="HTTP Request configuration"
+		doc:id="50f59d0f-451c-438e-bb58-62c9c8a41a6f">
+		<http:request-connection host="${nf.host}" />
+	</http:request-config>
+	<http:request-config
+		name="HTTP_Request_Config_BSS_Api"
+		doc:name="HTTP Request configuration"
+		doc:id="34300ded-99c2-4a18-a9eb-09c2edcda660">
+		<http:request-connection host="${nf.host}" />
+	</http:request-config>
+	<http:request-config
+		name="HTTP_Request_Config_Redis_Api"
+		doc:name="HTTP Request configuration"
+		doc:id="3512d009-6b03-4b11-9499-9a0f83ec1e21">
+		<http:request-connection host="${redis.host}" protocol="HTTPS"/>
+	</http:request-config>
+	<http:request-config
+		name="HTTP_Request_Config_facebook_Api"
+		doc:name="HTTP Request configuration"
+		doc:id="0dee634d-cc8e-45d1-98e0-5f5760d9e12f">
+		<http:request-connection host="${provision.host}" protocol="HTTPS"/>
+	</http:request-config>
+	<http:request-config
+		name="HTTP_Request_Config_MongoDB_Api"
+		doc:name="HTTP Request configuration"
+		doc:id="3dcc3a19-b52d-4700-8f4e-3a6f62a40de8">
+		<http:request-connection host="${mongodb.host}" protocol="HTTPS"/>
+	</http:request-config>
+</mule>

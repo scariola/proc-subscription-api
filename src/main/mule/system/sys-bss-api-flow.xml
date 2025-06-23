@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="get-bss-msisdn-eligibility-flow"
+		doc:id="03e64505-26a5-49b0-bd7a-6a55d62c32ad">
+		<http:request method="GET" doc:name="Request"
+			doc:id="36aad05d-054c-4c24-bb93-ea1021073e13"
+			config-ref="HTTP_Request_Config_BSS_Api" path="${bss.path}">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"X-Client-Id": p('nf.client_id'),
+	"X-Client-Secret": p('nf.client_secret'),
+	"X-Correlation-Id": correlationId
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"msisdn" : vars.originalPayload.full_msisdn
+}]]]></http:uri-params>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"brand" : vars.brand."brand-id"
+}]]]></http:query-params>
+		</http:request>
+	</flow>
+</mule>

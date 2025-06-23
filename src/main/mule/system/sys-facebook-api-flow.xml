@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="post-provision-to-facebook-flow" doc:id="a5e185d7-d85b-41bf-a0f5-eda51dc67843" >
+		<ee:transform doc:name="Transform Message" doc:id="038b5b12-db12-469f-a8a9-c6cf60454d2f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+  "msisdn": "639171234567",
+  "carrier-id": "1119",
+  "provision": {
+    "fb-product-id": "free",
+    "expiration": 1718784000
+  }
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="Request" doc:id="260e9e01-35bd-4c63-b986-e054642d7946" config-ref="HTTP_Request_Config_facebook_Api" path="${provision.path}">
+			<http:headers ><![CDATA[#[{
+	"X-Client-Id": p('provision.client_id'),
+	"X-Client-Secret": p('provision.client_secret'),
+	"X-Correlation-Id": correlationId
+}]]]></http:headers>
+		</http:request>
+	</flow>
+</mule>

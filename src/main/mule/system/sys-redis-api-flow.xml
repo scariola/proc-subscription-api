@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="get-redis-cache-brand-flow" doc:id="7d88dea6-965f-4d0e-8485-54439eb8a624" >
+		<http:request method="GET" doc:name="Request" doc:id="2690daef-6de1-4d5d-8c09-c25c37922b3a" config-ref="HTTP_Request_Config_Redis_Api" path="${redis.get.brand.path}">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_id": p('redis.client_id'),
+	"client_secret": p('redis.client_secret'),
+	"X-Correlation-Id": correlationId
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"prefix" : vars.originalPayload.prefix
+}]]]></http:uri-params>
+		</http:request>
+	</flow>
+	<flow name="post-redis-cache-brand-flow" doc:id="a0e53d39-1604-4e75-af26-bd5241ae7157" >
+		<http:request method="POST" doc:name="Request" doc:id="9d8b5ef6-a263-4ab2-b747-94ec6acfefcd" config-ref="HTTP_Request_Config_Redis_Api" path="${redis.post.brand.path}" >
+			<http:body ><![CDATA[#[vars.bridgeResponse]]]></http:body>
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_id": p('redis.client_id'),
+	"client_secret": p('redis.client_secret'),
+	"X-Correlation-Id": correlationId
+}]]]></http:headers>
+		</http:request>
+	</flow>
+	<flow name="get-redis-cache-state-flow" doc:id="dc577ec1-23af-4f88-afb7-ec88d7e4d3ae" >
+		<http:request method="GET" doc:name="Request" doc:id="2b7ffe22-bbfd-4486-84de-0a29cb060d7a" config-ref="HTTP_Request_Config_Redis_Api" path="${redis.get.state.path}" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_id": p('redis.client_id'),
+	"client_secret": p('redis.client_secret'),
+	"X-Correlation-Id": correlationId
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"prefix" : vars.originalPayload.full_msisdn
+}]]]></http:uri-params>
+		</http:request>
+	</flow>
+</mule>

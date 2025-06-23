@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="sys-nf-api-flowFlow"
+		doc:id="7e644a4e-384f-49c6-bfb8-84e5989fe0af">
+		<http:request method="GET" doc:name="Request"
+			doc:id="c540448d-d5a4-42e7-a121-708bdc4a3bc1"
+			config-ref="HTTP_Request_Config_NF_Api" path="${nf.path}">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"X-Client-Id": p('nf.client_id'),
+	"X-Client-Secret": p('nf.client_secret'),
+	"X-Correlation-Id": correlationId
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"msisdn" : vars.originalPayload.full_msisdn
+}]]]></http:uri-params>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"brand" : vars.brand."brand-id"
+}]]]></http:query-params>
+		</http:request>
+		<choice doc:name="Choice" doc:id="045ca0fd-a4c4-47ac-a9d0-78f1c17c9b4a" >
+			<when expression='#[!isEmpty(&#10;    payload.bundles filter (&#10;        $.service_id == originalRequest.service_id &#10;        and &#10;        currentDateTime &lt; ($.expiry_date as LocalDateTime {format: "yyyy-MM-dd HH:mm:ss"})&#10;    )&#10;)]'/>
+		</choice>
+	</flow>
+</mule>
