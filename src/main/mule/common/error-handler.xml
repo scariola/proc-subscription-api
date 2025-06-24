@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<error-handler name="proc-subscription-api-Shared_Error_Handler" doc:id="ce502ca3-fef7-49aa-b16a-0eafa6daa05f" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="31c28ae5-0b29-4149-816e-adb539aea003" type="ANY">
+			<ee:transform doc:name="speil" doc:id="e0b5007c-56b2-42bd-b4a2-c1f113783045" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="smsSpiel" ><![CDATA[%dw 2.0
+output application/json
+var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
+---
+{
+	sms_spiel: spielMap.ANY.ANY.system_error
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="set error log" doc:id="c06c2a5f-029a-45e7-9ef5-2fc7ec1c5df0" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="auditLog" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "success": 0,
+    "hasProcessorError": 1
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="Transform Message" doc:id="dab8d964-a2e7-4415-9cde-71266c365368" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+  "x-event-code": 1005,
+  "x-event-msg": "error",
+  "result": {
+    "msisdn": "9171234567",
+    "status": 1,
+    "exipry-date": null,
+    "sms-spiel": vars.smsSpiel
+  }
+}
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<set-variable value="500" doc:name="httpStatus" doc:id="c7758acb-7a89-449e-a96e-dd326b8906d3" variableName="httpStatus"/>
+		</on-error-propagate>
+	</error-handler>
+</mule>

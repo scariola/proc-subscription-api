@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
 	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<flow name="get-prefix-bridge-api-flow" doc:id="2786817e-81b6-495b-9b9c-8a68ddc770de" >
-		<http:request method="GET" doc:name="Request" doc:id="f5faa08b-14c1-49ee-b875-d57ed6b2dee8" config-ref="HTTP_Request_Config_Bridge_Api" path="${bridge.path}">
-			<http:headers ><![CDATA[#[output application/java
+	<flow name="get-prefix-bridge-api-flow"
+		doc:id="2786817e-81b6-495b-9b9c-8a68ddc770de">
+		<http:request method="GET" doc:name="Request"
+			doc:id="f5faa08b-14c1-49ee-b875-d57ed6b2dee8"
+			config-ref="HTTP_Request_Config_Bridge_Api" path="${bridge.path}">
+			<http:headers><![CDATA[#[output application/java
 ---
 {
 	"X-Client-Id": p('bridge.client_id'),
@@ -16,17 +22,19 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	
 	
 }]]]></http:headers>
-			<http:uri-params ><![CDATA[#[output application/java
+			<http:uri-params><![CDATA[#[output application/java
 ---
 {
 	"prefix" : vars.originalPayload.prefix
 }]]]></http:uri-params>
 		</http:request>
-		<choice doc:name="Choice" doc:id="cb0a10ab-68d4-4c9a-8a74-e108e426e235" >
+		<choice doc:name="Choice"
+			doc:id="cb0a10ab-68d4-4c9a-8a74-e108e426e235">
 			<when expression="#[!isEmpty(payload.result)]">
-				<ee:transform doc:name="Transform Message" doc:id="c3a60c82-0432-44b8-803d-ed34bdd52ab9" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
+				<ee:transform doc:name="Transform Message"
+					doc:id="c3a60c82-0432-44b8-803d-ed34bdd52ab9">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 var result = payload.result[0]
 var brand_flag = if (result.brand_flag == 4) 1 else  result.brand_flag
@@ -40,10 +48,11 @@ var brand_flag = if (result.brand_flag == 4) 1 else  result.brand_flag
 					</ee:message>
 				</ee:transform>
 			</when>
-			<otherwise >
-				<ee:transform doc:name="Transform Message" doc:id="eb4930ac-2f3a-4b1a-893e-3783dd14c707" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
+			<otherwise>
+				<ee:transform doc:name="Transform Message"
+					doc:id="eb4930ac-2f3a-4b1a-893e-3783dd14c707">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 
 ---
@@ -57,5 +66,7 @@ output application/json
 				</ee:transform>
 			</otherwise>
 		</choice>
+		<error-handler
+			ref="proc-subscription-api-Shared_Error_Handler" />
 	</flow>
 </mule>

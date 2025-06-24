@@ -32,6 +32,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	"X-Correlation-Id": correlationId
 }]]]></http:headers>
 		</http:request>
+		<error-handler ref="proc-subscription-api-Shared_Error_Handler" />
 	</flow>
 	<flow name="put-redis-cache-state-flow" doc:id="cbec3f24-2bd4-4b6c-a09e-fd117f757f4e" >
 		<http:request method="PUT" doc:name="Request" doc:id="e3295e12-6460-4f91-994f-9ccd8e6d1b67" config-ref="HTTP_Request_Config_Redis_Api" path="${redis.put.state.path}" >
@@ -64,5 +65,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	"msisdn" : vars.originalPayload.full_msisdn
 }]]]></http:uri-params>
 		</http:request>
+		<error-handler ref="proc-subscription-api-Shared_Error_Handler" />
 	</flow>
 </mule>

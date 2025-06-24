@@ -6,6 +6,17 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="elgibility-check-process" doc:id="5458ec3d-88d9-4d4f-ae11-6c579fbd1c5f" >
+		<choice doc:name="Choice" doc:id="692ecaf5-c10d-426a-a4b3-a0b74c4a89b3">
+									<when expression='#[[1, 2] contains (vars.brand."brand-id")]'>
+										<flow-ref doc:name="flow ref to sys-nf-api-flowFlow" doc:id="e53f264e-dbad-4e45-ad0d-2da43861cbdd" name="sys-nf-api-flowFlow" />
+									</when>
+									<otherwise>
+										<flow-ref doc:name="Flow ref to get-bss-msisdn-eligibility-flow" doc:id="1d0ce3c7-03cb-49a3-a586-ade7661a04b8" name="get-bss-msisdn-eligibility-flow" />
+									</otherwise>
+								</choice>
+		<flow-ref doc:name="Flow Ref to post-provision-to-facebook-flow" doc:id="3880677b-5ae3-4b60-a48e-3c37eb5dec60" name="post-provision-to-facebook-flow" />
+	</sub-flow>
 	<sub-flow name="impl-subcription-process-flowSub_Flow"
 		doc:id="76514eb0-6a68-43f2-8b94-85dd144f2539">
 		<set-variable value="#[payload]"
@@ -75,24 +86,67 @@ data
 							<when expression="#[vars.stateResponse.state == 1]">
 								<ee:transform doc:name="Opt it dual provi" doc:id="5578edea-7195-42ea-b033-f6f0f854386c" >
 									<ee:message >
-										<ee:set-payload ><![CDATA[%dw 2.0
-output application/java
+									</ee:message>
+									<ee:variables >
+										<ee:set-variable variableName="smsSpiel" ><![CDATA[%dw 2.0
+output application/json
+var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
+var keyword = vars.originalPayload.keyword
+var channel = vars.brand.'brand-name'
+
 ---
 {
+    sms_spiel: spielMap[keyword][channel].dual_provisioning
+}]]></ee:set-variable>
+									</ee:variables>
+								</ee:transform>
+								<ee:transform doc:name="Transform Message" doc:id="c1400d82-fdfe-47db-adcb-cd99242715f1" >
+									<ee:message >
+									</ee:message>
+									<ee:variables >
+										<ee:set-variable variableName="auditLog" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "success": 1,
+    "hasProcessorError": 0
+}]]></ee:set-variable>
+									</ee:variables>
+								</ee:transform>
+							</when>
+							<when expression="#[vars.stateResponse.state == 0]">
+								<flow-ref doc:name="Flow Ref elgibility-check-process" doc:id="47ce6e8c-eae2-4e8d-b196-4a813151d5c6" name="elgibility-check-process"/>
+								<ee:transform doc:name="Set Spiel Type = reactivation" doc:id="7bbd2b83-1aa3-4a5f-9721-7e91ff6a2237" >
+									<ee:message >
+										<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
+var keyword = vars.originalPayload.keyword
+var channel = vars.brand.'brand-name'
+
+---
+{
+    sms_spiel: spielMap[keyword][channel].reactivation
 }]]></ee:set-payload>
 									</ee:message>
 								</ee:transform>
 							</when>
 							<otherwise>
-								<choice doc:name="Choice" doc:id="692ecaf5-c10d-426a-a4b3-a0b74c4a89b3" >
-									<when expression='#[[1, 2] contains (vars.brand."brand-id")]'>
-										<flow-ref doc:name="flow ref to sys-nf-api-flowFlow" doc:id="e53f264e-dbad-4e45-ad0d-2da43861cbdd" name="sys-nf-api-flowFlow"/>
-									</when>
-									<otherwise >
-										<flow-ref doc:name="Flow ref to get-bss-msisdn-eligibility-flow" doc:id="1d0ce3c7-03cb-49a3-a586-ade7661a04b8" name="get-bss-msisdn-eligibility-flow"/>
-									</otherwise>
-								</choice>
-								<flow-ref doc:name="Flow Ref to post-provision-to-facebook-flow" doc:id="3880677b-5ae3-4b60-a48e-3c37eb5dec60" name="post-provision-to-facebook-flow" />
+								<flow-ref doc:name="Flow Ref elgibility-check-process" doc:id="70c3008e-e60b-44ee-acca-ff711acf9a59" name="elgibility-check-process" />
+								<ee:transform doc:name="Set Spiel Type = eligible" doc:id="41b0807e-c4c1-4fe0-a8b1-48662fd4e7cb" >
+									<ee:message >
+										<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
+var keyword = vars.originalPayload.keyword
+var channel = vars.brand.'brand-name'
+
+---
+{
+    sms_spiel: spielMap[keyword][channel].eligible
+}]]></ee:set-payload>
+									</ee:message>
+								</ee:transform>
 							</otherwise>
 						</choice>
 					</when>
@@ -126,9 +180,43 @@ output application/java
 				</choice>
 			</when>
 			<otherwise >
-				<logger level="INFO" doc:name="Raise Error" doc:id="e719fcc9-b14b-41b0-a715-48fe007b860f" />
+				<ee:transform doc:name="Transform Message" doc:id="bb73a39c-9a82-4759-a4fa-f14c6f7a7b66" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="smsSpiel" ><![CDATA[%dw 2.0
+output application/json
+var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
+---
+{
+	sms_spiel: spielMap.ANY.ANY.unsupported
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<ee:transform doc:name="Transform Message" doc:id="2a16ed81-2546-4ebb-9bb5-70f986b23577" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="auditLog" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "success": 0,
+    "hasProcessorError": 1
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
 			</otherwise>
 		</choice>
 		<flow-ref doc:name="Flow ref to put-redis-cache-state-flow" doc:id="29692233-4825-4be7-acf8-0b32d3a59939" name="put-redis-cache-state-flow" />
+		<ee:transform doc:name="Transform Message" doc:id="bbdcb610-3dd1-4be0-bb49-f404b5d5c9b8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 	</sub-flow>
 </mule>

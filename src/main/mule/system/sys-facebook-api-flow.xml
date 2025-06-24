@@ -54,10 +54,49 @@ var state = if (keyword == "OPT-IN" or keyword == "BONUS") 1 else 0
 }]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
+				<ee:transform doc:name="Transform Message" doc:id="c5628d8b-6d6e-4599-9ae6-1208ab2e4613" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="auditLog" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "success": 1,
+    "hasProcessorError": 0
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
 			</when>
 			<otherwise >
-				<logger level="INFO" doc:name="SYSTEM ERROR" doc:id="e57c5c1b-5f5a-46cd-9d07-9ec8ea9dec0c" />
+				<ee:transform doc:name="Transform Message" doc:id="0f7cc17f-9395-4b59-9340-a8ca524f2e9f" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
+var keyword = vars.originalPayload.keyword
+var channel = vars.brand.'brand-name'
+
+---
+{
+    sms_spiel: spielMap[keyword][channel].fb_unsuccess
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<ee:transform doc:name="Transform Message1" doc:id="2fd2e746-fcf9-43cc-a085-bb3f54b2a32b" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="auditLog" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "success": 0,
+    "hasProcessorError": 1
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
 			</otherwise>
 		</choice>
+		<error-handler ref="proc-subscription-api-Shared_Error_Handler" />
 	</flow>
 </mule>
