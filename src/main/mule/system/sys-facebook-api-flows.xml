@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="sys-post-provison-subflow" doc:id="a5e185d7-d85b-41bf-a0f5-eda51dc67843" >
+		<http:request method="POST" doc:name="Request" doc:id="260e9e01-35bd-4c63-b986-e054642d7946" config-ref="HTTP_Request_Config_facebook_Api" path="${provision.path}">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_id": p('provision.client_id'),
+	"client_secret": p('provision.client_secret'),
+	"X-Correlation-Id": correlationId
+}]]]></http:headers>
+		</http:request>
+		<error-handler ref="proc-subscription-api-Shared_Error_Handler" />
+	</flow>
+</mule>

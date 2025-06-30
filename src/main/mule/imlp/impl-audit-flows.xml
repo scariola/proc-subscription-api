@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="impl-post-audit-fllow" doc:id="3cc08cc0-ffff-4f8f-b613-9e1a33f802c9" >
+		<ee:transform doc:name="Payload to Audit API Request" doc:id="d33fb596-aa86-4087-9b31-6b2dcdcd4c33" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "csp_txid": payload.'transaction-id',
+  "sms_message_string":payload.'sms-message',
+  "sub_mobtel": payload.msisdn,
+  "sms_source_address": payload.'sms-source-address',
+  "sub_device_details":payload.'sub-device',
+  "hplmn": payload.hlprm,
+  "as_service_id": payload.'as-service-id'
+}
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="sys-post-audit-api-subflow" doc:id="a4119614-cb2c-4b9c-95e0-116eabe71199" name="sys-post-audit-api-subflow"/>
+		<choice doc:name="IS successful?" doc:id="fc5e25da-caf9-4bf9-aed7-4110a4b9a6fc" >
+			<when expression="#[attributes.statusCode == 200]">
+				<ee:transform doc:name="var-auditId" doc:id="d7171f47-9775-4fd4-8557-d08c86ccfe24">
+			<ee:message>
+			</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="auditId" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"audit-id": payload.id
+}]]></ee:set-variable>
+					</ee:variables>
+		</ee:transform>
+			</when>
+			<otherwise >
+				<raise-error doc:name="AUDIT:ERROR" doc:id="cf9fab80-ecdf-43af-84f1-789da910a5d9" type="AUDIT:ERROR" description="Failed to log information to AuditDB."/>
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="7c95d991-71da-4d6c-8ce1-b9db112fb18f" type="AUDIT:ERROR">
+				<logger level="INFO" doc:name="Logger" doc:id="414c7f48-54a1-47b2-81b5-40d032eaa747" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

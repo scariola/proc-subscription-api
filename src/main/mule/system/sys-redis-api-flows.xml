@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="sys-get-brand-subflow" doc:id="5d26c0d8-61a9-42e6-a65d-289069cdda7f" >
+		<logger level="INFO" doc:name="Logger" doc:id="46ff765e-d678-4fe3-9f85-10b69b096938" />
+		<http:request method="GET" doc:name="GET/ brand/{prefix}" doc:id="2690daef-6de1-4d5d-8c09-c25c37922b3a" config-ref="HTTP_Request_Config_Redis_Api" path="${redis.get.brand.path}">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"client_id": p('redis.client_id'),
+	"client_secret": p('redis.client_secret'),
+	"X-Correlation-Id": correlationId
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"prefix" : vars.cleanMsisdn.prefix
+}]]]></http:uri-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger1" doc:id="830541b1-d665-4bf3-a25e-4511b5cfcf67" />
+	</sub-flow>
+	<sub-flow name="sys-post-brand-subflow" doc:id="6ce529b4-4105-4ac7-85e7-be8ed97df51a" >
+		<logger level="INFO" doc:name="Logger" doc:id="bb661849-d9c2-4e42-b5dc-1d9beec326a6" />
+		<http:request method="POST" doc:name="POST /brand" doc:id="9d8b5ef6-a263-4ab2-b747-94ec6acfefcd" config-ref="HTTP_Request_Config_Redis_Api" path="${redis.post.brand.path}">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"client_id": p('redis.client_id'),
+	"client_secret": p('redis.client_secret'),
+	"X-Correlation-Id": correlationId
+}]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="Logger1" doc:id="371d23f1-3109-45ac-8bea-f8a27700c8e7" />
+	</sub-flow>
+	<sub-flow name="sys-post-state-subflow" doc:id="49730a5d-f57e-4850-abbf-75ad4595988f" >
+		<logger level="INFO" doc:name="Logger" doc:id="bb0437f0-1b7a-4c6e-97e9-38018b71c24d" />
+		<http:request method="POST" doc:name="POST /state/{msisdn}" doc:id="e3295e12-6460-4f91-994f-9ccd8e6d1b67" config-ref="HTTP_Request_Config_Redis_Api" path="${redis.put.state.path}">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"client_id": p('redis.client_id'),
+	"client_secret": p('redis.client_secret'),
+	"X-Correlation-Id": correlationId
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"msisdn" : vars.cleanMsisdn.msisdn
+}]]]></http:uri-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger1" doc:id="e201383f-e3f1-4676-88ae-61fe8d5519bb" />
+	</sub-flow>
+	<sub-flow name="sys-get-state-subflow" doc:id="890f7ef3-0342-40f0-85f7-3233e2296b14" >
+		<logger level="INFO" doc:name="Logger" doc:id="68dc12cf-ee6e-40ba-a1ec-c3195e5363f8" />
+		<http:request method="GET" doc:name="GET /state/{msisdn}" doc:id="2b7ffe22-bbfd-4486-84de-0a29cb060d7a" config-ref="HTTP_Request_Config_Redis_Api" path="${redis.get.state.path}">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"client_id": p('redis.client_id'),
+	"client_secret": p('redis.client_secret'),
+	"X-Correlation-Id": correlationId
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"msisdn" : vars.cleanMsisdn.msisdn
+}]]]></http:uri-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger1" doc:id="d2f8015e-83c7-4258-a8a0-602c5dbea3e1" />
+	</sub-flow>
+</mule>

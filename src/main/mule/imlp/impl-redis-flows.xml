@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="Imlp-cache-flow" doc:id="f01aa62f-3186-494e-9de1-6389cc176885" >
+		<ee:transform doc:name="var-orignalPayload, var-smsKeyword, var-cleanMsisdn" doc:id="231e8b2f-2ae5-4035-b048-35216bc4b514" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="originalPayload" ><![CDATA[payload]]></ee:set-variable>
+				<ee:set-variable variableName="smsKeyword" ><![CDATA[%dw 2.0
+output application/json
+var keyword = upper(payload.'sms-message')
+---
+{
+    "keyword": 
+        if (keyword == "FREE FB ON" or keyword == "ON FREE FB") 
+            "OPT-IN" 
+        else if (keyword == "FREE FB OFF" or keyword == "OFF FREE FB") 
+            "OPT-OUT"  
+        else if (keyword == "BONUSFB" or keyword == "BONUS FB") 
+            "BONUS"  
+        else "Unknowned Keyword."    
+}]]></ee:set-variable>
+				<ee:set-variable variableName="cleanMsisdn" ><![CDATA[%dw 2.0
+output application/json
+var rawMsisdn = payload.msisdn
+var formattedMsisdn  = if (rawMsisdn startsWith "0") rawMsisdn[1 to -1] else rawMsisdn
+---
+{
+  "prefix": formattedMsisdn [0 to 4],
+  "msisdn": "63" ++ formattedMsisdn 
+}
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<try doc:name="Try" doc:id="f71b769b-db02-4ae8-a2d8-426da049ed92">
+			<flow-ref doc:name="sys-get-brand-subflow" doc:id="bca513ea-5ccf-46b4-ae26-fef75c66dfe5" name="sys-get-brand-subflow" target="brandResponse"/>
+			<error-handler>
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="f601eb2e-fe52-4c79-aef2-f62edc56698a">
+					<logger level="INFO" doc:name="Logger" doc:id="9c95f29a-1751-44be-8d51-6b1d7b4b9998" />
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<choice doc:name="IS Brand Id Found?" doc:id="5ae4d3cb-1041-498f-a556-d42cd77dca03">
+			<when expression="#[isEmpty(payload.results)]">
+				<flow-ref doc:name="sys-get-brige-api-subflow" doc:id="a1139099-63cd-4125-97ba-c8b15c4a6cef" name="sys-get-brige-api-subflow" target="bridgeResponse" />
+				<flow-ref doc:name="sys-post-brand-subflow" doc:id="accd2fa4-5299-4ee3-af1e-f77a75b69c1e" name="sys-post-brand-subflow" />
+			</when>
+		</choice>
+		<ee:transform doc:name="var-brand" doc:id="a6e5a8b8-6614-4a6e-a154-8a99397e13ea">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="brand"><![CDATA[%dw 2.0
+output application/json
+
+var redis = vars.brandResponse
+var bridge = vars.bridgeResponse
+
+var data = 
+    if (redis.results?) redis.results
+    else bridge          
+---
+data
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<choice doc:name="IS Brand Id Supported?" doc:id="c5043fb0-326f-47c0-8a1a-9f1ac4044234">
+			<when expression='#[[1, 2, 3] contains (vars.brand."brand-id" default 0)]'>
+				<flow-ref doc:name="sys-get-state-subflow" doc:id="bc5b0110-f84c-460a-b145-6e261d37780b" name="sys-get-state-subflow"/>
+				<choice doc:name="ROUTE request To Screnarios" doc:id="92cae739-4cc2-4684-b1b9-4bfd2f23af4b">
+					<when expression='#[vars.smsKeyword.keyword == "OPT-IN"]'>
+						<flow-ref doc:name="impl-process-opt-in-subflow" doc:id="7f6c8532-e477-482d-96b0-20e004dcf054" name="impl-process-opt-in-subflow" />
+					</when>
+					<when expression='#[vars.smsKeyword.keyword == "OPT-OUT"]'>
+						<flow-ref doc:name="impl-process-opt-out-subflow" doc:id="be512e07-919e-4628-9646-e57c23106de4" name="impl-process-opt-out-subflow" />
+					</when>
+					<otherwise>
+						<flow-ref doc:name="impl-process-bonus-subflow" doc:id="c8aded14-95a2-440d-8225-28762471b555" name="impl-process-bonus-subflow" />
+					</otherwise>
+				</choice>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="var-smsSpielMapping(unsupported)" doc:id="bb73a39c-9a82-4759-a4fa-f14c6f7a7b66">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="smsSpielMapping" ><![CDATA[%dw 2.0
+output application/json
+var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
+---
+{
+	sms_spiel: spielMap.ANY.ANY.unsupported
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<ee:transform doc:name="var-auditLog" doc:id="2a16ed81-2546-4ebb-9bb5-70f986b23577">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="auditLog"><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "success": 0,
+    "hasProcessorError": 1
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<sub-flow name="impl-process-bonus-subflow"
+		doc:id="ad93a95c-9c49-4dd6-9722-a43a2f791b8a">
+		<choice doc:name="Choice"
+			doc:id="46977877-5241-42b2-9dbe-f67ebd1500c7">
+			<when expression="#[vars.stateResponse.state == 1]">
+				<ee:transform doc:name="var-smsSpielMapping(Dual Bonus)" doc:id="fb36f046-080d-4968-97bb-c2267175a428">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="smsSpielMapping"><![CDATA[%dw 2.0
+output application/json
+var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
+var keyword = vars.smsKeyword.keyword
+var channel = vars.brand.'brand-name'
+
+---
+{
+    "sms-spiel": spielMap[keyword][channel].dual_bonus
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<ee:transform doc:name="var-auditLog" doc:id="066d8ad7-592d-40b5-8c76-3952be6370d3" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="auditLog" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "success": 1,
+    "hasProcessorError": 0
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</when>
+			<when expression="#[vars.stateResponse.state == 0]" >
+				<ee:transform doc:name="var-smsSpielMapping(Bonus not eligable)" doc:id="36ea85f4-d321-4b81-8c51-23ea4fe9643f">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="smsSpielMapping"><![CDATA[%dw 2.0
+output application/json
+var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
+var keyword = vars.smsKeyword.keyword
+var channel = vars.brand.'brand-name'
+
+---
+{
+    "sms-spiel": spielMap[keyword][channel].not_eligable
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<ee:transform doc:name="var-auditLog" doc:id="84ec08a9-7dce-4e65-8557-21cc64056de2">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="auditLog"><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "success": 1,
+    "hasProcessorError": 0
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<flow-ref doc:name="Flow ref to get-msisdn-whitelist-flow"
+					doc:id="d67c1822-b0ed-4cf3-ad8d-242d30028a06"
+					name="get-msisdn-whitelist-flow" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="impl-process-opt-out-subflow" doc:id="fd6efcb2-b71b-4eec-b515-eeb0eab30bb6" >
+		<choice doc:name="IS State found?" doc:id="65395059-2e83-4c02-9b5c-5aec103aa9be">
+							<when expression="#[vars.stateResponse.state == 0]">
+				<ee:transform doc:name="var-smsSpielMapping(FB off dual off)" doc:id="784b030d-702a-41d7-9b21-e11e732bfe76" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="smsSpielMapping" ><![CDATA[%dw 2.0
+output application/json
+var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
+var keyword = vars.smsKeyword.keyword
+var channel = vars.brand.'brand-name'
+
+---
+{
+    "sms-spiel": spielMap[keyword][channel].dual_off
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<ee:transform doc:name="var-auditLog" doc:id="43002437-0fe9-447b-8bec-8f4aceae648a" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="auditLog" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "success": 1,
+    "hasProcessorError": 0
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+							</when>
+							<when expression="#[vars.stateResponse.state == 1]">
+								<flow-ref doc:name="impl-provision-flow" doc:id="35900247-b2f6-4154-8103-bcea509a4ac1" name="impl-provision-flow" />
+							</when>
+							<otherwise>
+				<ee:transform doc:name="var-smsSpielMapping(FB off Not Registered)" doc:id="1b3fc3c7-3d8e-4f5e-9a2a-ee5b706c725a" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="smsSpielMapping" ><![CDATA[%dw 2.0
+output application/json
+var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
+var keyword = vars.smsKeyword.keyword
+var channel = vars.brand.'brand-name'
+
+---
+{
+    "sms-spiel": spielMap[keyword][channel].not_registered
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<ee:transform doc:name="var-auditLog" doc:id="76e7c938-3472-4869-bff5-dc7c520c3251" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="auditLog" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "success": 1,
+    "hasProcessorError": 0
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+							</otherwise>
+						</choice>
+	</sub-flow>
+	<sub-flow name="impl-process-opt-in-subflow" doc:id="205e5447-9a8a-4772-9e83-6e372c86ad99" >
+		<choice doc:name="IS State found?" doc:id="4b2095ca-858c-4505-a7fd-f624563a788e">
+							<when expression="#[vars.stateResponse.state == 1]">
+								<ee:transform doc:name="var-smsSpielMapping(FB On Dual Provision)" doc:id="5578edea-7195-42ea-b033-f6f0f854386c">
+									<ee:message>
+									</ee:message>
+									<ee:variables>
+						<ee:set-variable variableName="smsSpielMapping" ><![CDATA[%dw 2.0
+output application/json
+var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
+var keyword = vars.smsKeyword.keyword
+var channel = vars.brand.'brand-name'
+
+---
+{
+    "sms-spiel": spielMap[keyword][channel].dual_provisioning
+}]]></ee:set-variable>
+									</ee:variables>
+								</ee:transform>
+								<ee:transform doc:name="var-auditLog" doc:id="c1400d82-fdfe-47db-adcb-cd99242715f1">
+									<ee:message>
+									</ee:message>
+									<ee:variables>
+										<ee:set-variable variableName="auditLog"><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "success": 1,
+    "hasProcessorError": 0
+}]]></ee:set-variable>
+									</ee:variables>
+								</ee:transform>
+							</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Proceed to Eligibility check" doc:id="417d8533-fc57-49ed-b218-13b133e2df90" />
+							</otherwise>
+						</choice>
+	</sub-flow>
+</mule>

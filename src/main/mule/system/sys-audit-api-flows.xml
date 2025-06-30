@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<sub-flow name="sys-post-audit-api-subflow" doc:id="c6660e69-0054-4922-bffe-5814b79ae286" >
+		<logger level="INFO" doc:name="Logger" doc:id="4b3f61f5-be56-4939-9d1a-1ffc564215b8" />
+		<http:request method="POST" doc:name="POST /sys-audit-api" doc:id="ece12aea-15e9-4574-9ed3-e66ac4f1ac26" config-ref="HTTP_Request_Config_Audit_Api" path="$(audit.post.path)"/>
+		<logger level="INFO" doc:name="Logger" doc:id="7baecd04-cace-4d70-a5a3-b0e546d9b4e8" />
+	</sub-flow>
+	<sub-flow name="sys-put-audit-api-subflow" doc:id="5f3c861e-c96e-457a-9564-07f038508cd0" >
+		<logger level="INFO" doc:name="Logger" doc:id="9c0d3c73-27cd-4c38-880e-7048797158ec" />
+		<http:request method="PUT" doc:name="PUT /sys-audit/api/{auditId}" doc:id="e07b6f0f-db11-4064-9e1a-862694af8b8c" config-ref="HTTP_Request_Config_Audit_Api" path="$(audit.put.path)" />
+		<logger level="INFO" doc:name="Logger1" doc:id="d0ae9dff-3bab-49da-95a0-38c62cebc688" />
+	</sub-flow>
+</mule>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="impl-get-whitelist-flow" doc:id="edb8adf6-159c-4100-8cae-cffaeb33c4d6" >
+		<flow-ref doc:name="get-msisdn-whitelist-flow" doc:id="d6afa47b-bd5d-4c20-96fe-f01cc02833a9" name="get-msisdn-whitelist-flow"/>
+		<choice doc:name="Choice" doc:id="99dc84f5-cd97-4778-ac3b-375d5a7d6a8f" >
+			<when expression="#[(isEmpty(payload.result) and payload.results.eligible == true)]">
+				<ee:transform doc:name="Transform Message" doc:id="d3e06656-8cee-454a-a61b-932c25e3e328">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+
+var bonusExpiry = now() + |P7D| 
+---
+{
+  "service-id": "bonusfb",
+  "expiry-date": bonusExpiry as LocalDateTime as String { format: "yyyy-MM-dd HH:mm:ss" },
+  "unix-expiryDate": bonusExpiry as Number  
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="31d744bb-e3d1-4d77-ae01-1e676216130d" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="smsSpielMapping" ><![CDATA[%dw 2.0
+output application/json
+var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
+var keyword = vars.smsKeywords.keyword
+var channel = vars.brand.'brand-name'
+
+---
+{
+    sms_spiel: spielMap[keyword][channel].not_eligable
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<ee:transform doc:name="Transform Message" doc:id="59d16385-1475-4911-9b93-ba140c74c3e9" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="auditLog" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "success": 0,
+    "hasProcessorError": 1
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="impl-delete-whitelist" doc:id="9838645a-15aa-4dad-9199-a7ffcf178dda" >
+		<flow-ref doc:name="get-msisdn-whitelist-flow" doc:id="035637e0-7bb5-41aa-96ce-c1b7b9b76e83" name="get-msisdn-whitelist-flow" />
+		<choice doc:name="Choice" doc:id="ccf25d15-44db-4741-ad11-6f3a2c916059" >
+			<when expression="#[(isEmpty(payload.result) and payload.results.eligible == true)]" >
+				<ee:transform doc:name="Transform Message" doc:id="ec2f477a-20c7-4d5e-8251-59fcd8e2d51d" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var bonusExpiry = now() + |P7D| 
+---
+{
+  "service-id": "bonusfb",
+  "expiry-date": bonusExpiry as LocalDateTime as String { format: "yyyy-MM-dd HH:mm:ss" },
+  "unix-expiryDate": bonusExpiry as Number  
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="682e64a2-8b02-4423-aaca-a8557fdc96b3" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="smsSpielMapping" ><![CDATA[%dw 2.0
+output application/json
+var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
+var keyword = vars.smsKeywords.keyword
+var channel = vars.brand.'brand-name'
+
+---
+{
+    sms_spiel: spielMap[keyword][channel].not_eligable
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<ee:transform doc:name="Transform Message1" doc:id="3bd7842b-c9cd-4355-a806-526158bb80d8" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="auditLog" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "success": 0,
+    "hasProcessorError": 1
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

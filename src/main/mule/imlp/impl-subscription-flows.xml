@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="impl-post-subscription-subflow" doc:id="7c6531aa-8a89-4fd1-b2c4-2ba67a000d09" >
+		<flow-ref doc:name="impl-post-audit-fllow" doc:id="5841db2c-87c4-436c-98c2-d148b3643619" name="impl-post-audit-fllow"/>
+		<flow-ref doc:name="impl-redis-flows" doc:id="df1eddac-db79-438b-bf53-3012de73f9f2" name="Imlp-cache-flow"/>
+		<flow-ref doc:name="Flow Reference" doc:id="210ab367-276a-4056-a5fc-21516a672df9" name="impl-elgibility-check-flow"/>
+	</sub-flow>
+</mule>

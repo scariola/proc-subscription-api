@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="impl-provision-flow" doc:id="a4e17292-b52d-4967-94e5-db1c6c879d90" >
+		<ee:transform doc:name="Transform Message" doc:id="0413c01b-5be4-4b16-9f40-56533b4a6893" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "msisdn": vars.cleanMsisdn.msisdn,
+  "provision": {
+    "fb-product-id": payload.'service-id' default vars.originalPayload.'service-id',
+    "expiration": payload.'unix-expiry-date'
+  }
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="sys-post-provison-subflow" doc:id="de980ab7-83fa-480e-b64c-15bfe7d9e545" name="sys-post-provison-subflow"/>
+		<choice doc:name="Choice" doc:id="42b7ba53-68ad-47b2-b09e-0d805bc73eff">
+			<when expression="#[attributes.statusCode == 201]">
+				<choice doc:name="Choice" doc:id="fbb9cc1f-31af-40ba-ba71-762893aca0e1">
+					<when expression='#[vars.smsKeyword.keyword == "BONUS"]'>
+						<flow-ref doc:name="Flow ref to delete-msisdn-whitelist-flow" doc:id="b983ce95-d0c3-4189-9bcf-2fae9cf7902f" name="delete-msisdn-whitelist-flow" />
+					</when>
+				</choice>
+				<ee:transform doc:name="var-state" doc:id="a8dff01e-ca1a-4ff7-9719-13038f2852b3">
+					<ee:message>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="state" ><![CDATA[%dw 2.0
+output application/json
+
+var keyword = vars.originalPayload.keyword
+var state = if (keyword == "OPT-IN" or keyword == "BONUS") 1 else 0
+---
+{
+    state: state
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<ee:transform doc:name="var-auditLog" doc:id="c5628d8b-6d6e-4599-9ae6-1208ab2e4613">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="auditLog"><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "success": 1,
+    "hasProcessorError": 0
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="var-smsSpielMapping" doc:id="0f7cc17f-9395-4b59-9340-a8ca524f2e9f">
+					<ee:message>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="smsSpielMapping" ><![CDATA[%dw 2.0
+output application/json
+var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
+var keyword = vars.smsKeywords.keyword
+var channel = vars.brand.'brand-name'
+
+---
+{
+    sms_spiel: spielMap[keyword][channel].fb_unsuccess
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<ee:transform doc:name="var-auditLog" doc:id="2fd2e746-fcf9-43cc-a085-bb3f54b2a32b">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="auditLog"><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "success": 0,
+    "hasProcessorError": 1
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

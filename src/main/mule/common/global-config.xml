@@ -21,7 +21,7 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 			port="${http.port}" />
 	</http:listener-config>
 	<apikit:config name="proc-subscription-api-config"
-		api="resource::19504067-e1e3-45dd-943a-e163098ddbed:proc-subscription-api:1.0.1:raml:zip:proc-subscription-api.raml"
+		api="resource::19504067-e1e3-45dd-943a-e163098ddbed:proc-subscription-api:1.0.5:raml:zip:proc-subscription-api.raml"
 		outboundHeadersMapName="outboundHeaders"
 		httpStatusVarName="httpStatus" />
 	<secure-properties:config
@@ -70,5 +70,17 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 		doc:name="HTTP Request configuration"
 		doc:id="3dcc3a19-b52d-4700-8f4e-3a6f62a40de8">
 		<http:request-connection host="${mongodb.host}" protocol="HTTPS"/>
+	</http:request-config>
+	<http:request-config
+		name="HTTP_Request_Config_Audit_Api"
+		doc:name="HTTP Request configuration"
+		doc:id="138b19f7-5dff-4042-b13c-0b06d264da9c">
+		<http:request-connection host="${audit.host}" protocol="HTTPS"/>
+	</http:request-config>
+	<http:request-config
+		name="HTTP_Request_Config_SMS_Api"
+		doc:name="HTTP Request configuration"
+		doc:id="868a7a39-e728-4fdb-8928-3ecf382589e7">
+		<http:request-connection host="${sms.host}" protocol="HTTPS"/>
 	</http:request-config>
 </mule>
