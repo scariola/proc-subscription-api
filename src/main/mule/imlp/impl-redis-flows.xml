@@ -8,8 +8,7 @@
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<flow name="Imlp-cache-flow"
 		doc:id="f01aa62f-3186-494e-9de1-6389cc176885">
-		<ee:transform
-			doc:name="var-orignalPayload, var-smsKeyword, var-cleanMsisdn"
+		<ee:transform doc:name="var-smsKeyword, var-cleanMsisdn"
 			doc:id="231e8b2f-2ae5-4035-b048-35216bc4b514">
 			<ee:message>
 			</ee:message>
@@ -89,7 +88,7 @@ data
 				expression='#[[1, 2, 3] contains (vars.brand."brand-id" default 0)]'>
 				<flow-ref doc:name="sys-get-state-subflow"
 					doc:id="bc5b0110-f84c-460a-b145-6e261d37780b"
-					name="sys-get-state-subflow" target="stateResponse"/>
+					name="sys-get-state-subflow" target="stateResponse" />
 				<choice doc:name="ROUTE request To Screnarios"
 					doc:id="92cae739-4cc2-4684-b1b9-4bfd2f23af4b">
 					<when expression='#[vars.smsKeyword.keyword == "OPT-IN"]'>
@@ -146,7 +145,7 @@ output application/json
 		doc:id="ad93a95c-9c49-4dd6-9722-a43a2f791b8a">
 		<choice doc:name="Choice"
 			doc:id="46977877-5241-42b2-9dbe-f67ebd1500c7">
-			<when expression="#[vars.stateResponse.state == 1]">
+			<when expression="#[vars.stateResponse.result.state == 1]">
 				<ee:transform
 					doc:name="var-smsSpielMapping(Dual Bonus)"
 					doc:id="fb36f046-080d-4968-97bb-c2267175a428">
@@ -178,7 +177,7 @@ output application/json
 					</ee:variables>
 				</ee:transform>
 			</when>
-			<when expression="#[vars.stateResponse.state == 0]">
+			<when expression="#[vars.stateResponse.result.state == 0]">
 				<ee:transform
 					doc:name="var-smsSpielMapping(Bonus not eligable)"
 					doc:id="36ea85f4-d321-4b81-8c51-23ea4fe9643f">
@@ -211,9 +210,12 @@ output application/json
 				</ee:transform>
 			</when>
 			<otherwise>
-				<flow-ref doc:name="Flow ref to get-msisdn-whitelist-flow"
+				<flow-ref doc:name="impl-get-whitelist-flow"
 					doc:id="d67c1822-b0ed-4cf3-ad8d-242d30028a06"
-					name="get-msisdn-whitelist-flow" />
+					name="impl-get-whitelist-flow" />
+				<flow-ref doc:name="impl-provision-flow"
+					doc:id="18aca4d3-7be2-4984-b28a-1fce21c4bff3"
+					name="impl-provision-flow" />
 			</otherwise>
 		</choice>
 	</sub-flow>
@@ -221,7 +223,7 @@ output application/json
 		doc:id="fd6efcb2-b71b-4eec-b515-eeb0eab30bb6">
 		<choice doc:name="IS State found?"
 			doc:id="65395059-2e83-4c02-9b5c-5aec103aa9be">
-			<when expression="#[vars.stateResponse.state == 0]">
+			<when expression="#[vars.stateResponse.result.state == 0]">
 				<ee:transform
 					doc:name="var-smsSpielMapping(FB off dual off)"
 					doc:id="784b030d-702a-41d7-9b21-e11e732bfe76">
@@ -253,7 +255,7 @@ output application/json
 					</ee:variables>
 				</ee:transform>
 			</when>
-			<when expression="#[vars.stateResponse.state == 1]">
+			<when expression="#[vars.stateResponse.result.state == 1]">
 				<flow-ref doc:name="impl-provision-flow"
 					doc:id="35900247-b2f6-4154-8103-bcea509a4ac1"
 					name="impl-provision-flow" />
@@ -296,7 +298,7 @@ output application/json
 		doc:id="205e5447-9a8a-4772-9e83-6e372c86ad99">
 		<choice doc:name="IS State found?"
 			doc:id="4b2095ca-858c-4505-a7fd-f624563a788e">
-			<when expression="#[vars.stateResponse.state == 1]">
+			<when expression="#[vars.stateResponse.result.state == 1]">
 				<ee:transform
 					doc:name="var-smsSpielMapping(FB On Dual Provision)"
 					doc:id="5578edea-7195-42ea-b033-f6f0f854386c">
@@ -336,21 +338,24 @@ output application/json
 			</otherwise>
 		</choice>
 	</sub-flow>
-	<flow name="impl-post-state-flow" doc:id="bfe14225-145b-4e47-a49a-7dac870ea8af" >
-		<ee:transform doc:name="Payload to Redis API Request" doc:id="469f1316-c0a3-4bb5-84e7-e30a9ddfeb6b" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+	<flow name="impl-post-state-flow"
+		doc:id="bfe14225-145b-4e47-a49a-7dac870ea8af">
+		<ee:transform doc:name="Payload to Redis API Request"
+			doc:id="469f1316-c0a3-4bb5-84e7-e30a9ddfeb6b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
 output application/java
 ---
 {
 	"msisdn": vars.cleanMsisdn.msisdn,
-	"expiry-date": vars.eligibilityResponse.'expiry-date'
+	"expiry-date": vars.expiryDetails.'ttl-seconds'
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<ee:transform doc:name="Transform Message" doc:id="da8556c0-e816-4de3-8e9a-69689ca1caee" >
-			<ee:message >
-				<ee:set-attributes ><![CDATA[%dw 2.0
+		<ee:transform doc:name="Transform Message"
+			doc:id="da8556c0-e816-4de3-8e9a-69689ca1caee">
+			<ee:message>
+				<ee:set-attributes><![CDATA[%dw 2.0
 output application/json
 ---
 {
@@ -358,21 +363,21 @@ output application/json
 }]]></ee:set-attributes>
 			</ee:message>
 		</ee:transform>
-		<!-- [STUDIO:"Until Successful"]<until-successful maxRetries="3" doc:name="Until Successful" doc:id="2cb2c6e3-a6a1-461c-8a55-ed8199314643" millisBetweenRetries="50000">
-			<try doc:name="Try" doc:id="ee8efeb8-b266-4f83-ae8b-05b6ea54238e">
-			<flow-ref doc:name="sys-post-state-subflow" doc:id="8aaf0d4a-4a4e-49b2-95b6-fc97bc290004" name="sys-post-state-subflow" />
-				<error-handler >
-					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="61905c3c-bda0-4179-a883-875989de7086" type="ANY">
-						<logger level="INFO" doc:name="Logger" doc:id="da9475d5-53c1-4801-b76c-7a4d55fa0a33" />
-					</on-error-continue>
-				</error-handler>
-		</try>
-			</until-successful> [STUDIO] -->
-		<choice doc:name="Choice" doc:id="e1b496f9-5763-4cce-b8b6-75ff680eceea" >
+		<!-- [STUDIO:"Until Successful"]<until-successful maxRetries="3" doc:name="Until 
+			Successful" doc:id="2cb2c6e3-a6a1-461c-8a55-ed8199314643" millisBetweenRetries="50000"> 
+			<try doc:name="Try" doc:id="ee8efeb8-b266-4f83-ae8b-05b6ea54238e"> <flow-ref 
+			doc:name="sys-post-state-subflow" doc:id="8aaf0d4a-4a4e-49b2-95b6-fc97bc290004" 
+			name="sys-post-state-subflow" /> <error-handler > <on-error-continue enableNotifications="true" 
+			logException="true" doc:name="On Error Continue" doc:id="61905c3c-bda0-4179-a883-875989de7086" 
+			type="ANY"> <logger level="INFO" doc:name="Logger" doc:id="da9475d5-53c1-4801-b76c-7a4d55fa0a33" 
+			/> </on-error-continue> </error-handler> </try> </until-successful> [STUDIO] -->
+		<choice doc:name="Choice"
+			doc:id="e1b496f9-5763-4cce-b8b6-75ff680eceea">
 			<when expression="#[attributes.statusCode == 201]">
-				<ee:transform doc:name="var-auditLog" doc:id="79a40c69-7435-4828-997d-9bc9ec7b17f8" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
+				<ee:transform doc:name="var-auditLog"
+					doc:id="79a40c69-7435-4828-997d-9bc9ec7b17f8">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {
@@ -380,8 +385,8 @@ output application/json
     "hasProcessorError": 0
 }]]></ee:set-payload>
 					</ee:message>
-					<ee:variables >
-						<ee:set-variable variableName="auditLog" ><![CDATA[%dw 2.0
+					<ee:variables>
+						<ee:set-variable variableName="auditLog"><![CDATA[%dw 2.0
 output application/java
 ---
 {
@@ -389,8 +394,10 @@ output application/java
 					</ee:variables>
 				</ee:transform>
 			</when>
-			<otherwise >
-				<logger level="INFO" doc:name="Logger" doc:id="1e639d31-0b53-40a4-a47c-1e9c0b0e5866" message='#[{&#10;  "step": "6 - Cache Save",&#10;  //"transactionId;" "idss",&#10;  "msisdn": "63xxxxxxxxxx",&#10;  "request_type": "Opt-In / Opt-Out / Bonus",&#10;  "cache_key": "spectre-freefb-63xxxxxxxxxx",&#10;  "cache_value": "1 or 0",&#10;  "attempt": 3,&#10;  "status": "failure",&#10;  "error": "Connection timeout / Write error / null",&#10;  "timestamp": "2025-05-30T10:30:15Z"&#10;}]'/>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger"
+					doc:id="1e639d31-0b53-40a4-a47c-1e9c0b0e5866"
+					message='#[{&#10;  "step": "6 - Cache Save",&#10;  //"transactionId;" "idss",&#10;  "msisdn": "63xxxxxxxxxx",&#10;  "request_type": "Opt-In / Opt-Out / Bonus",&#10;  "cache_key": "spectre-freefb-63xxxxxxxxxx",&#10;  "cache_value": "1 or 0",&#10;  "attempt": 3,&#10;  "status": "failure",&#10;  "error": "Connection timeout / Write error / null",&#10;  "timestamp": "2025-05-30T10:30:15Z"&#10;}]' />
 			</otherwise>
 		</choice>
 	</flow>

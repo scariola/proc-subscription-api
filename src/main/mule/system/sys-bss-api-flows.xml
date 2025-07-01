@@ -15,45 +15,20 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<http:headers><![CDATA[#[output application/java
 ---
 {
-	"X-Client-Id": p('nf.client_id'),
-	"X-Client-Secret": p('nf.client_secret'),
+	"X-Client-Id": p('bss.client_id'),
+	"X-Client-Secret": p('bss.client_secret'),
 	"X-Correlation-Id": correlationId
 }]]]></http:headers>
 			<http:uri-params><![CDATA[#[output application/java
 ---
 {
-	"msisdn" : vars.originalPayload.full_msisdn
+	"msisdn" : vars.originalPayload.msisdn[1 to -1]
 }]]]></http:uri-params>
 			<http:query-params><![CDATA[#[output application/java
 ---
 {
-	"brand" : vars.brand."brand-id"
+	"brand" : vars.brand.'brand-id'
 }]]]></http:query-params>
 		</http:request>
-		<choice doc:name="Choice" doc:id="6ee5c250-9e32-4adc-9876-db02e46a9caf" >
-			<when expression="#[!isEmpty(payload.bundles)]">
-				<ee:transform doc:name="Transform Message" doc:id="be6b58fe-61d8-4d29-8200-ac3c20297bb7" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
-
-var defaultExpiryDate = "2025-12-31 23:59:59"
-var unixFormat = defaultExpiryDate as LocalDateTime { format: "yyyy-MM-dd HH:mm:ss" } as DateTime as Number
-
----
- 
-{
-  "service_id": vars.orginalPayload.service_id,  
-  "expiry_date": defaultExpiryDate,
-  "unix_expiryDate": unixFormat
-}
-]]></ee:set-payload>
-					</ee:message>
-				</ee:transform>
-			</when>
-			<otherwise >
-				<logger level="INFO" doc:name="Set Spiel Type = ineligible" doc:id="26691d60-f617-4588-8d1e-9b1f6ee5c0cf" />
-			</otherwise>
-		</choice>
 	</flow>
 </mule>

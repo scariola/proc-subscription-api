@@ -31,9 +31,9 @@ output application/json
   "x-event-code": 1005,
   "x-event-msg": "Success",
   "result":{
-      "prefix": "92767",
-      "brand-id": 1,
-      "brand-name": "GHP Prepaid"
+      "prefix": "93640",
+      "brand-id": 2,
+      "brand-name": "TM"
   }
 }
 ]]></ee:set-payload>
@@ -111,7 +111,7 @@ output application/json
   "x-event-code": 1005,
   "x-event-msg": "Success",
   "result":{
-   
+    "state": 1
   }
 }
 ]]></ee:set-payload>

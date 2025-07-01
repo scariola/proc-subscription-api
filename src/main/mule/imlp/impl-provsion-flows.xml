@@ -13,8 +13,8 @@ output application/json
 {
   "msisdn": vars.cleanMsisdn.msisdn,
   "provision": {
-    "fb-product-id": payload.'service-id' default vars.originalPayload.'service-id',
-    "expiration": payload.'unix-expiry-date'
+    "fb-product-id": payload.'service-id' default vars.originalPayload.'as-service-id',
+    "expiration": payload.'unix-expiry-date' default 1
   }
 }
 ]]></ee:set-payload>
@@ -56,7 +56,7 @@ output application/java
 						<ee:set-variable variableName="state" ><![CDATA[%dw 2.0
 output application/json
 
-var keyword = vars.originalPayload.keyword
+var keyword = vars.smsKeyword.keyword
 var state = if (keyword == "OPT-IN" or keyword == "BONUS") 1 else 0
 ---
 {

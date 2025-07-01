@@ -10,17 +10,25 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<when expression="#[(isEmpty(payload.result) and payload.results.eligible == true)]">
 				<ee:transform doc:name="Transform Message" doc:id="d3e06656-8cee-454a-a61b-932c25e3e328">
 			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
+			</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="expiryDetails" ><![CDATA[%dw 2.0
 output application/json
 
-var bonusExpiry = now() + |P7D| 
+var bonusExpiry = now() + |P7D|
+var expiryDate = bonusExpiry as String { format: "yyyy-MM-dd HH:mm:ss" }
+var currentUnix = (now() as Number)
+var expiryUnix = (bonusExpiry as Number)
+var bonusTtl = expiryUnix - currentUnix
+var serviceId = vars.originalPayload.'as-service-id'
 ---
 {
-  "service-id": "bonusfb",
-  "expiry-date": bonusExpiry as LocalDateTime as String { format: "yyyy-MM-dd HH:mm:ss" },
-  "unix-expiryDate": bonusExpiry as Number  
-}]]></ee:set-payload>
-			</ee:message>
+  "service-id": serviceId,
+  "expiry-date": expiryDate,
+  "unix-expiry-date": expiryUnix,
+  "ttl-seconds": bonusTtl
+}]]></ee:set-variable>
+					</ee:variables>
 		</ee:transform>
 			</when>
 			<otherwise >
@@ -57,53 +65,15 @@ output application/json
 		</choice>
 	</flow>
 	<flow name="impl-delete-whitelist" doc:id="9838645a-15aa-4dad-9199-a7ffcf178dda" >
-		<flow-ref doc:name="get-msisdn-whitelist-flow" doc:id="035637e0-7bb5-41aa-96ce-c1b7b9b76e83" name="get-msisdn-whitelist-flow" />
-		<choice doc:name="Choice" doc:id="ccf25d15-44db-4741-ad11-6f3a2c916059" >
-			<when expression="#[(isEmpty(payload.result) and payload.results.eligible == true)]" >
-				<ee:transform doc:name="Transform Message" doc:id="ec2f477a-20c7-4d5e-8251-59fcd8e2d51d" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
-
-var bonusExpiry = now() + |P7D| 
----
-{
-  "service-id": "bonusfb",
-  "expiry-date": bonusExpiry as LocalDateTime as String { format: "yyyy-MM-dd HH:mm:ss" },
-  "unix-expiryDate": bonusExpiry as Number  
-}]]></ee:set-payload>
-					</ee:message>
-				</ee:transform>
-			</when>
-			<otherwise >
-				<ee:transform doc:name="Transform Message" doc:id="682e64a2-8b02-4423-aaca-a8557fdc96b3" >
-					<ee:message />
-					<ee:variables >
-						<ee:set-variable variableName="smsSpielMapping" ><![CDATA[%dw 2.0
-output application/json
-var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
-var keyword = vars.smsKeywords.keyword
-var channel = vars.brand.'brand-name'
-
----
-{
-    sms_spiel: spielMap[keyword][channel].not_eligable
-}]]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-				<ee:transform doc:name="Transform Message1" doc:id="3bd7842b-c9cd-4355-a806-526158bb80d8" >
-					<ee:message />
-					<ee:variables >
-						<ee:set-variable variableName="auditLog" ><![CDATA[%dw 2.0
-output application/json
----
-{
-    "success": 0,
-    "hasProcessorError": 1
-}]]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-			</otherwise>
-		</choice>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="823c5073-3929-4609-bcac-26aae24457f1" >
+			<try doc:name="Try" doc:id="610e64df-3d72-47d3-a802-46289fad33e5">
+			<flow-ref doc:name="get-msisdn-whitelist-flow" doc:id="035637e0-7bb5-41aa-96ce-c1b7b9b76e83" name="get-msisdn-whitelist-flow" />
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="a7031c03-429d-4934-a1d8-49cda0a1b159" type="ANY">
+						<logger level="INFO" doc:name="Logger" doc:id="6198af09-2396-490f-8a96-ccc2fdcc5734" />
+					</on-error-propagate>
+				</error-handler>
+		</try>
+		</until-successful>
 	</flow>
 </mule>

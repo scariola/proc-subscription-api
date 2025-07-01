@@ -15,8 +15,8 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<http:headers><![CDATA[#[output application/java
 ---
 {
-	"X-Client-Id": p('mongodb.client_id'),
-	"X-Client-Secret": p('mongodb.client_secret'),
+	"client_id": p('mongodb.client_id'),
+	"client_secret": p('mongodb.client_secret'),
 	"X-Correlation-Id": correlationId
 }]]]></http:headers>
 			<http:uri-params><![CDATA[#[output application/java
@@ -28,20 +28,20 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 
 	</flow>
 	<flow name="delete-msisdn-whitelist-flow" doc:id="d9e41f07-8b47-4ab9-b31f-c98be4e0c1de">
-		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="a155c2f5-2082-41ed-9629-a3226064a779">
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="a155c2f5-2082-41ed-9629-a3226064a779" millisBetweenRetries="5000">
 				<try doc:name="Try" doc:id="1504182f-000c-4b33-9a38-b8a70daa65be">
-				<http:request method="DELETE" doc:name="Request" doc:id="932ad56b-3baf-4bdb-a351-80292b9e1219" config-ref="HTTP_Request_Config_MongoDB_Api" path="${mongodb.path}">
+				<http:request method="DELETE" doc:name="DELETE /whitelist/{msisdn}" doc:id="932ad56b-3baf-4bdb-a351-80292b9e1219" config-ref="HTTP_Request_Config_MongoDB_Api" path="${mongodb.path}">
 			<http:headers><![CDATA[#[output application/java
 ---
 {
-	"X-Client-Id": p('mongodb.client_id'),
-	"X-Client-Secret": p('mongodb.client_secret'),
+	"client_id": p('mongodb.client_id'),
+	"client_secret": p('mongodb.client_secret'),
 	"X-Correlation-Id": correlationId
 }]]]></http:headers>
 			<http:uri-params><![CDATA[#[output application/java
 ---
 {
-	"msisdn" : vars.originalPayload.full_msisdn
+	"msisdn" : vars.cleanMsisdn.msisdn
 }]]]></http:uri-params>
 		</http:request>
 				<error-handler>
