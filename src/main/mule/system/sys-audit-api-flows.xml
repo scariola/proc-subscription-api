@@ -33,6 +33,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 			doc:name="PUT /sys-audit/api/{auditId}"
 			doc:id="e07b6f0f-db11-4064-9e1a-862694af8b8c"
 			config-ref="HTTP_Request_Config_Audit_Api" path="${audit.put.path}">
+			<http:body ><![CDATA[#[payload.value]]]></http:body>
 			<http:headers><![CDATA[#[output application/java
 ---
 {

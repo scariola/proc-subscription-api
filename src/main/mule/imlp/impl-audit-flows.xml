@@ -71,7 +71,8 @@ output application/json
 output application/json
 ---
 {
-	"audit-id": vars.auditId."audit-id"
+	"audit-id": vars.auditId."audit-id",
+	"value": vars.auditLog
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>

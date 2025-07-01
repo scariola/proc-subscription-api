@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="impl-validation-process-flow" doc:id="74314bdf-a0d9-4e20-b32c-e646c567827b" >
+		<ee:transform doc:name="var-smsKeyword, var-cleanMsisdn" doc:id="231e8b2f-2ae5-4035-b048-35216bc4b514">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="smsKeyword"><![CDATA[%dw 2.0
+output application/json
+var keyword = upper(vars.originalPayload.'sms-message')
+---
+{
+    "keyword": 
+        if (keyword == "FREE FB ON" or keyword == "ON FREE FB") 
+            "OPT-IN" 
+        else if (keyword == "FREE FB OFF" or keyword == "OFF FREE FB") 
+            "OPT-OUT"  
+        else if (keyword == "BONUSFB" or keyword == "BONUS FB") 
+            "BONUS"  
+        else "Unknowned Keyword."    
+}]]></ee:set-variable>
+				<ee:set-variable variableName="cleanMsisdn"><![CDATA[%dw 2.0
+output application/json
+var rawMsisdn = vars.originalPayload.msisdn
+var formattedMsisdn  = if (rawMsisdn startsWith "0") rawMsisdn[1 to -1] else rawMsisdn
+---
+{
+  "prefix": formattedMsisdn [0 to 4],
+  "msisdn": "63" ++ formattedMsisdn 
+}
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</flow>
+</mule>

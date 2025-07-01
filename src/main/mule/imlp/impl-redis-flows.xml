@@ -8,37 +8,6 @@
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<flow name="Imlp-cache-flow"
 		doc:id="f01aa62f-3186-494e-9de1-6389cc176885">
-		<ee:transform doc:name="var-smsKeyword, var-cleanMsisdn"
-			doc:id="231e8b2f-2ae5-4035-b048-35216bc4b514">
-			<ee:message>
-			</ee:message>
-			<ee:variables>
-				<ee:set-variable variableName="smsKeyword"><![CDATA[%dw 2.0
-output application/json
-var keyword = upper(vars.originalPayload.'sms-message')
----
-{
-    "keyword": 
-        if (keyword == "FREE FB ON" or keyword == "ON FREE FB") 
-            "OPT-IN" 
-        else if (keyword == "FREE FB OFF" or keyword == "OFF FREE FB") 
-            "OPT-OUT"  
-        else if (keyword == "BONUSFB" or keyword == "BONUS FB") 
-            "BONUS"  
-        else "Unknowned Keyword."    
-}]]></ee:set-variable>
-				<ee:set-variable variableName="cleanMsisdn"><![CDATA[%dw 2.0
-output application/json
-var rawMsisdn = vars.originalPayload.msisdn
-var formattedMsisdn  = if (rawMsisdn startsWith "0") rawMsisdn[1 to -1] else rawMsisdn
----
-{
-  "prefix": formattedMsisdn [0 to 4],
-  "msisdn": "63" ++ formattedMsisdn 
-}
-]]></ee:set-variable>
-			</ee:variables>
-		</ee:transform>
 		<try doc:name="Try" doc:id="f71b769b-db02-4ae8-a2d8-426da049ed92">
 			<flow-ref doc:name="sys-get-brand-subflow"
 				doc:id="bca513ea-5ccf-46b4-ae26-fef75c66dfe5"
