@@ -20,7 +20,28 @@ output application/json
 ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<flow-ref doc:name="sys-post-provison-subflow" doc:id="de980ab7-83fa-480e-b64c-15bfe7d9e545" name="sys-post-provison-subflow"/>
+		<!-- [STUDIO:"sys-post-provison-subflow"]<flow-ref doc:name="sys-post-provison-subflow" doc:id="de980ab7-83fa-480e-b64c-15bfe7d9e545" name="sys-post-provison-subflow"/> [STUDIO] -->
+		<ee:transform doc:name="Transform Message" doc:id="e93b8b36-d93f-4397-84c4-4ed3c3121c79" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "x-event-id":"123-45555-222-2221",	
+  "x-event-code": 1005,
+  "x-event-msg": "Provisioning successful"
+}
+]]></ee:set-payload>
+				<ee:set-attributes ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	statusCode: 201
+}]]></ee:set-attributes>
+			</ee:message>
+			<ee:variables >
+			</ee:variables>
+		</ee:transform>
 		<choice doc:name="Choice" doc:id="42b7ba53-68ad-47b2-b09e-0d805bc73eff">
 			<when expression="#[attributes.statusCode == 201]">
 				<choice doc:name="Choice" doc:id="fbb9cc1f-31af-40ba-ba71-762893aca0e1">

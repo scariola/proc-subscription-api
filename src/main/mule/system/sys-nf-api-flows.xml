@@ -19,12 +19,12 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<http:uri-params><![CDATA[#[output application/java
 ---
 {
-	"msisdn" : vars.cleanMsisdn.msisdn
+	"msisdn" : vars.originalPayload.msisdn[1 to -1]
 }]]]></http:uri-params>
 			<http:query-params><![CDATA[#[output application/java
 ---
 {
-	"brand" : vars.brand[0]."brand-id"
+	"brand" : vars.brand.'brand-id'
 }]]]></http:query-params>
 		</http:request>
 	</flow>

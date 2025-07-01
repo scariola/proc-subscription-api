@@ -27,7 +27,17 @@
 	<flow
 		name="post:\subscription:application\json:proc-subscription-api-config">
 		<logger level="INFO" doc:name="Logger" doc:id="8515c7b5-8fbe-4995-a255-e4dfd5d3bcbf" />
+		<ee:transform doc:name="Transform Message" doc:id="fa72305f-bce5-4f0d-9547-555f4e9e58b0" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="originalPayload" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
 		<flow-ref doc:name="impl-post-subscription-subflow" doc:id="0e1c050a-6e2e-4695-a46d-51acd0d6453d" name="impl-post-subscription-subflow"/>
-		<logger level="INFO" doc:name="Logger1" doc:id="dd78a311-0ba8-4c35-9c61-76266e34b8eb" />
+		<logger level="INFO" doc:name="Logger1" doc:id="dd78a311-0ba8-4c35-9c61-76266e34b8eb" message="#[payload]"/>
 	</flow>
 </mule>

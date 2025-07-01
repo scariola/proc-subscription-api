@@ -15,6 +15,5 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	"X-Correlation-Id": correlationId
 }]]]></http:headers>
 		</http:request>
-		<error-handler ref="proc-subscription-api-Shared_Error_Handler" />
 	</flow>
 </mule>

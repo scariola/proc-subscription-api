@@ -10,51 +10,42 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 			<when expression='#[[1, 2] contains (vars.brand."brand-id")]'>
 				<flow-ref doc:name="sys-nf-api-flowsSub_Flow" doc:id="5c954196-c1d3-4499-abc7-b5431b425249" name="sys-nf-api-flowFlow" />
 				<validation:is-true doc:name="Is true" doc:id="0d0ef80a-d50f-49e3-9984-be57cc65256d" expression="#[!isEmpty(payload.bundles filter ($.service_id == vars.originalPayload.'as-service-id' and now() &lt; ($.expiry_date as LocalDateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;})))]" message="Service Id is Mismatch or the expority date is greater than today's date." />
-				<ee:transform doc:name="Transform Message" doc:id="9262a61a-a1cb-461e-9664-25d7c99ac3bc" >
+				<ee:transform doc:name="NF API Response to Payload Response" doc:id="9262a61a-a1cb-461e-9664-25d7c99ac3bc" >
 					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="eligibilityResponse" ><![CDATA[%dw 2.0
 output application/json
 
 var filteredData =   payload.bundles filter (
-        $.service_id == vars.originalPayload.service_id 
+        $.service_id == vars.originalPayload.'as-service-id'
         and 
         now() < ($.expiry_date as LocalDateTime {format: "yyyy-MM-dd HH:mm:ss"})
     )
 var rawDate = filteredData[0].expiry_date
-var unixFormat = rawDate as LocalDateTime { format: "yyyy-MM-dd HH:mm:ss" } as DateTime as Number
+var expiryDateTime = rawDate as LocalDateTime { format: "yyyy-MM-dd HH:mm:ss" } as DateTime
+var currentDateTime = now() as DateTime
+var unixExpiry = expiryDateTime as Number
+var unixNow = currentDateTime as Number
+var redisExpiry = unixExpiry - unixNow
 
 ---
  
 {
   "service-id": filteredData[0].service_id,  
-  "unix-expiry-date": unixFormat
+  "expiry-date": filteredData[0].expiry_date,  
+  "unix-expiry-date": unixExpiry,
+  "state-expiry": redisExpiry
 }
-]]></ee:set-payload>
-					</ee:message>
+]]></ee:set-variable>
+					</ee:variables>
 				</ee:transform>
 				<choice doc:name="Choice" doc:id="b76e7a6d-31e8-48d2-9b5a-0d5e7e0ae920" >
-					<when expression="vars.stateRepose == 0">
-						<ee:transform doc:name="smsSpielMapping" doc:id="73a05d4f-5b38-4d6e-8351-73a7b971302c" >
+					<when expression="vars.stateResponse == 0">
+						<ee:transform doc:name="smsSpielMapping" doc:id="a064c34c-b4df-415c-8040-4e8208c91f78">
 							<ee:message />
-							<ee:variables >
-								<ee:set-variable variableName="smsSpielMapping" ><![CDATA[%dw 2.0
-output application/json
-var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
-var keyword = vars.smsKeyword.keyword
-var channel = vars.brand.'brand-name'
-
----
-{
-    "sms-spiel": spielMap[keyword][channel].eligible
-}]]></ee:set-variable>
-							</ee:variables>
-						</ee:transform>
-					</when>
-					<otherwise >
-						<ee:transform doc:name="smsSpielMapping" doc:id="a064c34c-b4df-415c-8040-4e8208c91f78" >
-							<ee:message />
-							<ee:variables >
-								<ee:set-variable variableName="smsSpielMapping" ><![CDATA[%dw 2.0
+							<ee:variables>
+								<ee:set-variable variableName="smsSpielMapping"><![CDATA[%dw 2.0
 output application/json
 var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
 var keyword = vars.smsKeyword.keyword
@@ -63,6 +54,23 @@ var channel = vars.brand.'brand-name'
 ---
 {
     "sms-spiel": spielMap[keyword][channel].reactivation
+}]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<ee:transform doc:name="smsSpielMapping" doc:id="73a05d4f-5b38-4d6e-8351-73a7b971302c">
+							<ee:message />
+							<ee:variables>
+								<ee:set-variable variableName="smsSpielMapping"><![CDATA[%dw 2.0
+output application/json
+var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
+var keyword = vars.smsKeyword.keyword
+var channel = vars.brand.'brand-name'
+
+---
+{
+    "sms-spiel": spielMap[keyword][channel].eligible
 }]]></ee:set-variable>
 							</ee:variables>
 						</ee:transform>
@@ -91,7 +99,7 @@ var unixFormat = defaultExpiryDate as LocalDateTime { format: "yyyy-MM-dd HH:mm:
 					</ee:message>
 				</ee:transform>
 				<choice doc:name="Choice" doc:id="0a8944a0-d001-4ad0-90ed-4a20c7ae82fc" >
-					<when expression="vars.stateRepose == 0" >
+					<when expression="vars.stateResponse == 0" >
 						<ee:transform doc:name="smsSpielMapping" doc:id="de1d77e5-4f40-4b70-ad66-456acb20c496" >
 							<ee:message />
 							<ee:variables >

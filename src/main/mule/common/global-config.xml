@@ -57,30 +57,33 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 		name="HTTP_Request_Config_Redis_Api"
 		doc:name="HTTP Request configuration"
 		doc:id="3512d009-6b03-4b11-9499-9a0f83ec1e21">
-		<http:request-connection host="${redis.host}" protocol="HTTPS"/>
+		<http:request-connection host="${redis.host}"
+			protocol="HTTPS" />
 	</http:request-config>
 	<http:request-config
 		name="HTTP_Request_Config_facebook_Api"
 		doc:name="HTTP Request configuration"
 		doc:id="0dee634d-cc8e-45d1-98e0-5f5760d9e12f">
-		<http:request-connection host="${provision.host}" protocol="HTTPS"/>
+		<http:request-connection
+			host="${provision.host}" protocol="HTTPS" />
 	</http:request-config>
 	<http:request-config
 		name="HTTP_Request_Config_MongoDB_Api"
 		doc:name="HTTP Request configuration"
 		doc:id="3dcc3a19-b52d-4700-8f4e-3a6f62a40de8">
-		<http:request-connection host="${mongodb.host}" protocol="HTTPS"/>
+		<http:request-connection
+			host="${mongodb.host}" protocol="HTTPS" />
 	</http:request-config>
 	<http:request-config
 		name="HTTP_Request_Config_Audit_Api"
 		doc:name="HTTP Request configuration"
 		doc:id="138b19f7-5dff-4042-b13c-0b06d264da9c">
-		<http:request-connection host="${audit.host}" protocol="HTTPS"/>
+		<http:request-connection host="${audit.host}" />
 	</http:request-config>
 	<http:request-config
 		name="HTTP_Request_Config_SMS_Api"
 		doc:name="HTTP Request configuration"
 		doc:id="868a7a39-e728-4fdb-8928-3ecf382589e7">
-		<http:request-connection host="${sms.host}" protocol="HTTPS"/>
+		<http:request-connection host="${sms.host}" />
 	</http:request-config>
 </mule>

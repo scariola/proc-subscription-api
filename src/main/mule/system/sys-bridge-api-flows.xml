@@ -50,7 +50,7 @@ output application/json
 
 ---
 {
-  "prefix": vars.originalPayload.prefix,
+  "prefix": vars.cleanMsisdn.prefix,
   "brand-id": 0,
   "brand-name": "UNSUPPORTED"
 }
