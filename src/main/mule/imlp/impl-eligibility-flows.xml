@@ -5,16 +5,18 @@
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
-	<flow name="impl-elgibility-check-flow" doc:id="5ecc8f3c-73aa-41d3-89ec-81d0899f5eed" >
+	<sub-flow name="impl-elgibility-check-subflow" doc:id="dc088ddc-5d70-4c2e-9507-7fd5e21e7d6d" >
+		<logger level="INFO" doc:name="START - Eligibility Process" doc:id="00b45a75-690e-4012-846a-87c483cc0547" message="START - STEP 4: ELIGIBILITY CHECK"/>
 		<choice doc:name="Identify BrandId" doc:id="e524c1a2-5b97-45d9-be52-2acb7b9c748e">
 			<when expression='#[[1, 2] contains (vars.brand."brand-id")]'>
 				<flow-ref doc:name="sys-nf-api-flowsSub_Flow" doc:id="5c954196-c1d3-4499-abc7-b5431b425249" name="sys-nf-api-flowFlow" />
-				<validation:is-true doc:name="Is true" doc:id="0d0ef80a-d50f-49e3-9984-be57cc65256d" expression="#[!isEmpty(payload.bundles filter ($.service_id == vars.originalPayload.'as-service-id' and now() &lt; ($.expiry_date as LocalDateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;})))]" message="Service Id is Mismatch or the expority date is greater than today's date." />
-				<ee:transform doc:name="NF API Response to Payload Response" doc:id="9262a61a-a1cb-461e-9664-25d7c99ac3bc" >
-					<ee:message >
+				<choice doc:name="Choice" doc:id="2c207d32-0bea-4017-bd19-44f17d1e8897">
+					<when expression="#[!isEmpty(payload.bundles filter ($.service_id == vars.originalPayload.'as-service-id' and now() &lt; ($.expiry_date as LocalDateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;})))]">
+						<ee:transform doc:name="NF API Response to Payload Response" doc:id="9262a61a-a1cb-461e-9664-25d7c99ac3bc">
+					<ee:message>
 					</ee:message>
-					<ee:variables >
-						<ee:set-variable variableName="expiryDetails" ><![CDATA[%dw 2.0
+					<ee:variables>
+						<ee:set-variable variableName="expiryDetails"><![CDATA[%dw 2.0
 output application/json
 
 var filteredData =   payload.bundles filter (
@@ -40,52 +42,52 @@ var redisExpiry = unixExpiry - unixNow
 ]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
-				<choice doc:name="Choice" doc:id="b76e7a6d-31e8-48d2-9b5a-0d5e7e0ae920" >
+						<choice doc:name="Choice" doc:id="b76e7a6d-31e8-48d2-9b5a-0d5e7e0ae920">
 					<when expression="vars.stateResponse.result.state == 0">
-						<ee:transform doc:name="smsSpielMapping" doc:id="a064c34c-b4df-415c-8040-4e8208c91f78">
-							<ee:message />
-							<ee:variables>
-								<ee:set-variable variableName="smsSpielMapping"><![CDATA[%dw 2.0
+								<ee:transform doc:name="var-spielType(reactivation)" doc:id="26acd67d-c858-472f-a070-ce05df7409d1" >
+									<ee:message >
+										<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
-var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
-var keyword = vars.smsKeyword.keyword
-var channel = vars.brand.'brand-name'
-
 ---
-{
-    "sms-spiel": spielMap[keyword][channel].reactivation
-}]]></ee:set-variable>
-							</ee:variables>
-						</ee:transform>
+'reactivation']]></ee:set-payload>
+									</ee:message>
+								</ee:transform>
+					</when>
+					<otherwise>
+						<ee:transform doc:name="var-spielType(eligable)" doc:id="213f80b1-129c-4fcd-82fb-27e396c32d66" >
+									<ee:message >
+										<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+'eligible']]></ee:set-payload>
+									</ee:message>
+								</ee:transform>
+					</otherwise>
+				</choice>
 					</when>
 					<otherwise >
-						<ee:transform doc:name="smsSpielMapping" doc:id="73a05d4f-5b38-4d6e-8351-73a7b971302c">
-							<ee:message />
-							<ee:variables>
-								<ee:set-variable variableName="smsSpielMapping"><![CDATA[%dw 2.0
+						<ee:transform doc:name="var-spielType(ineligable)" doc:id="1dd28447-2628-4011-999c-0fdbdfe26dd4" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
-var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
-var keyword = vars.smsKeyword.keyword
-var channel = vars.brand.'brand-name'
-
 ---
-{
-    "sms-spiel": spielMap[keyword][channel].eligible
-}]]></ee:set-variable>
-							</ee:variables>
+'ineligible']]></ee:set-payload>
+							</ee:message>
 						</ee:transform>
+						<flow-ref doc:name="common-set-error-audit-log-subflow" doc:id="000f6208-d5f2-4314-98ba-14569dd3dd29" name="common-set-error-audit-log-subflow" />
 					</otherwise>
 				</choice>
 			
 </when>
 			<otherwise>
 				<flow-ref doc:name="Flow ref to get-bss-msisdn-eligibility-flow" doc:id="e9da4451-755b-403d-9f7a-09048078c5ea" name="get-bss-msisdn-eligibility-flow" />
-				<validation:is-true doc:name="Is true" doc:id="2d1d284c-2a4e-4d06-91c6-33053954a917" expression="#[!isEmpty(payload.bundles)]" message="No Active Promo."/>
-				<ee:transform doc:name="Transform Message" doc:id="5c2af4e5-f43e-4332-97f7-2238df804d63" >
-					<ee:message >
+				<choice doc:name="Choice" doc:id="5f6f28f0-7f77-423a-878e-bf7a7e70baf2">
+					<when expression="#[!isEmpty(payload.bundles)]">
+						<ee:transform doc:name="BSS API Response to Payload Reponse" doc:id="5c2af4e5-f43e-4332-97f7-2238df804d63">
+					<ee:message>
 					</ee:message>
-					<ee:variables >
-						<ee:set-variable variableName="expiryDetails" ><![CDATA[%dw 2.0
+					<ee:variables>
+						<ee:set-variable variableName="expiryDetails"><![CDATA[%dw 2.0
 output application/json
 
 var defaultExpiryDate = "2025-12-31 23:59:59"
@@ -102,44 +104,44 @@ var serviceId = vars.originalPayload.'as-service-id'
 }]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
-				<choice doc:name="Choice" doc:id="0a8944a0-d001-4ad0-90ed-4a20c7ae82fc" >
+						<choice doc:name="Choice" doc:id="0a8944a0-d001-4ad0-90ed-4a20c7ae82fc">
 					<when expression="vars.stateResponse.result.state == 0">
-						<ee:transform doc:name="smsSpielMapping" doc:id="3c7f2b4b-57d2-4b65-b691-8d394d79c308">
-							<ee:message />
-							<ee:variables>
-								<ee:set-variable variableName="smsSpielMapping"><![CDATA[%dw 2.0
+						<ee:transform doc:name="var-spielType(reactivation)" doc:id="39ec839d-ceda-4377-a5b5-26608abea69a">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
 output application/json
-var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
-var keyword = vars.smsKeyword.keyword
-var channel = vars.brand.'brand-name'
-
 ---
-{
-    "sms-spiel": spielMap[keyword][channel].reactivation
-}]]></ee:set-variable>
-							</ee:variables>
+'reactivation']]></ee:set-payload>
+							</ee:message>
 						</ee:transform>
 					</when>
-					<otherwise >
-						<ee:transform doc:name="smsSpielMapping" doc:id="de1d77e5-4f40-4b70-ad66-456acb20c496">
-							<ee:message />
-							<ee:variables>
-								<ee:set-variable variableName="smsSpielMapping"><![CDATA[%dw 2.0
+					<otherwise>
+						<ee:transform doc:name="var-spielType(eligable)" doc:id="0c98fc96-1110-4156-b825-569a938d55d7">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
 output application/json
-var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
-var keyword = vars.smsKeyword.keyword
-var channel = vars.brand.'brand-name'
-
 ---
-{
-    "sms-spiel": spielMap[keyword][channel].eligible
-}]]></ee:set-variable>
-							</ee:variables>
+'eligible']]></ee:set-payload>
+							</ee:message>
 						</ee:transform>
+					</otherwise>
+				</choice>
+					</when>
+					<otherwise >
+						<ee:transform doc:name="var-spielType(ineligable)" doc:id="1c041e81-0e77-4b8e-88c1-053fc2f1bf61" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+'ineligible']]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<flow-ref doc:name="common-set-error-audit-log-subflow" doc:id="ec8a19d3-57df-4baa-80a2-00c6f4583d81" name="common-set-error-audit-log-subflow"/>
 					</otherwise>
 				</choice>
 			
 </otherwise>
 		</choice>
-	</flow>
+		<logger level="INFO" doc:name="END - Eligibility Process" doc:id="149e4290-fce3-4c9f-aca0-2666f2c754f0" message="END - STEP 4: ELIGIBILITY CHECK"/>
+	</sub-flow>
 </mule>

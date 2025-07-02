@@ -4,10 +4,11 @@
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<flow name="impl-provision-flow" doc:id="a4e17292-b52d-4967-94e5-db1c6c879d90" >
-		<ee:transform doc:name="Transform Message" doc:id="0413c01b-5be4-4b16-9f40-56533b4a6893" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+	<sub-flow name="impl-provision-subflow" doc:id="e557c6d9-3c13-48b5-9e19-0194580f45c3" >
+		<logger level="INFO" doc:name="START - Provision Process" doc:id="b14a9b83-bf15-4856-b6e4-b25be773458a" message="START - Provision Process - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING"/>
+		<ee:transform doc:name="Transform Message" doc:id="0413c01b-5be4-4b16-9f40-56533b4a6893">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {
@@ -21,9 +22,9 @@ output application/json
 			</ee:message>
 		</ee:transform>
 		<!-- [STUDIO:"sys-post-provison-subflow"]<flow-ref doc:name="sys-post-provison-subflow" doc:id="de980ab7-83fa-480e-b64c-15bfe7d9e545" name="sys-post-provison-subflow"/> [STUDIO] -->
-		<ee:transform doc:name="Transform Message" doc:id="e93b8b36-d93f-4397-84c4-4ed3c3121c79" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+		<ee:transform doc:name="Transform Message" doc:id="e93b8b36-d93f-4397-84c4-4ed3c3121c79">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {
@@ -32,28 +33,28 @@ output application/json
   "x-event-msg": "Provisioning successful"
 }
 ]]></ee:set-payload>
-				<ee:set-attributes ><![CDATA[%dw 2.0
+				<ee:set-attributes><![CDATA[%dw 2.0
 output application/java
 ---
 {
 	statusCode: 201
 }]]></ee:set-attributes>
 			</ee:message>
-			<ee:variables >
+			<ee:variables>
 			</ee:variables>
 		</ee:transform>
 		<choice doc:name="Choice" doc:id="42b7ba53-68ad-47b2-b09e-0d805bc73eff">
 			<when expression="#[attributes.statusCode == 201]">
 				<choice doc:name="Choice" doc:id="fbb9cc1f-31af-40ba-ba71-762893aca0e1">
 					<when expression='#[vars.smsKeyword.keyword == "BONUS"]'>
-						<flow-ref doc:name="Flow ref to delete-msisdn-whitelist-flow" doc:id="b983ce95-d0c3-4189-9bcf-2fae9cf7902f" name="delete-msisdn-whitelist-flow" />
+						<flow-ref doc:name="impl-delete-whitelist-subflow" doc:id="b983ce95-d0c3-4189-9bcf-2fae9cf7902f" name="impl-delete-whitelist-subflow" />
 					</when>
 				</choice>
 				<ee:transform doc:name="var-state" doc:id="a8dff01e-ca1a-4ff7-9719-13038f2852b3">
 					<ee:message>
 					</ee:message>
-					<ee:variables >
-						<ee:set-variable variableName="state" ><![CDATA[%dw 2.0
+					<ee:variables>
+						<ee:set-variable variableName="state"><![CDATA[%dw 2.0
 output application/json
 
 var keyword = vars.smsKeyword.keyword
@@ -82,32 +83,16 @@ output application/json
 				<ee:transform doc:name="var-smsSpielMapping" doc:id="0f7cc17f-9395-4b59-9340-a8ca524f2e9f">
 					<ee:message>
 					</ee:message>
-					<ee:variables >
-						<ee:set-variable variableName="smsSpielMapping" ><![CDATA[%dw 2.0
-output application/json
-var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
-var keyword = vars.smsKeywords.keyword
-var channel = vars.brand.'brand-name'
-
----
-{
-    sms_spiel: spielMap[keyword][channel].fb_unsuccess
-}]]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-				<ee:transform doc:name="var-auditLog" doc:id="2fd2e746-fcf9-43cc-a085-bb3f54b2a32b">
-					<ee:message />
 					<ee:variables>
-						<ee:set-variable variableName="auditLog"><![CDATA[%dw 2.0
+						<ee:set-variable variableName="spielType" ><![CDATA[%dw 2.0
 output application/json
 ---
-{
-    "success": 0,
-    "hasProcessorError": 1
-}]]></ee:set-variable>
+'fb-unsuccess']]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
+				<flow-ref doc:name="common-set-error-audit-log-subflow" doc:id="60965d2c-d1e4-48a1-89c8-532591ea9499" name="common-set-error-audit-log-subflow"/>
 			</otherwise>
 		</choice>
-	</flow>
+		<logger level="INFO" doc:name="END  - Provision Process " doc:id="7d709578-dc90-4904-b7d6-10d4b3021b48" message="END  - Provision Process - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING"/>
+	</sub-flow>
 </mule>

@@ -4,10 +4,11 @@
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<flow name="impl-sms-flowsFlow" doc:id="e6097040-b8ac-4e9f-9c62-0a67d4ecf060" >
-		<ee:transform doc:name="Payload to SMS API Request" doc:id="4068500d-2ddc-4cc5-bc32-944dc3551796" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+	<sub-flow name="impl-post-sms-subflow" doc:id="111d89cb-82df-432a-ad55-58ee03c9429e" >
+		<logger level="INFO" doc:name="START - SMS Messaging Process" doc:id="83d7ed65-5fd3-4cec-8af9-12f8df5de773" message="START - SMS Messaging Process - STEP 8: SMS MESSAGING"/>
+		<ee:transform doc:name="Payload to SMS API Request" doc:id="4068500d-2ddc-4cc5-bc32-944dc3551796">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {
@@ -20,7 +21,7 @@ output application/json
 			</ee:message>
 		</ee:transform>
 		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="6d2ff901-6515-4863-9b17-e00a2fb1ff84" millisBetweenRetries="50000">
-			<try doc:name="Try" doc:id="8346971c-910f-4f24-b667-1a49060c5a14" >
+			<try doc:name="Try" doc:id="8346971c-910f-4f24-b667-1a49060c5a14">
 				<flow-ref doc:name="sys-sms-api-sublow" doc:id="2f04e614-a2d4-4162-a531-7b5d54e5b583" name="sys-sms-api-sublow" />
 				<error-handler>
 					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b387aa1b-697f-44be-a1ac-4e4ef1afcfaf" type="ANY">
@@ -29,31 +30,11 @@ output application/json
 				</error-handler>
 			</try>
 			<choice doc:name="Choice" doc:id="3622358a-f67f-4c00-9765-3ccdaaea4567">
-				<when expression="#[attributes.statusCode == 200]">
-					<ee:transform doc:name="Transform Message" doc:id="dcbafb50-1ce8-4339-a83b-46fd1ef4b2d4">
-						<ee:message>
-							<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
- "x-event-id": correlationId,	
- "x-event-code": 1005,
- "x-event-msg": "Success",
- "result": {
-   "transaction-id": vars.originalPayload.'transaction-id',
-   "msisdn": vars.originalPayload.msisdn,
-   "status": 1,
-   "exipry-date": vars.eligibilityResponse.'expiry-date',
-   "sms-spiel": vars.smsSpielMapping.'sms-spiel'
-  }
-} ]]></ee:set-payload>
-						</ee:message>
-					</ee:transform>
-				</when>
-				<otherwise>
+				<when expression="#[attributes.statusCode != 200]">
 					<logger level="INFO" doc:name="Logger" doc:id="aa816ce1-154d-4ae7-8b7e-3120d7901d05" message="log failure" />
-				</otherwise>
+				</when>
 			</choice>
 		</until-successful>
-	</flow>
+		<logger level="INFO" doc:name="END - SMS Messaging Process" doc:id="a932eb17-8b8e-491e-997c-0a8808b18aa3" message="END - SMS Messaging Process - STEP 8: SMS MESSAGING"/>
+	</sub-flow>
 </mule>

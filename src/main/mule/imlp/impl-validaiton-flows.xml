@@ -1,15 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<flow name="impl-validation-process-flow" doc:id="74314bdf-a0d9-4e20-b32c-e646c567827b" >
-		<ee:transform doc:name="var-smsKeyword, var-cleanMsisdn" doc:id="231e8b2f-2ae5-4035-b048-35216bc4b514">
-			<ee:message>
-			</ee:message>
-			<ee:variables>
-				<ee:set-variable variableName="smsKeyword"><![CDATA[%dw 2.0
+	<sub-flow name="impl-sms-validation-subflow"
+		doc:id="031e25d2-3f6c-4c7b-83c6-bc092b7aff0d">
+		<logger level="INFO" doc:name="START - Validation Process"
+			doc:id="668be819-4d9e-41ea-b797-49fe2acb4c54"
+			message="START - STEP 2: RECEIVE &amp; VALIDATE REQUEST " />
+		<choice doc:name="HAS sms message and msisdn?"
+			doc:id="cef5380e-fccd-4113-9837-37fa1ec45c48">
+			<when
+				expression="#[(isEmpty(vars.orginalPayload.'sms-message') and isEmpty(vars.orginalPayload.'msisdn'))]">
+				<ee:transform doc:name="var-spielType" doc:id="04f26e0a-3833-45c6-ba19-d18c0f0a802c" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="spielType" ><![CDATA[%dw 2.0
+output application/java
+---
+'invalid-keyword']]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform
+					doc:name="var-smsKeyword, var-cleanMsisdn"
+					doc:id="231e8b2f-2ae5-4035-b048-35216bc4b514">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="smsKeyword"><![CDATA[%dw 2.0
 output application/json
 var keyword = upper(vars.originalPayload.'sms-message')
 ---
@@ -21,9 +44,9 @@ var keyword = upper(vars.originalPayload.'sms-message')
             "OPT-OUT"  
         else if (keyword == "BONUSFB" or keyword == "BONUS FB") 
             "BONUS"  
-        else "Unknowned Keyword."    
+        else "INVALID"    
 }]]></ee:set-variable>
-				<ee:set-variable variableName="cleanMsisdn"><![CDATA[%dw 2.0
+						<ee:set-variable variableName="cleanMsisdn"><![CDATA[%dw 2.0
 output application/json
 var rawMsisdn = vars.originalPayload.msisdn
 var formattedMsisdn  = if (rawMsisdn startsWith "0") rawMsisdn[1 to -1] else rawMsisdn
@@ -33,7 +56,34 @@ var formattedMsisdn  = if (rawMsisdn startsWith "0") rawMsisdn[1 to -1] else raw
   "msisdn": "63" ++ formattedMsisdn 
 }
 ]]></ee:set-variable>
-			</ee:variables>
-		</ee:transform>
-	</flow>
+					</ee:variables>
+				</ee:transform>
+				<choice doc:name="CONTAINS Invalid Keword?"
+					doc:id="2157aad9-35cc-4938-ab38-1b4c9cb6ff93">
+					<when expression="#[vars.smsKeyword.keyword == 'INVALID']">
+						<ee:transform doc:name="var-spielType"
+							doc:id="741212b0-6680-47dd-aaf2-694381e51f11">
+							<ee:message>
+							</ee:message>
+							<ee:variables>
+								<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
+output application/java
+---
+'invalid-keyword']]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+						<flow-ref doc:name="common-set-error-audit-log-subflow" doc:id="ecbde5f9-0e2d-4dbf-a0ad-f54dab460ab5" name="common-set-error-audit-log-subflow" />
+					</when>
+					<otherwise>
+						<logger level="INFO" doc:name="Do Nothing"
+							doc:id="113f3700-029d-4dda-941c-f09954298676"
+							message="STEP 3: REDIS LOGIC (BRAND &amp; STATE LOOKUP)" />
+					</otherwise>
+				</choice>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="END - Validation Process"
+			doc:id="080130ac-248f-41ed-b836-63e3a0f7bfc0"
+			message="END - STEP 2: RECEIVE &amp; VALIDATE REQUEST" />
+	</sub-flow>
 </mule>
