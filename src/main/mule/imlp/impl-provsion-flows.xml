@@ -4,7 +4,7 @@
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<sub-flow name="impl-provision-subflow" doc:id="e557c6d9-3c13-48b5-9e19-0194580f45c3" >
+	<sub-flow name="impl-post-provision-subflow" doc:id="e557c6d9-3c13-48b5-9e19-0194580f45c3" >
 		<logger level="INFO" doc:name="START - Provision Process" doc:id="b14a9b83-bf15-4856-b6e4-b25be773458a" message="START - Provision Process - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING"/>
 		<ee:transform doc:name="Transform Message" doc:id="0413c01b-5be4-4b16-9f40-56533b4a6893">
 			<ee:message>
@@ -14,35 +14,14 @@ output application/json
 {
   "msisdn": vars.cleanMsisdn.msisdn,
   "provision": {
-    "fb-product-id": payload.'service-id' default vars.originalPayload.'as-service-id',
-    "expiration": payload.'unix-expiry-date' default 1
+    "fb-product-id": vars.expiryDetails.'service-id' default vars.originalPayload.'as-service-id',
+    "expiry-date": vars.expiryDetails."expiry-date" default (now() as DateTime)
   }
 }
 ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<!-- [STUDIO:"sys-post-provison-subflow"]<flow-ref doc:name="sys-post-provison-subflow" doc:id="de980ab7-83fa-480e-b64c-15bfe7d9e545" name="sys-post-provison-subflow"/> [STUDIO] -->
-		<ee:transform doc:name="Transform Message" doc:id="e93b8b36-d93f-4397-84c4-4ed3c3121c79">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  "x-event-id":"123-45555-222-2221",	
-  "x-event-code": 1005,
-  "x-event-msg": "Provisioning successful"
-}
-]]></ee:set-payload>
-				<ee:set-attributes><![CDATA[%dw 2.0
-output application/java
----
-{
-	statusCode: 201
-}]]></ee:set-attributes>
-			</ee:message>
-			<ee:variables>
-			</ee:variables>
-		</ee:transform>
+		<flow-ref doc:name="sys-post-provison-subflow" doc:id="de980ab7-83fa-480e-b64c-15bfe7d9e545" name="sys-post-provison-subflow"/>
 		<choice doc:name="Choice" doc:id="42b7ba53-68ad-47b2-b09e-0d805bc73eff">
 			<when expression="#[attributes.statusCode == 201]">
 				<choice doc:name="Choice" doc:id="fbb9cc1f-31af-40ba-ba71-762893aca0e1">

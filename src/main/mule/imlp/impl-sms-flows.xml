@@ -6,6 +6,7 @@
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<sub-flow name="impl-post-sms-subflow" doc:id="111d89cb-82df-432a-ad55-58ee03c9429e" >
 		<logger level="INFO" doc:name="START - SMS Messaging Process" doc:id="83d7ed65-5fd3-4cec-8af9-12f8df5de773" message="START - SMS Messaging Process - STEP 8: SMS MESSAGING"/>
+		<flow-ref doc:name="common-get-spiel-subflow" doc:id="eb38623b-189d-462a-bac8-3c3b22847ffa" name="common-get-spiel-subflow"/>
 		<ee:transform doc:name="Payload to SMS API Request" doc:id="4068500d-2ddc-4cc5-bc32-944dc3551796">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0

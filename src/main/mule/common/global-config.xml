@@ -51,7 +51,7 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 		name="HTTP_Request_Config_BSS_Api"
 		doc:name="HTTP Request configuration"
 		doc:id="34300ded-99c2-4a18-a9eb-09c2edcda660">
-		<http:request-connection host="${nf.host}" />
+		<http:request-connection host="${bss.host}" />
 	</http:request-config>
 	<http:request-config
 		name="HTTP_Request_Config_Redis_Api"

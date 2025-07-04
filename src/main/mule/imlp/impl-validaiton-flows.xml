@@ -14,16 +14,10 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<choice doc:name="HAS sms message and msisdn?"
 			doc:id="cef5380e-fccd-4113-9837-37fa1ec45c48">
 			<when
-				expression="#[(isEmpty(vars.orginalPayload.'sms-message') and isEmpty(vars.orginalPayload.'msisdn'))]">
-				<ee:transform doc:name="var-spielType" doc:id="04f26e0a-3833-45c6-ba19-d18c0f0a802c" >
-					<ee:message />
-					<ee:variables >
-						<ee:set-variable variableName="spielType" ><![CDATA[%dw 2.0
-output application/java
----
-'invalid-keyword']]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
+				expression="#[(!isEmpty(vars.orginalPayload.'sms-message') and !isEmpty(vars.orginalPayload.'msisdn'))]">
+				<flow-ref doc:name="common-set-error-audit-log-subflow"
+					doc:id="05902734-92a5-44d2-a296-af278cda5dee"
+					name="common-set-error-audit-log-subflow" />
 			</when>
 			<otherwise>
 				<ee:transform
@@ -72,7 +66,9 @@ output application/java
 'invalid-keyword']]></ee:set-variable>
 							</ee:variables>
 						</ee:transform>
-						<flow-ref doc:name="common-set-error-audit-log-subflow" doc:id="ecbde5f9-0e2d-4dbf-a0ad-f54dab460ab5" name="common-set-error-audit-log-subflow" />
+						<flow-ref doc:name="common-set-error-audit-log-subflow"
+							doc:id="ecbde5f9-0e2d-4dbf-a0ad-f54dab460ab5"
+							name="common-set-error-audit-log-subflow" />
 					</when>
 					<otherwise>
 						<logger level="INFO" doc:name="Do Nothing"

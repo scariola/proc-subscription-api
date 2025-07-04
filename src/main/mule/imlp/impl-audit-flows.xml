@@ -62,7 +62,7 @@ output application/json
 ---
 {
 	"audit-id": vars.auditId."audit-id",
-	"value": vars.auditLog
+	"requetPayload": vars.auditLog
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>

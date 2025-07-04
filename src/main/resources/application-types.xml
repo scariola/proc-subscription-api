@@ -3,7 +3,8 @@
   <types:catalog/>
   <types:enrichment select="#c5628d8b-6d6e-4599-9ae6-1208ab2e4613"/>
   <types:enrichment select="#231e8b2f-2ae5-4035-b048-35216bc4b514"/>
-  <types:enrichment select="#e93b8b36-d93f-4397-84c4-4ed3c3121c79"/>
   <types:enrichment select="#741212b0-6680-47dd-aaf2-694381e51f11"/>
   <types:enrichment select="#3d9f82d8-b3ed-4a67-b64d-58e49556c1a4"/>
+  <types:enrichment select="#26acd67d-c858-472f-a070-ce05df7409d1"/>
+  <types:enrichment select="#1c041e81-0e77-4b8e-88c1-053fc2f1bf61"/>
 </types:mule>

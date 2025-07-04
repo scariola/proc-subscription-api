@@ -16,29 +16,20 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable variableName="expiryDetails"><![CDATA[%dw 2.0
+								<ee:set-variable variableName="expiryDetails" ><![CDATA[%dw 2.0
 output application/json
 
-var filteredData =   payload.bundles filter (
-        $.service_id == vars.originalPayload.'as-service-id'
-        and 
-        now() < ($.expiry_date as LocalDateTime {format: "yyyy-MM-dd HH:mm:ss"})
-    )
-var rawDate = filteredData[0].expiry_date
-var expiryDateTime = rawDate as LocalDateTime { format: "yyyy-MM-dd HH:mm:ss" } as DateTime
-var currentDateTime = now() as DateTime
-var unixExpiry = expiryDateTime as Number
-var unixNow = currentDateTime as Number
-var redisExpiry = unixExpiry - unixNow
-
 ---
- 
-{
-  "service-id": filteredData[0].service_id,  
-  "expiry-date": filteredData[0].expiry_date,  
-  "unix-expiry-date": unixExpiry,
-  "ttl-seconds": redisExpiry
-}
+payload.bundles
+  filter (
+    $.service_id == vars.originalPayload.'as-service-id' and 
+    now() < ($.expiry_date as LocalDateTime { format: "yyyy-MM-dd HH:mm:ss" })
+  )
+  reduce (item, acc = {}) -> {
+    "msisdn": payload.msisdn,
+    "service-id": item.service_id,
+    "expiry-date": item.expiry_date
+  }
 ]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
@@ -46,21 +37,25 @@ var redisExpiry = unixExpiry - unixNow
 					<when expression="vars.stateResponse.result.state == 0">
 								<ee:transform doc:name="var-spielType(reactivation)" doc:id="26acd67d-c858-472f-a070-ce05df7409d1" >
 									<ee:message >
-										<ee:set-payload ><![CDATA[%dw 2.0
+									</ee:message>
+									<ee:variables >
+										<ee:set-variable variableName="spielType" ><![CDATA[%dw 2.0
 output application/json
 ---
-'reactivation']]></ee:set-payload>
-									</ee:message>
+'reactivation']]></ee:set-variable>
+									</ee:variables>
 								</ee:transform>
 					</when>
 					<otherwise>
 						<ee:transform doc:name="var-spielType(eligable)" doc:id="213f80b1-129c-4fcd-82fb-27e396c32d66" >
 									<ee:message >
-										<ee:set-payload ><![CDATA[%dw 2.0
+									</ee:message>
+									<ee:variables >
+										<ee:set-variable variableName="spielType" ><![CDATA[%dw 2.0
 output application/json
 ---
-'eligible']]></ee:set-payload>
-									</ee:message>
+'eligible']]></ee:set-variable>
+									</ee:variables>
 								</ee:transform>
 					</otherwise>
 				</choice>
@@ -68,11 +63,13 @@ output application/json
 					<otherwise >
 						<ee:transform doc:name="var-spielType(ineligable)" doc:id="1dd28447-2628-4011-999c-0fdbdfe26dd4" >
 							<ee:message >
-								<ee:set-payload ><![CDATA[%dw 2.0
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="spielType" ><![CDATA[%dw 2.0
 output application/json
 ---
-'ineligible']]></ee:set-payload>
-							</ee:message>
+'ineligible']]></ee:set-variable>
+							</ee:variables>
 						</ee:transform>
 						<flow-ref doc:name="common-set-error-audit-log-subflow" doc:id="000f6208-d5f2-4314-98ba-14569dd3dd29" name="common-set-error-audit-log-subflow" />
 					</otherwise>
@@ -87,20 +84,12 @@ output application/json
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable variableName="expiryDetails"><![CDATA[%dw 2.0
+								<ee:set-variable variableName="expiryDetails" ><![CDATA[%dw 2.0
 output application/json
-
-var defaultExpiryDate = "2025-12-31 23:59:59"
-var unixExpiry = defaultExpiryDate as LocalDateTime { format: "yyyy-MM-dd HH:mm:ss" } as DateTime as Number
-var currentUnix = now() as Number
-var redisExpiry = unixExpiry - currentUnix
-var serviceId = vars.originalPayload.'as-service-id'
 ---
 {
-  "service-id": serviceId,
-  "expiry-date": defaultExpiryDate,
-  "unix-expiry-date": unixExpiry,
-  "ttl-seconds": redisExpiry
+  "service-id": vars.originalPayload.'as-service-id',
+  "expiry-date": p('default.expiry.date')
 }]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
@@ -108,21 +97,25 @@ var serviceId = vars.originalPayload.'as-service-id'
 					<when expression="vars.stateResponse.result.state == 0">
 						<ee:transform doc:name="var-spielType(reactivation)" doc:id="39ec839d-ceda-4377-a5b5-26608abea69a">
 							<ee:message>
-								<ee:set-payload><![CDATA[%dw 2.0
+							</ee:message>
+									<ee:variables >
+										<ee:set-variable variableName="spielType" ><![CDATA[%dw 2.0
 output application/json
 ---
-'reactivation']]></ee:set-payload>
-							</ee:message>
+'reactivation']]></ee:set-variable>
+									</ee:variables>
 						</ee:transform>
 					</when>
 					<otherwise>
 						<ee:transform doc:name="var-spielType(eligable)" doc:id="0c98fc96-1110-4156-b825-569a938d55d7">
 							<ee:message>
-								<ee:set-payload><![CDATA[%dw 2.0
+							</ee:message>
+									<ee:variables >
+										<ee:set-variable variableName="spielType" ><![CDATA[%dw 2.0
 output application/json
 ---
-'eligible']]></ee:set-payload>
-							</ee:message>
+'eligible']]></ee:set-variable>
+									</ee:variables>
 						</ee:transform>
 					</otherwise>
 				</choice>
@@ -135,6 +128,13 @@ output application/json
 ---
 'ineligible']]></ee:set-payload>
 							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="spielType" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-variable>
+							</ee:variables>
 						</ee:transform>
 						<flow-ref doc:name="common-set-error-audit-log-subflow" doc:id="ec8a19d3-57df-4baa-80a2-00c6f4583d81" name="common-set-error-audit-log-subflow"/>
 					</otherwise>

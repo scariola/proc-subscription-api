@@ -9,59 +9,33 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<flow-ref doc:name="get-msisdn-whitelist-flow" doc:id="d6afa47b-bd5d-4c20-96fe-f01cc02833a9" name="get-msisdn-whitelist-flow" />
 		<choice doc:name="Choice" doc:id="99dc84f5-cd97-4778-ac3b-375d5a7d6a8f">
 			<when expression="#[(isEmpty(payload.result) and payload.results.eligible == true)]">
-				<ee:transform doc:name="Transform Message" doc:id="d3e06656-8cee-454a-a61b-932c25e3e328">
+				<ee:transform doc:name="MongoDB Respose TO API Response" doc:id="d3e06656-8cee-454a-a61b-932c25e3e328">
 			<ee:message>
 			</ee:message>
 					<ee:variables>
 						<ee:set-variable variableName="expiryDetails"><![CDATA[%dw 2.0
 output application/json
-
-var bonusExpiry = now() + |P7D|
-var expiryDate = bonusExpiry as String { format: "yyyy-MM-dd HH:mm:ss" }
-var currentUnix = (now() as Number)
-var expiryUnix = (bonusExpiry as Number)
-var bonusTtl = expiryUnix - currentUnix
-var serviceId = vars.originalPayload.'as-service-id'
 ---
 {
-  "service-id": serviceId,
-  "expiry-date": expiryDate,
-  "unix-expiry-date": expiryUnix,
-  "ttl-seconds": bonusTtl
-}]]></ee:set-variable>
+  "service-id": vars.originalPayload.'as-service-id',
+  "expiry-date": (now() + |P7D|) as String { format: "yyyy-MM-dd HH:mm:ss" }
+}
+]]></ee:set-variable>
 					</ee:variables>
 		</ee:transform>
 			</when>
 			<otherwise>
-				<ee:transform doc:name="Transform Message" doc:id="31d744bb-e3d1-4d77-ae01-1e676216130d">
+				<ee:transform doc:name="var - spielType" doc:id="31d744bb-e3d1-4d77-ae01-1e676216130d">
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable variableName="smsSpielMapping"><![CDATA[%dw 2.0
-output application/json
-var spielMap = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
-var keyword = vars.smsKeywords.keyword
-var channel = vars.brand.'brand-name'
-
----
-{
-    sms_spiel: spielMap[keyword][channel].not_eligable
-}]]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-				<ee:transform doc:name="Transform Message" doc:id="59d16385-1475-4911-9b93-ba140c74c3e9">
-					<ee:message>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable variableName="auditLog"><![CDATA[%dw 2.0
+						<ee:set-variable variableName="speilType" ><![CDATA[%dw 2.0
 output application/json
 ---
-{
-    "success": 0,
-    "hasProcessorError": 1
-}]]></ee:set-variable>
+'not-eligable']]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
+				<flow-ref doc:name="common-set-success-audit-log-subflow" doc:id="12308ad0-e251-4d3c-86a5-36e075deb864" name="common-set-success-audit-log-subflow"/>
 			</otherwise>
 		</choice>
 		<logger level="INFO" doc:name="END- Bonus Handling" doc:id="df6901fa-b2c0-4954-a8f9-e942d16a5ee4" message="END- Bonus Handling"/>

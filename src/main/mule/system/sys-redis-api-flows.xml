@@ -29,25 +29,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	"prefix" : vars.cleanMsisdn.prefix
 }]]]></http:uri-params>
 		</http:request>
-		<ee:transform doc:name="RAW sample"
-			doc:id="4af5b2ba-eb78-473b-8f0f-33887f5dd5d6">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  "x-event-id":"123-45555-222-2221",
-  "x-event-code": 1005,
-  "x-event-msg": "Success",
-  "result":{
-      "prefix": "93640",
-      "brand-id": 2,
-      "brand-name": "TM"
-  }
-}
-]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
 		<logger level="INFO" doc:name="Logger1"
 			doc:id="830541b1-d665-4bf3-a25e-4511b5cfcf67" />
 	</sub-flow>
@@ -68,19 +49,6 @@ output application/json
 	"X-Correlation-Id": correlationId
 }]]]></http:headers>
 		</http:request>
-		<ee:transform doc:name="Transform Message"
-			doc:id="d00e7be8-2a6f-45e8-a825-728b8b995349">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
- "x-event-id":"123-45555-222-2221",
- "x-event-code": 1002,
- "x-event-msg": "Cache Brigde Successful!"
-}]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
 		<logger level="INFO" doc:name="Logger1"
 			doc:id="371d23f1-3109-45ac-8bea-f8a27700c8e7" />
 	</sub-flow>
@@ -93,6 +61,7 @@ output application/json
 			doc:id="e3295e12-6460-4f91-994f-9ccd8e6d1b67"
 			config-ref="HTTP_Request_Config_Redis_Api"
 			path="${redis.put.state.path}">
+			<http:body ><![CDATA[#[payload.requestPayload]]]></http:body>
 			<http:headers><![CDATA[#[output application/java
 ---
 {
@@ -130,23 +99,6 @@ output application/json
 	"msisdn" : vars.cleanMsisdn.msisdn
 }]]]></http:uri-params>
 		</http:request>
-		<ee:transform doc:name="Transform Message"
-			doc:id="e66a4889-c2d4-4bd5-9c53-62d91e54b019">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  "x-event-id":"123-45555-222-2221",
-  "x-event-code": 1005,
-  "x-event-msg": "Success",
-  "result":{
-    "state": 1
-  }
-}
-]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
 		<logger level="INFO" doc:name="Logger1"
 			doc:id="d2f8015e-83c7-4258-a8a0-602c5dbea3e1" />
 	</sub-flow>

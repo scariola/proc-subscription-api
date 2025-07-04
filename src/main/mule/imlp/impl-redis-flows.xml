@@ -33,7 +33,7 @@ var redis = vars.brandResponse
 var bridge = vars.bridgeResponse
 
 var data = 
-    if (redis.result?) redis.result
+    if (!isEmpty(redis.result)) redis.result
     else bridge          
 ---
 data
@@ -109,7 +109,7 @@ output application/json
 					name="impl-get-whitelist-subflow" />
 				<flow-ref doc:name="impl-provision-flow"
 					doc:id="18aca4d3-7be2-4984-b28a-1fce21c4bff3"
-					name="impl-provision-subflow" />
+					name="impl-post-provision-subflow" />
 			</otherwise>
 		</choice>
 	</sub-flow>
@@ -133,7 +133,7 @@ output application/json
 			<when expression="#[vars.stateResponse.result.state == 1]">
 				<flow-ref doc:name="impl-provision-flow"
 					doc:id="35900247-b2f6-4154-8103-bcea509a4ac1"
-					name="impl-provision-subflow" />
+					name="impl-post-provision-subflow" />
 			</when>
 			<otherwise>
 				<ee:transform doc:name="var-spielType(not registered)" doc:id="9b977367-9436-4861-8d9b-d8d53681a57b" >
@@ -165,20 +165,7 @@ output application/json
 ]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
-				<ee:transform doc:name="var-auditLog"
-					doc:id="c1400d82-fdfe-47db-adcb-cd99242715f1">
-					<ee:message>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable variableName="auditLog"><![CDATA[%dw 2.0
-output application/json
----
-{
-    "success": 1,
-    "hasProcessorError": 0
-}]]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
+				<flow-ref doc:name="common-set-success-audit-log-subflow" doc:id="9915d484-143c-40b8-bff6-954a1895b5ed" name="common-set-success-audit-log-subflow" />
 			</when>
 			<otherwise>
 				<logger level="INFO" doc:name="Proceed to Eligibility check"
@@ -191,39 +178,32 @@ output application/json
 		<ee:transform doc:name="Payload to Redis API Request" doc:id="469f1316-c0a3-4bb5-84e7-e30a9ddfeb6b">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
-output application/java
----
-{
-	"msisdn": vars.cleanMsisdn.msisdn,
-	"expiry-date": vars.expiryDetails.'ttl-seconds'
-}]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-		<ee:transform doc:name="Transform Message" doc:id="da8556c0-e816-4de3-8e9a-69689ca1caee">
-			<ee:message>
-				<ee:set-attributes><![CDATA[%dw 2.0
 output application/json
 ---
 {
- "statusCode": 201
-}]]></ee:set-attributes>
+	"msisdn": vars.cleanMsisdn.msisdn,
+	"requestPayload":{
+		"state": vars.state.state,
+		"expiry-date": vars.expiryDetails.'expiry-date'
+	}
+	
+}]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<!-- [STUDIO:"Until 
-			Successful"]<until-successful maxRetries="3" doc:name="Until 
+		<until-successful maxRetries="3" doc:name="Until 
 			Successful" doc:id="2cb2c6e3-a6a1-461c-8a55-ed8199314643" millisBetweenRetries="50000"> 
 			<try doc:name="Try" doc:id="ee8efeb8-b266-4f83-ae8b-05b6ea54238e"> <flow-ref 
 			doc:name="sys-post-state-subflow" doc:id="8aaf0d4a-4a4e-49b2-95b6-fc97bc290004" 
 			name="sys-post-state-subflow" /> <error-handler > <on-error-continue enableNotifications="true" 
 			logException="true" doc:name="On Error Continue" doc:id="61905c3c-bda0-4179-a883-875989de7086" 
 			type="ANY"> <logger level="INFO" doc:name="Logger" doc:id="da9475d5-53c1-4801-b76c-7a4d55fa0a33" 
-			/> </on-error-continue> </error-handler> </try> 
-</until-successful> [STUDIO] -->
-		<choice doc:name="Choice" doc:id="e1b496f9-5763-4cce-b8b6-75ff680eceea">
+			/> </on-error-continue> </error-handler> </try>
+			<choice doc:name="Choice" doc:id="e1b496f9-5763-4cce-b8b6-75ff680eceea">
 			<when expression="#[attributes.statusCode != 201]">
 				<logger level="INFO" doc:name="Logger" doc:id="1e639d31-0b53-40a4-a47c-1e9c0b0e5866" message='#[{&#10;  "step": "6 - Cache Save",&#10;  //"transactionId;" "idss",&#10;  "msisdn": "63xxxxxxxxxx",&#10;  "request_type": "Opt-In / Opt-Out / Bonus",&#10;  "cache_key": "spectre-freefb-63xxxxxxxxxx",&#10;  "cache_value": "1 or 0",&#10;  "attempt": 3,&#10;  "status": "failure",&#10;  "error": "Connection timeout / Write error / null",&#10;  "timestamp": "2025-05-30T10:30:15Z"&#10;}]' />
 			</when>
-		</choice>
+		</choice> 
+</until-successful>
 		<logger level="INFO" doc:name="END - Save State" doc:id="9ed61ad4-189b-4169-8e5c-f2a744e1bcba" message="END - Save State - STEP 6: UPDATE REDIS STATE"/>
 	</sub-flow>
 </mule>
