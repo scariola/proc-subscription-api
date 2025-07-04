@@ -15,8 +15,8 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<http:headers><![CDATA[#[output application/java
 ---
 {
-	"client_id": p('mongodb.client_id'),
-	"client_secret": p('mongodb.client_secret'),
+	"X-Client-Id": p('mongo.client_id'),
+	"X-Client-Secret": p('mongo.client_secret'),
 	"X-Correlation-Id": correlationId
 }]]]></http:headers>
 			<http:uri-params><![CDATA[#[output application/java
@@ -32,8 +32,8 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<http:headers><![CDATA[#[output application/java
 ---
 {
-	"client_id": p('mongodb.client_id'),
-	"client_secret": p('mongodb.client_secret'),
+	"X-Client-Id": p('mongo.client_id'),
+	"X-Client-Secret": p('mongo.client_secret'),
 	"X-Correlation-Id": correlationId
 }]]]></http:headers>
 			<http:uri-params><![CDATA[#[output application/java

@@ -21,7 +21,7 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 			port="${http.port}" />
 	</http:listener-config>
 	<apikit:config name="proc-subscription-api-config"
-		api="resource::19504067-e1e3-45dd-943a-e163098ddbed:proc-subscription-api:1.0.5:raml:zip:proc-subscription-api.raml"
+		api="resource::871a7b19-9f3e-4dbd-8ef4-09253a8ba1dc:proc-subscription-api:1.0.2:raml:zip:proc-subscription-api.raml"
 		outboundHeadersMapName="outboundHeaders"
 		httpStatusVarName="httpStatus" />
 	<secure-properties:config
@@ -86,5 +86,7 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 		doc:id="868a7a39-e728-4fdb-8928-3ecf382589e7">
 		<http:request-connection host="${sms.host}" />
 	</http:request-config>
-	<configuration doc:name="Configuration" doc:id="c1c3d876-cbe4-4ad4-badb-b1e520ef7b43" defaultErrorHandler-ref="proc-subscription-api-Shared_Error_Handler" />
+	<configuration doc:name="Configuration"
+		doc:id="c1c3d876-cbe4-4ad4-badb-b1e520ef7b43"
+		defaultErrorHandler-ref="proc-subscription-api-Shared_Error_Handler" />
 </mule>
