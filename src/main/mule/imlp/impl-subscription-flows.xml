@@ -7,7 +7,11 @@
 		<flow-ref doc:name="impl-post-audit-fllow" doc:id="5841db2c-87c4-436c-98c2-d148b3643619" name="impl-post-audit-fllow" />
 		<flow-ref doc:name="impl-sms-validation-subflow" doc:id="d4826b9f-7be8-41b0-8915-02076282c04c" name="impl-sms-validation-subflow" />
 		<flow-ref doc:name="impl-redis-process-subflow" doc:id="df1eddac-db79-438b-bf53-3012de73f9f2" name="impl-redis-process-subflow" />
-		<flow-ref doc:name="impl-elgibility-check-subflow" doc:id="210ab367-276a-4056-a5fc-21516a672df9" name="impl-elgibility-check-subflow" />
+		<choice doc:name="Choice" doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb" >
+			<when expression="#[vars.formattedSubscriberData.keyword == 'OPT-IN']">
+				<flow-ref doc:name="impl-elgibility-check-subflow" doc:id="210ab367-276a-4056-a5fc-21516a672df9" name="impl-elgibility-check-subflow" />
+			</when>
+		</choice>
 		<flow-ref doc:name="impl-provision-subflow" doc:id="680793fa-786c-47ed-839e-92b10afa765d" name="impl-post-provision-subflow" />
 		<flow-ref doc:name="impl-post-state-subflow" doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92" name="impl-post-state-subflow" />
 		<flow-ref doc:name="impl-put-audit-subflow" doc:id="f99817a2-bd6b-4386-a0e0-27864ad9d94a" name="impl-put-audit-subflow" />

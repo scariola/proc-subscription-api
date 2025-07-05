@@ -26,7 +26,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<http:uri-params><![CDATA[#[output application/java
 ---
 {
-	"prefix" : vars.cleanMsisdn.prefix
+	"prefix" : vars.formattedSubscriberData.prefix
 }]]]></http:uri-params>
 		</http:request>
 		<logger level="INFO" doc:name="Logger1"
@@ -96,7 +96,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<http:uri-params><![CDATA[#[output application/java
 ---
 {
-	"msisdn" : vars.cleanMsisdn.msisdn
+	"msisdn" : vars.formattedSubscriberData.msisdn
 }]]]></http:uri-params>
 		</http:request>
 		<logger level="INFO" doc:name="Logger1"

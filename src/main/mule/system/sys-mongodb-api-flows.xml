@@ -22,7 +22,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<http:uri-params><![CDATA[#[output application/java
 ---
 {
-	"msisdn" : vars.cleanMsisdn.msisdn
+	"msisdn" : vars.formattedSubscriberData.msisdn
 }]]]></http:uri-params>
 		</http:request>
 
@@ -39,7 +39,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<http:uri-params><![CDATA[#[output application/java
 ---
 {
-	"msisdn" : vars.cleanMsisdn.msisdn
+	"msisdn" : vars.formattedSubscriberData.msisdn
 }]]]></http:uri-params>
 		</http:request>
 

@@ -14,47 +14,45 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<choice doc:name="HAS sms message and msisdn?"
 			doc:id="cef5380e-fccd-4113-9837-37fa1ec45c48">
 			<when
-				expression="#[(!isEmpty(vars.orginalPayload.'sms-message') and !isEmpty(vars.orginalPayload.'msisdn'))]">
+				expression="#[(isEmpty(vars.originalPayload.'sms-message') and isEmpty(vars.originalPayload.'msisdn'))]">
 				<flow-ref doc:name="common-set-error-audit-log-subflow"
 					doc:id="05902734-92a5-44d2-a296-af278cda5dee"
 					name="common-set-error-audit-log-subflow" />
 			</when>
 			<otherwise>
 				<ee:transform
-					doc:name="var-smsKeyword, var-cleanMsisdn"
+					doc:name="var-formattedSubscriberData"
 					doc:id="231e8b2f-2ae5-4035-b048-35216bc4b514">
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable variableName="smsKeyword"><![CDATA[%dw 2.0
+						<ee:set-variable variableName="formattedSubscriberData" ><![CDATA[%dw 2.0
 output application/json
-var keyword = upper(vars.originalPayload.'sms-message')
+fun formatMsisdn(msisdn) = 
+    msisdn match {
+        case m if m startsWith "63" -> m
+        case m if m startsWith "0" -> "63" ++ m[1 to -1]
+        else -> "63" ++ msisdn
+    }
 ---
 {
-    "keyword": 
-        if (keyword == "FREE FB ON" or keyword == "ON FREE FB") 
-            "OPT-IN" 
-        else if (keyword == "FREE FB OFF" or keyword == "OFF FREE FB") 
-            "OPT-OUT"  
-        else if (keyword == "BONUSFB" or keyword == "BONUS FB") 
-            "BONUS"  
-        else "INVALID"    
+    msisdn: formatMsisdn(vars.originalPayload.msisdn),
+    prefix: formatMsisdn(vars.originalPayload.msisdn)[2 to 6],
+    keyword: upper(vars.originalPayload.'sms-message') match {
+        case "FREE FB ON" -> "OPT-IN"
+        case "ON FREE FB" -> "OPT-IN"
+        case "FREE FB OFF" -> "OPT-OUT"
+        case "OFF FREE FB" -> "OPT-OUT"
+        case "BONUSFB" -> "BONUS"
+        case "BONUS FB" -> "BONUS"
+        else -> "INVALID"
+    }
 }]]></ee:set-variable>
-						<ee:set-variable variableName="cleanMsisdn"><![CDATA[%dw 2.0
-output application/json
-var rawMsisdn = vars.originalPayload.msisdn
-var formattedMsisdn  = if (rawMsisdn startsWith "0") rawMsisdn[1 to -1] else rawMsisdn
----
-{
-  "prefix": formattedMsisdn [0 to 4],
-  "msisdn": "63" ++ formattedMsisdn 
-}
-]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
 				<choice doc:name="CONTAINS Invalid Keword?"
 					doc:id="2157aad9-35cc-4938-ab38-1b4c9cb6ff93">
-					<when expression="#[vars.smsKeyword.keyword == 'INVALID']">
+					<when expression="#[vars.formattedSubscriberData.keyword == 'INVALID']">
 						<ee:transform doc:name="var-spielType"
 							doc:id="741212b0-6680-47dd-aaf2-694381e51f11">
 							<ee:message>

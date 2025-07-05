@@ -21,7 +21,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<http:uri-params><![CDATA[#[output application/java
 ---
 {
-	"prefix" : vars.cleanMsisdn.prefix
+	"prefix" : vars.formattedSubscriberData.prefix
 }]]]></http:uri-params>
 		</http:request>
 		<choice doc:name="HAS Bridge Response?" doc:id="cb0a10ab-68d4-4c9a-8a74-e108e426e235">
@@ -50,7 +50,7 @@ output application/json
 
 ---
 {
-  "prefix": vars.cleanMsisdn.prefix,
+  "prefix": vars.formattedSubscriberData.prefix,
   "brand-id": 0,
   "brand-name": "UNSUPPORTED"
 }

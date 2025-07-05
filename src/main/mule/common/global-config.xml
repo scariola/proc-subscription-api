@@ -21,7 +21,7 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 			port="${http.port}" />
 	</http:listener-config>
 	<apikit:config name="proc-subscription-api-config"
-		api="resource::871a7b19-9f3e-4dbd-8ef4-09253a8ba1dc:proc-subscription-api:1.0.2:raml:zip:proc-subscription-api.raml"
+		api="resource::871a7b19-9f3e-4dbd-8ef4-09253a8ba1dc:proc-subscription-api:1.0.3:raml:zip:proc-subscription-api.raml"
 		outboundHeadersMapName="outboundHeaders"
 		httpStatusVarName="httpStatus" />
 	<secure-properties:config

@@ -23,13 +23,22 @@ output application/json
 ]]></ee:set-variable>
 					</ee:variables>
 		</ee:transform>
+				<ee:transform doc:name="var - spielType" doc:id="cc9f690b-5f13-4c35-b3c5-f6daeb2a787c" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="spielType" ><![CDATA[%dw 2.0
+output application/json
+---
+'first-time']]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
 			</when>
 			<otherwise>
 				<ee:transform doc:name="var - spielType" doc:id="31d744bb-e3d1-4d77-ae01-1e676216130d">
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable variableName="speilType" ><![CDATA[%dw 2.0
+						<ee:set-variable variableName="spielType" ><![CDATA[%dw 2.0
 output application/json
 ---
 'not-eligable']]></ee:set-variable>

@@ -70,7 +70,7 @@
 		<dependency>
 			<groupId>871a7b19-9f3e-4dbd-8ef4-09253a8ba1dc</groupId>
 			<artifactId>proc-subscription-api</artifactId>
-			<version>1.0.2</version>
+			<version>1.0.3</version>
 			<classifier>raml</classifier>
 			<type>zip</type>
 		</dependency>

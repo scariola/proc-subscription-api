@@ -14,7 +14,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 output application/json
 
 var map = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
-var keyword = vars.smsKeyword.keyword default "ANY" 
+var keyword = vars.formattedSubscriberData.keyword default "ANY" 
 var brand = upper(vars.brand.'brand-name') default "ANY"    
 var spielType = vars.spielType default "system-error" 
 ---
