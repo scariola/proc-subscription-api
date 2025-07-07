@@ -3,7 +3,7 @@ output application/json
 ---
 {
   "x-event-id":	correlationId,		
-  "x-event-code": 9010,
+  "x-event-code": 9206,
   "x-event-msg": "Not acceptable",
   "result":{
   	"error-type": error.errorType.namespace ++ ":" ++ error.errorType.identifier,

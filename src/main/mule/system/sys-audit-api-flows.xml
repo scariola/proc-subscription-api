@@ -6,10 +6,11 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
-	<sub-flow name="sys-post-audit-api-subflow"
-		doc:id="c6660e69-0054-4922-bffe-5814b79ae286">
-		<logger level="INFO" doc:name="Logger"
-			doc:id="4b3f61f5-be56-4939-9d1a-1ffc564215b8" />
+	<flow name="sys-audit-api-post-audit-flow"
+		doc:id="b17695de-533f-4364-bfec-6aac276e3943">
+		<logger level="INFO" doc:name="START - POST /audit"
+			doc:id="4b3f61f5-be56-4939-9d1a-1ffc564215b8"
+			message="START - POST /audit" />
 		<http:request method="POST"
 			doc:name="POST /sys-audit-api"
 			doc:id="ece12aea-15e9-4574-9ed3-e66ac4f1ac26"
@@ -22,19 +23,16 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 	"X-Correlation-Id": correlationId
 }]]]></http:headers>
 		</http:request>
-		<logger level="INFO" doc:name="Logger"
-			doc:id="7baecd04-cace-4d70-a5a3-b0e546d9b4e8" />
-	</sub-flow>
-	<sub-flow name="sys-put-audit-api-subflow"
-		doc:id="5f3c861e-c96e-457a-9564-07f038508cd0">
-		<logger level="INFO" doc:name="Logger"
-			doc:id="9c0d3c73-27cd-4c38-880e-7048797158ec" />
-		<http:request method="PUT"
-			doc:name="PUT /sys-audit/api/{auditId}"
-			doc:id="e07b6f0f-db11-4064-9e1a-862694af8b8c"
-			config-ref="HTTP_Request_Config_Audit_Api" path="${audit.put.path}">
+		<logger level="INFO" doc:name="END - POST /audit"
+			doc:id="7baecd04-cace-4d70-a5a3-b0e546d9b4e8"
+			message="END - POST /audit" />
+		<error-handler ref="proc-subscription-api-Shared_Error_Handler" />
+	</flow>
+	<flow name="sys-audit-api-put-audit-flow" doc:id="5e2e4cce-aee5-4d18-a9f4-721a9889ac6e" >
+		<logger level="INFO" doc:name="START - PUT /sys-audit/api/{auditId}" doc:id="b4216201-5846-4e6e-a87c-b7e758363bb5" message="START - PUT /sys-audit/api/{auditId}"/>
+		<http:request method="PUT" doc:name="PUT /sys-audit/api/{auditId}" doc:id="e1a9802b-8505-4f2f-9cd3-2c56fbb1771c" config-ref="HTTP_Request_Config_Audit_Api" path="${audit.put.path}" >
 			<http:body ><![CDATA[#[payload.requetPayload]]]></http:body>
-			<http:headers><![CDATA[#[output application/java
+			<http:headers ><![CDATA[#[output application/java
 ---
 {
 	"X-Client-Id": p('audit.client_id'),
@@ -47,6 +45,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 	"auditId" : payload.'audit-id'
 }]]]></http:uri-params>
 		</http:request>
-		<logger level="INFO" doc:name="Logger1" doc:id="d0ae9dff-3bab-49da-95a0-38c62cebc688" />
-	</sub-flow>
+		<logger level="INFO" doc:name="END - PUT /sys-audit/api/{auditId}" doc:id="c355e6ff-5a70-4f90-98fb-445a6eccafe9" message="END - PUT /sys-audit/api/{auditId}"/>
+		<error-handler ref="proc-subscription-api-Shared_Error_Handler" />
+	</flow>
 </mule>

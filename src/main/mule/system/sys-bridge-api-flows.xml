@@ -8,8 +8,8 @@
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<sub-flow name="sys-get-brige-api-subflow" doc:id="e360eaa4-f82d-4836-b275-2a63b49d6541" >
-		<logger level="INFO" doc:name="Logger" doc:id="0fc79033-c788-40a2-8558-065e9dc2f57a" />
+	<flow name="sys-bridge-api-get-bridge-prefix-flow" doc:id="f6e25c4e-913c-425b-8402-2a957ee9ef58" >
+		<logger level="INFO" doc:name="START - GET /brigde/{prefix}" doc:id="0fc79033-c788-40a2-8558-065e9dc2f57a" message="START - GET /brigde/{prefix}"/>
 		<http:request method="GET" doc:name="GET /brigde/{prefix}" doc:id="f5faa08b-14c1-49ee-b875-d57ed6b2dee8" config-ref="HTTP_Request_Config_Bridge_Api" path="${bridge.path}">
 			<http:headers><![CDATA[#[output application/java
 ---
@@ -30,13 +30,11 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					<ee:message>
 						<ee:set-payload><![CDATA[%dw 2.0
 output application/json
-var result = payload.result[0]
-var brand_flag = if (result.brand_flag == 4) 1 else  result.brand_flag
 ---
 {
-  "prefix": result.msisdn_prefix,
-  "brand-id": brand_flag as Number,
-  "brand-name": result.brand
+  "prefix": payload.result[0].msisdn_prefix,
+  "brand-id": (if (payload.result[0].brand_flag == 4) 1 else payload.result[0].brand_flag) as Number,
+  "brand-name": payload.result[0].brand
 }
 ]]></ee:set-payload>
 					</ee:message>
@@ -59,6 +57,7 @@ output application/json
 				</ee:transform>
 			</otherwise>
 		</choice>
-		<logger level="INFO" doc:name="Logger1" doc:id="4369d722-80a0-4a05-883d-f7746c24cae3" />
-	</sub-flow>
+		<logger level="INFO" doc:name="START - GET /brigde/{prefix}" doc:id="4369d722-80a0-4a05-883d-f7746c24cae3" message="END - GET /brigde/{prefix}"/>
+		<error-handler ref="proc-subscription-api-Shared_Error_Handler" />
+	</flow>
 </mule>

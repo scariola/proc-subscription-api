@@ -7,8 +7,8 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<flow name="sys-nf-api-flowFlow" doc:id="7e644a4e-384f-49c6-bfb8-84e5989fe0af">
-		<http:request method="GET" doc:name="Request" doc:id="c540448d-d5a4-42e7-a121-708bdc4a3bc1" config-ref="HTTP_Request_Config_NF_Api" path="${nf.path}">
+	<flow name="sys-nf-api-get-prepiad-msisdn-flow" doc:id="7e644a4e-384f-49c6-bfb8-84e5989fe0af">
+		<http:request method="GET" doc:name="GET /prepaid/{msisdn}" doc:id="c540448d-d5a4-42e7-a121-708bdc4a3bc1" config-ref="HTTP_Request_Config_NF_Api" path="${nf.path}">
 			<http:headers><![CDATA[#[output application/java
 ---
 {
@@ -19,7 +19,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<http:uri-params><![CDATA[#[output application/java
 ---
 {
-	"msisdn" : vars.originalPayload.msisdn[1 to -1]
+	"msisdn" : payload.msisdn
 }]]]></http:uri-params>
 			<http:query-params><![CDATA[#[output application/java
 ---
@@ -27,5 +27,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	"brand" : vars.brand.'brand-id'
 }]]]></http:query-params>
 		</http:request>
+		<error-handler ref="proc-subscription-api-Shared_Error_Handler" />
 	</flow>
 </mule>

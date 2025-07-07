@@ -6,8 +6,8 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<sub-flow name="impl-sms-validation-subflow"
-		doc:id="031e25d2-3f6c-4c7b-83c6-bc092b7aff0d">
+	<flow name="impl-sms-validation-flow"
+		doc:id="e3bf2861-f425-4cba-9261-46cccc469e60">
 		<logger level="INFO" doc:name="START - Validation Process"
 			doc:id="668be819-4d9e-41ea-b797-49fe2acb4c54"
 			message="START - STEP 2: RECEIVE &amp; VALIDATE REQUEST " />
@@ -15,18 +15,16 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:id="cef5380e-fccd-4113-9837-37fa1ec45c48">
 			<when
 				expression="#[(isEmpty(vars.originalPayload.'sms-message') and isEmpty(vars.originalPayload.'msisdn'))]">
-				<flow-ref doc:name="common-set-error-audit-log-subflow"
-					doc:id="05902734-92a5-44d2-a296-af278cda5dee"
-					name="common-set-error-audit-log-subflow" />
+				<raise-error doc:name="Raise Error - Missing Fields" doc:id="9165a5b5-0a18-451b-b45c-ef000bf6303e" type="INPUT:MISSING_FIELDS" description="Missing required fields: sms-message and/or msisdn"/>
 			</when>
 			<otherwise>
-				<ee:transform
-					doc:name="var-formattedSubscriberData"
+				<ee:transform doc:name="var-formattedSubscriberData"
 					doc:id="231e8b2f-2ae5-4035-b048-35216bc4b514">
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable variableName="formattedSubscriberData" ><![CDATA[%dw 2.0
+						<ee:set-variable
+							variableName="formattedSubscriberData"><![CDATA[%dw 2.0
 output application/json
 fun formatMsisdn(msisdn) = 
     msisdn match {
@@ -52,7 +50,8 @@ fun formatMsisdn(msisdn) =
 				</ee:transform>
 				<choice doc:name="CONTAINS Invalid Keword?"
 					doc:id="2157aad9-35cc-4938-ab38-1b4c9cb6ff93">
-					<when expression="#[vars.formattedSubscriberData.keyword == 'INVALID']">
+					<when
+						expression="#[vars.formattedSubscriberData.keyword == 'INVALID']">
 						<ee:transform doc:name="var-spielType"
 							doc:id="741212b0-6680-47dd-aaf2-694381e51f11">
 							<ee:message>
@@ -61,23 +60,48 @@ fun formatMsisdn(msisdn) =
 								<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
 output application/java
 ---
-'invalid-keyword']]></ee:set-variable>
+'ANY']]></ee:set-variable>
 							</ee:variables>
 						</ee:transform>
-						<flow-ref doc:name="common-set-error-audit-log-subflow"
-							doc:id="ecbde5f9-0e2d-4dbf-a0ad-f54dab460ab5"
-							name="common-set-error-audit-log-subflow" />
+						<raise-error doc:name="Raise Error - Invalid Keyword" doc:id="6452ee80-664d-4c97-ac4f-eba5c8c912e2" type="INPUT:INVALID_KEYWORD" description="Invalid SMS keyword provided"/>
 					</when>
-					<otherwise>
-						<logger level="INFO" doc:name="Do Nothing"
-							doc:id="113f3700-029d-4dda-941c-f09954298676"
-							message="STEP 3: REDIS LOGIC (BRAND &amp; STATE LOOKUP)" />
-					</otherwise>
 				</choice>
 			</otherwise>
 		</choice>
 		<logger level="INFO" doc:name="END - Validation Process"
 			doc:id="080130ac-248f-41ed-b836-63e3a0f7bfc0"
 			message="END - STEP 2: RECEIVE &amp; VALIDATE REQUEST" />
-	</sub-flow>
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error Propagate"
+				doc:id="6b4caa9a-fde5-401e-8625-bf9aca160f11"
+				type="INPUT:*">
+				<flow-ref doc:name="common-set-error-audit-log-subflow"
+					doc:id="5ad275d2-71d4-46f8-ab5b-ca0033bf2f7b"
+					name="common-set-error-audit-log-subflow" />
+				<flow-ref doc:name="impl-put-audit-subflow" doc:id="112c7301-2593-40ad-bae2-256ed6468154" name="impl-put-audit-subflow"/>
+				<flow-ref doc:name="impl-post-sms-subflow" doc:id="312cb01f-c5f9-44f7-aafb-602e8fa1ebd4" name="impl-post-sms-subflow"/>
+				<ee:transform doc:name="Set Payload - Validation Error" doc:id="c5921121-552f-4363-93d8-7149badbf3ee">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "x-event-code": correlationId,	
+  "x-event-code": 9209,
+  "x-event-msg": error.detailedDescription,
+  "result": {
+    "error-type": error.errorType.namespace ++ ":" ++ error.errorType.identifier,
+    "error-description": error.detailedDescription
+  }
+}
+]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
 </mule>

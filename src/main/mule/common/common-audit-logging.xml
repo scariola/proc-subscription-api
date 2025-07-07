@@ -21,8 +21,6 @@ output application/json
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<flow-ref doc:name="impl-put-audit-subflow" doc:id="0cce63f4-e354-4213-8ef6-6841da4a57d8" name="impl-put-audit-subflow"/>
-		<flow-ref doc:name="impl-sms-flow" doc:id="aef14663-0692-4659-8b8e-57b3e0f3f39a" name="impl-post-sms-subflow"/>
 
 </sub-flow>
 	<sub-flow name="common-set-error-audit-log-subflow" doc:id="42d4234d-ce14-4d0f-b20c-b0b1bbe21477" >
@@ -39,8 +37,6 @@ output application/json
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<flow-ref doc:name="impl-put-audit-flow" doc:id="1a109d87-496d-40ed-b913-cb799158cc33" name="impl-put-audit-subflow" />
-		<flow-ref doc:name="impl-post-sms-flow" doc:id="ac718b9d-e44d-410f-90eb-96a396306507" name="impl-post-sms-subflow" />
 	</sub-flow>
 	
 	

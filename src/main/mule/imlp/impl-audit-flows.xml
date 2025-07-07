@@ -6,11 +6,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<flow name="impl-post-audit-fllow"
-		doc:id="3cc08cc0-ffff-4f8f-b613-9e1a33f802c9">
-		<logger level="INFO" doc:name="START - Audit Logging Process" doc:id="e3f115ad-2936-4d07-87ba-abd2eb147040" message="START - Audit Logging Process - STEP 1: AUDIT LOGGING"/>
-		<ee:transform doc:name="Payload to Audit API Request"
-			doc:id="d33fb596-aa86-4087-9b31-6b2dcdcd4c33">
+	<sub-flow name="impl-post-audit-subflow" doc:id="1252cbb3-527e-4f32-b48a-857c73b0afb5" >
+		<logger level="INFO" doc:name="START - Audit Logging Process" doc:id="e3f115ad-2936-4d07-87ba-abd2eb147040" message="START - Audit Logging Process - STEP 1: AUDIT LOGGING" />
+		<ee:transform doc:name="Payload to Audit API Request" doc:id="d33fb596-aa86-4087-9b31-6b2dcdcd4c33">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
@@ -28,12 +26,8 @@ output application/json
 ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<flow-ref doc:name="sys-post-audit-api-subflow" doc:id="a4119614-cb2c-4b9c-95e0-116eabe71199" name="sys-post-audit-api-subflow" />
-		<choice doc:name="IS successful?"
-			doc:id="fc5e25da-caf9-4bf9-aed7-4110a4b9a6fc">
-			<when expression="#[attributes.statusCode == 200]">
-				<ee:transform doc:name="var-auditId"
-					doc:id="d7171f47-9775-4fd4-8557-d08c86ccfe24">
+		<flow-ref doc:name="sys-audit-api-post-audit-flow" doc:id="a4119614-cb2c-4b9c-95e0-116eabe71199" name="sys-audit-api-post-audit-flow" />
+		<ee:transform doc:name="var-auditId" doc:id="d7171f47-9775-4fd4-8557-d08c86ccfe24">
 					<ee:message>
 					</ee:message>
 					<ee:variables>
@@ -45,14 +39,8 @@ output application/json
 }]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
-			</when>
-			<otherwise>
-				<raise-error doc:name="AUDIT:ERROR" doc:id="acbf2112-cb13-46ec-ab28-a3225ed3fa8d" type="ANY" description="Failed to log information to Audit DB." />
-			</otherwise>
-		</choice>
-		<logger level="INFO" doc:name="END  - Audit Logging Process" doc:id="c767a50d-e922-441a-80f6-6d8a512214fd" message="END - Audit Logging Process - STEP 1: AUDIT LOGGING"/>
-		<error-handler ref="proc-subscription-api-Shared_Error_Handler" />
-	</flow>
+		<logger level="INFO" doc:name="END  - Audit Logging Process" doc:id="c767a50d-e922-441a-80f6-6d8a512214fd" message="END - Audit Logging Process - STEP 1: AUDIT LOGGING" />
+	</sub-flow>
 	<sub-flow name="impl-put-audit-subflow" doc:id="5b8faa81-770b-4898-8ab9-76c637160a6c" >
 		<logger level="INFO" doc:name="START- Update Audit Logging" doc:id="79bfcaba-cf28-41ad-938c-c1a43c2168e4" message="START- Update Audit Logging - STEP 7: UPDATE AUDIT LOGGING"/>
 		<ee:transform doc:name="Payload to Audit API Request" doc:id="70d0627f-0cfc-4eda-9c1d-c3186632af3a">
@@ -69,8 +57,8 @@ output application/json
 		<until-successful maxRetries="3" doc:name="Until 
 			Successful" doc:id="b82d2db4-ee0a-4c0e-914d-926993c9cacb" millisBetweenRetries="5000"> 
 			<try doc:name="Try" doc:id="55ef8205-aecf-408b-afbe-672f371b4be1"> <flow-ref 
-			doc:name="sys-put-audit-api-subflow" doc:id="baba4384-4cac-4401-a4bb-b4ae7921a061" 
-			name="sys-put-audit-api-subflow" /> <error-handler> <on-error-propagate enableNotifications="true" 
+			doc:name="sys-audit-api-put-audit-flow" doc:id="baba4384-4cac-4401-a4bb-b4ae7921a061" 
+			name="sys-audit-api-put-audit-flow" /> <error-handler> <on-error-propagate enableNotifications="true" 
 			logException="true" doc:name="On Error Propagate" doc:id="75949b9b-82ab-4ae2-a20c-37a494a136e6" 
 			type="ANY"> <logger level="INFO" doc:name="Logger" doc:id="a75c2c02-4dd0-4a7d-aa73-71d75fc63da6" 
 			/> </on-error-propagate> </error-handler> </try>

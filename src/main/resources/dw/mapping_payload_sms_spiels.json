@@ -36,12 +36,12 @@
   },
   "OPT-OUT": {
     "GHP Prepaid": {
-      "normal": "You've stopped your Free FB. The regular browsing rate will now apply unless registered to a surf promo. To know your browsing rate, dial *143# and choose Surf Promos. If you have an active GoSURF promo, text FREE FB ON to reactivate your FREE FB. Register to a GoSURF promo to enjoy all the sites you want plus FREE FB for as low as P10! Dial *143# for free and choose Surf Promos > GoSURF.",
+      "normal-off": "You've stopped your Free FB. The regular browsing rate will now apply unless registered to a surf promo. To know your browsing rate, dial *143# and choose Surf Promos. If you have an active GoSURF promo, text FREE FB ON to reactivate your FREE FB. Register to a GoSURF promo to enjoy all the sites you want plus FREE FB for as low as P10! Dial *143# for free and choose Surf Promos > GoSURF.",
       "dual-off": "You've already stopped your Free FB. Regular browsing rates will apply. To begin your free access again, text FREE FB ON. For more info, text FREE FB HELP. Send to 8888.",
       "not-registered": "Sorry, you're not registered to FREE FB. To get FREE FB, text FREE FB ON to 8888. Once you have opted in to free FB, access is free until 12/31/25."
     },
     "TM": {
-      "normal": "Hindi ka na naka-Free FB. Regular browsing rate ang charge pag di naka-internet promo. Para malaman ang browsing rate, dial *143# and choose Mobile Internet Promos. Kung naka-GoSURF ka, maaaring i-reactivate ang iyong Free FB by texting FREE FB ON to 8888. Mag-register sa GoSURF para may pang-internet ka na, may Free FB pa! I-dial ang *143# at piliin ang Mobile Internet Promos.",
+      "normal-off": "Hindi ka na naka-Free FB. Regular browsing rate ang charge pag di naka-internet promo. Para malaman ang browsing rate, dial *143# and choose Mobile Internet Promos. Kung naka-GoSURF ka, maaaring i-reactivate ang iyong Free FB by texting FREE FB ON to 8888. Mag-register sa GoSURF para may pang-internet ka na, may Free FB pa! I-dial ang *143# at piliin ang Mobile Internet Promos.",
       "dual-off": "Hindi ka na naka-Free FB. Regular browsing rate ang charge pag di naka-internet promo. Para malaman ang browsing rate, dial *143# and choose Mobile Internet Promos. Kung naka-GoSURF ka, maaaring i-reactivate ang iyong Free FB by texting FREE FB ON to 8888. Mag-register sa GoSURF para may pang-internet ka na, may Free FB pa! I-dial ang *143# at piliin ang Mobile Internet Promos.",
       "not-registered": "Sorry, you're not registered to FREE FB. To get FREE FB, text FREE FB ON to 8888. Once you have opted in to free FB, access is free until 12/31/25."
     },

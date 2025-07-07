@@ -12,27 +12,27 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:id="8785212a-2715-4645-9518-572a1776bc11"
 			message="START - STEP 3: REDIS LOGIC (BRAND &amp; STATE LOOKUP)" />
 		<try doc:name="Try" doc:id="f71b769b-db02-4ae8-a2d8-426da049ed92">
-			<flow-ref doc:name="sys-get-brand-subflow"
+			<flow-ref doc:name="sys-redis-api-get-brand-prefix-subflow"
 				doc:id="bca513ea-5ccf-46b4-ae26-fef75c66dfe5"
-				name="sys-get-brand-subflow" target="brandResponse" />
+				name="sys-redis-api-get-brand-prefix-subflow" target="brandResponse" />
 			<error-handler>
 				<on-error-continue enableNotifications="true"
 					logException="true" doc:name="On Error Continue"
 					doc:id="f601eb2e-fe52-4c79-aef2-f62edc56698a">
-					<logger level="INFO" doc:name="Logger"
-						doc:id="9c95f29a-1751-44be-8d51-6b1d7b4b9998" />
+					<logger level="INFO" doc:name="Proceed Anyway"
+						doc:id="9c95f29a-1751-44be-8d51-6b1d7b4b9998" message="Proceed Anyway"/>
 				</on-error-continue>
 			</error-handler>
 		</try>
 		<choice doc:name="IS BrandId found?"
 			doc:id="5ae4d3cb-1041-498f-a556-d42cd77dca03">
 			<when expression="#[isEmpty(vars.brandResponse.result)]">
-				<flow-ref doc:name="sys-get-brige-api-subflow"
+				<flow-ref doc:name="sys-bridge-api-get-bridge-prefix-flow"
 					doc:id="a1139099-63cd-4125-97ba-c8b15c4a6cef"
-					name="sys-get-brige-api-subflow" target="bridgeResponse" />
-				<flow-ref doc:name="sys-post-brand-subflow"
+					name="sys-bridge-api-get-bridge-prefix-flow" target="bridgeResponse" />
+				<flow-ref doc:name="sys-redis-api-post-brand-prefix-flow"
 					doc:id="accd2fa4-5299-4ee3-af1e-f77a75b69c1e"
-					name="sys-post-brand-subflow" />
+					name="sys-redis-api-post-brand-prefix-flow" />
 			</when>
 		</choice>
 		<ee:transform doc:name="var-brand"
@@ -58,9 +58,9 @@ data
 			doc:id="c5043fb0-326f-47c0-8a1a-9f1ac4044234">
 			<when
 				expression='#[[1, 2, 3] contains (vars.brand."brand-id" default 0)]'>
-				<flow-ref doc:name="sys-get-state-subflow"
+				<flow-ref doc:name="sys-redis-api-get-state-msisdn-flow"
 					doc:id="bc5b0110-f84c-460a-b145-6e261d37780b"
-					name="sys-get-state-subflow" target="stateResponse" />
+					name="sys-redis-api-get-state-msisdn-flow" target="stateResponse" />
 				<choice doc:name="ROUTE request TO Screnarios"
 					doc:id="92cae739-4cc2-4684-b1b9-4bfd2f23af4b">
 					<when expression='#[vars.formattedSubscriberData.keyword == "OPT-IN"]'>
@@ -113,8 +113,7 @@ output application/json
 						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
 output application/json
 ---
-'dual_bonus'
-]]></ee:set-variable>
+'dual-bonus']]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
 				<flow-ref doc:name="common-set-success-audit-log-subflow"
@@ -165,6 +164,16 @@ output application/json
 					name="common-set-success-audit-log-subflow" />
 			</when>
 			<when expression="#[vars.stateResponse.result.state == 1]">
+				<ee:transform doc:name="var-spielType(normal off)" doc:id="c84c809f-2a1e-4ca6-b0c7-48a0cef07746" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="spielType" ><![CDATA[%dw 2.0
+output application/json
+---
+'normal-off'
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
 				<logger level="INFO" doc:name="Proceed to Deprovision flow"
 					doc:id="6ad55833-3e35-4b10-a04a-f91f7a165e39"
 					message="Proceed - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
@@ -242,7 +251,7 @@ output application/json skipNullOn = "everywhere"
 			<try doc:name="Try" doc:id="ee8efeb8-b266-4f83-ae8b-05b6ea54238e">
 				<flow-ref doc:name="sys-post-state-subflow"
 					doc:id="8aaf0d4a-4a4e-49b2-95b6-fc97bc290004"
-					name="sys-post-state-subflow" />
+					name="sys-redis-api-post-state-msisdn-flow" />
 				<error-handler>
 					<on-error-continue enableNotifications="true"
 						logException="true" doc:name="On Error Continue"

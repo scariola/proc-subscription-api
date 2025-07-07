@@ -86,7 +86,5 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 		doc:id="868a7a39-e728-4fdb-8928-3ecf382589e7">
 		<http:request-connection host="${sms.host}" />
 	</http:request-config>
-	<configuration doc:name="Configuration"
-		doc:id="c1c3d876-cbe4-4ad4-badb-b1e520ef7b43"
-		defaultErrorHandler-ref="proc-subscription-api-Shared_Error_Handler" />
+	
 </mule>

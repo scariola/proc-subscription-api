@@ -9,7 +9,17 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 		<logger level="INFO" doc:name="START - Eligibility Process" doc:id="00b45a75-690e-4012-846a-87c483cc0547" message="START - STEP 4: ELIGIBILITY CHECK"/>
 		<choice doc:name="Identify BrandId" doc:id="e524c1a2-5b97-45d9-be52-2acb7b9c748e">
 			<when expression='#[[1, 2] contains (vars.brand."brand-id")]'>
-				<flow-ref doc:name="sys-nf-api-flowsSub_Flow" doc:id="5c954196-c1d3-4499-abc7-b5431b425249" name="sys-nf-api-flowFlow" />
+				<ee:transform doc:name="Payload TO NF API Request" doc:id="8d5753b3-7d9a-482b-8dfa-7ba464b4a32c">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    msisdn: vars.originalPayload.msisdn replace /^(0|63)/ with ""
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="sys-nf-api-get-prepiad-msisdn-flow" doc:id="5c954196-c1d3-4499-abc7-b5431b425249" name="sys-nf-api-get-prepiad-msisdn-flow" />
 				<choice doc:name="Choice" doc:id="2c207d32-0bea-4017-bd19-44f17d1e8897">
 					<when expression="#[!isEmpty(payload.bundles filter ($.service_id == vars.originalPayload.'as-service-id' and now() &lt; ($.expiry_date as LocalDateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;})))]">
 						<ee:transform doc:name="NF API Response to Payload Response" doc:id="9262a61a-a1cb-461e-9664-25d7c99ac3bc">
@@ -77,7 +87,17 @@ output application/json
 			
 </when>
 			<otherwise>
-				<flow-ref doc:name="Flow ref to get-bss-msisdn-eligibility-flow" doc:id="e9da4451-755b-403d-9f7a-09048078c5ea" name="get-bss-msisdn-eligibility-flow" />
+				<ee:transform doc:name="Payload TO BSS API Request" doc:id="2b9683ee-fa69-4c1b-a570-c0527eaa8f8d" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    msisdn: vars.originalPayload.msisdn replace /^(0|63)/ with ""
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="sys-bss-api-get-postpiad-msisdn-flow" doc:id="e9da4451-755b-403d-9f7a-09048078c5ea" name="sys-bss-api-get-postpiad-msisdn-flow" />
 				<choice doc:name="Choice" doc:id="5f6f28f0-7f77-423a-878e-bf7a7e70baf2">
 					<when expression="#[!isEmpty(payload.bundles)]">
 						<ee:transform doc:name="BSS API Response to Payload Reponse" doc:id="5c2af4e5-f43e-4332-97f7-2238df804d63">

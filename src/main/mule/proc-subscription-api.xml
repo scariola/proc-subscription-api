@@ -26,7 +26,7 @@
 	</flow>
 	<flow
 		name="post:\subscription:application\json:proc-subscription-api-config">
-		<logger level="INFO" doc:name="Logger" doc:id="8515c7b5-8fbe-4995-a255-e4dfd5d3bcbf" />
+		<logger level="INFO" doc:name="START - POST /subscription" doc:id="8515c7b5-8fbe-4995-a255-e4dfd5d3bcbf" message="START - POST /subscription - Start processing subscription request"/>
 		<ee:transform doc:name="Store Orignal Payload" doc:id="fa72305f-bce5-4f0d-9547-555f4e9e58b0" >
 			<ee:message >
 			</ee:message>
@@ -38,14 +38,27 @@ payload]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
 		<flow-ref doc:name="impl-post-subscription-subflow" doc:id="0e1c050a-6e2e-4695-a46d-51acd0d6453d" name="impl-post-subscription-subflow"/>
-		<ee:transform doc:name="Transform Message" doc:id="a4700e3e-cef6-499b-a788-b00e964ea957" >
+		<ee:transform doc:name="Construct Subscription Result Payload" doc:id="a4700e3e-cef6-499b-a788-b00e964ea957" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
-payload]]></ee:set-payload>
+{
+    "x-event-id": correlationId,
+    "x-event-code": 1005,
+    "x-event-msg": "Success",
+    "result": {
+        "transaction-id": vars.originalPayload.'transaction-id' default "",
+        "msisdn": vars.originalPayload.'msisdn' default "",
+        "status": if (!isEmpty(vars.expiryDetails.'expiry-date' default "")) 1 else 0,
+        "expiry-date": vars.stateResponse.result.'expiry-date' 
+                      default vars.expiryDetails.'expiry-date' 
+                      default "",
+        "sms-spiel": vars.smsSpielMapping.'sms-spiel' default ""
+    }
+}]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="Logger1" doc:id="dd78a311-0ba8-4c35-9c61-76266e34b8eb" message="#[payload]"/>
+		<logger level="INFO" doc:name="END - POST /subscription" doc:id="dd78a311-0ba8-4c35-9c61-76266e34b8eb" message="#[payload]"/>
 	</flow>
 </mule>
