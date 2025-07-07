@@ -53,7 +53,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			</otherwise>
 		</choice>
 	</sub-flow>
-	
+
 	<sub-flow name="impl-post-audit-subflow"
 		doc:id="81ed1a62-3c83-4c4e-9846-f937046c7ffb">
 		<logger level="INFO" doc:name="START - Audit Logging Process"
@@ -97,5 +97,743 @@ output application/json
 		<logger level="INFO" doc:name="END  - Audit Logging Process"
 			doc:id="125a6417-0c97-4601-904d-65d2e5ef1d3a"
 			message="END - Audit Logging Process - STEP 1: AUDIT LOGGING" />
+	</sub-flow>
+	<sub-flow name="impl-redis-process-subflow"
+		doc:id="3210188d-3331-41a5-9aa9-9efa69e808eb">
+		<logger level="INFO" doc:name="START - Redis Process"
+			doc:id="2dbdc422-a67d-44a2-b961-01cb84171931"
+			message="START - STEP 3: REDIS LOGIC (BRAND &amp; STATE LOOKUP)" />
+		<try doc:name="Try" doc:id="935c55d8-8b21-48f4-99cb-9ebc76d8577c">
+			<flow-ref doc:name="sys-redis-api-get-brand-prefix-subflow"
+				doc:id="73ba302b-54fd-4be9-bf3e-3a80bef4031a"
+				name="sys-redis-api-get-brand-prefix-subflow" target="brandResponse" />
+			<error-handler>
+				<on-error-continue enableNotifications="true"
+					logException="true" doc:name="On Error Continue"
+					doc:id="20b2ac8e-14bd-47ed-945d-421182a01360">
+					<logger level="INFO" doc:name="Proceed Anyway"
+						doc:id="bbe9a74d-ea57-4ea9-b6cd-d831988d3e11"
+						message="Proceed Anyway" />
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<choice doc:name="IS BrandId found?"
+			doc:id="09655b26-1c73-4431-a941-5dab12c5d093">
+			<when expression="#[isEmpty(vars.brandResponse.result)]">
+				<flow-ref doc:name="sys-bridge-api-get-bridge-prefix-flow"
+					doc:id="8c1e7c02-b7f8-48a3-acf0-3b1c820e2622"
+					name="sys-bridge-api-get-bridge-prefix-flow"
+					target="bridgeResponse" />
+				<flow-ref doc:name="sys-redis-api-post-brand-prefix-flow"
+					doc:id="f488925a-519f-445c-963d-231f3f08cf9e"
+					name="sys-redis-api-post-brand-prefix-flow" />
+			</when>
+		</choice>
+		<ee:transform doc:name="var-brand"
+			doc:id="46f7f1c4-49ea-4138-ae61-c942ba48f325">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="brand"><![CDATA[%dw 2.0
+output application/json
+
+var redis = vars.brandResponse
+var bridge = vars.bridgeResponse
+
+var data = 
+    if (!isEmpty(redis.result)) redis.result
+    else bridge          
+---
+data
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<choice doc:name="IS Brand Id Supported?"
+			doc:id="28376ce8-baf5-49f5-8ea0-d0474c5eade9">
+			<when
+				expression='#[[1, 2, 3] contains (vars.brand."brand-id" default 0)]'>
+				<flow-ref doc:name="sys-redis-api-get-state-msisdn-flow"
+					doc:id="78189739-765a-454d-862f-ad0e3b23c700"
+					name="sys-redis-api-get-state-msisdn-flow" target="stateResponse" />
+				<choice doc:name="ROUTE request TO Screnarios"
+					doc:id="ee430490-f0ce-4877-9e7b-53e83db9f5a2">
+					<when
+						expression='#[vars.formattedSubscriberData.keyword == "OPT-IN"]'>
+						<flow-ref doc:name="impl-process-opt-in-subflow"
+							doc:id="790471b1-1492-4682-99a7-43e718cd5d2a"
+							name="impl-process-opt-in-subflow" />
+					</when>
+					<when
+						expression='#[vars.formattedSubscriberData.keyword == "OPT-OUT"]'>
+						<flow-ref doc:name="impl-process-opt-out-subflow"
+							doc:id="f32dd1f9-f56d-4fa5-9484-595696c18032"
+							name="impl-process-opt-out-subflow" />
+					</when>
+					<otherwise>
+						<flow-ref doc:name="impl-process-bonus-subflow"
+							doc:id="66404357-6efd-4789-8c4e-9a76b51ffb32"
+							name="impl-process-bonus-subflow" />
+					</otherwise>
+				</choice>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="var-spielTpye(unsupported)"
+					doc:id="ee0784f9-70af-47a2-871f-98f338ad2bec">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
+output application/json
+---
+'unsupported']]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="common-set-error-audit-log-subflow"
+					doc:id="ff3654b2-d90f-41da-b77b-1b8106471510"
+					name="common-set-error-audit-log-subflow" />
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="END - Redis Process"
+			doc:id="6e639040-daa6-4b99-bf1a-ace8435fe943"
+			message="END - STEP 3: REDIS LOGIC (BRAND &amp; STATE LOOKUP)" />
+	</sub-flow>
+	<sub-flow name="impl-process-bonus-subflow"
+		doc:id="7bb099ac-e3b6-485b-8194-e06a87347d08">
+		<choice doc:name="Choice"
+			doc:id="f97e8cac-5b4c-4eb8-8f7d-825b58a3b37e">
+			<when expression="#[vars.stateResponse.result.state == 1]">
+				<ee:transform doc:name="var-spielType(dual bonus)"
+					doc:id="41e23992-acb9-4c9b-a124-30cf8672793d">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
+output application/json
+---
+'dual-bonus']]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="common-set-success-audit-log-subflow"
+					doc:id="023cd346-e082-49e9-820f-e6377e3c1e2c"
+					name="common-set-success-audit-log-subflow" />
+			</when>
+			<when expression="#[vars.stateResponse.result.state == 0]">
+				<ee:transform doc:name="var-spielType(not eligbale)"
+					doc:id="ee872330-ef7f-4f83-a32f-ef00741c2a59">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
+output application/json
+---
+'not-eligable'
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="common-set-success-audit-log-subflow"
+					doc:id="a421263f-435c-4607-b23e-013093af7920"
+					name="common-set-success-audit-log-subflow" />
+			</when>
+			<otherwise>
+				<flow-ref doc:name="impl-get-whitelist-subflow"
+					doc:id="faa47340-4079-4611-a588-9265c076d6ed"
+					name="impl-get-whitelist-subflow" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="impl-process-opt-out-subflow"
+		doc:id="230b2f75-82af-48cc-b1d1-621ed4f8b0d5">
+		<choice doc:name="IS State found?"
+			doc:id="5a02223b-40b5-492d-9209-16c8c3d01d20">
+			<when expression="#[vars.stateResponse.result.state == 0]">
+				<ee:transform doc:name="var-spielType(dual off)"
+					doc:id="c590e602-098e-4bd8-9b8f-873739abb44a">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
+output application/json
+---
+'dual-off'
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="common-set-success-audit-log-subflow"
+					doc:id="a9a4dbcf-0450-4979-87b3-9b1873cdd7cc"
+					name="common-set-success-audit-log-subflow" />
+			</when>
+			<when expression="#[vars.stateResponse.result.state == 1]">
+				<ee:transform doc:name="var-spielType(normal off)"
+					doc:id="46ea4617-e5da-4bd4-bc77-2c37f8f7ab90">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
+output application/json
+---
+'normal-off'
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="Proceed to Deprovision flow"
+					doc:id="dac7fe85-7341-4778-a303-137ff7bb37e9"
+					message="Proceed - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
+			</when>
+			<otherwise>
+				<ee:transform doc:name="var-spielType(not registered)"
+					doc:id="521b19bf-9dff-4f9d-b9d5-ba4944226983">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
+output application/json
+---
+'not-registered'
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="common-set-success-audit-log-subflow"
+					doc:id="e40d5728-ea15-490d-9a7e-8190ac43d1ee"
+					name="common-set-success-audit-log-subflow" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="impl-process-opt-in-subflow"
+		doc:id="47a79029-c2eb-4ec0-acef-7392b4c63a77">
+		<choice doc:name="IS State found?"
+			doc:id="fba108f2-8612-43da-8e3f-070ea96f2781">
+			<when expression="#[vars.stateResponse.result.state == 1]">
+				<ee:transform doc:name="var-spielType(dual provision)"
+					doc:id="c1f5f697-2c9d-4015-8141-1eef0b8abfc4">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
+output application/json
+---
+'dual-provisioning'
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="common-set-success-audit-log-subflow"
+					doc:id="ab231abe-5872-4268-935a-8123eaf8e770"
+					name="common-set-success-audit-log-subflow" />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Proceed to Eligibility check"
+					doc:id="50ff3ded-6f2c-4f36-a012-ac2efc485a30" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="impl-post-state-subflow"
+		doc:id="353c9ba2-1171-4c3d-912a-9afb9cf95476">
+		<logger level="INFO" doc:name="START - Save State"
+			doc:id="067d3c99-54d2-43d4-a64d-d6504d18273a"
+			message="START - Save State - STEP 6: UPDATE REDIS STATE" />
+		<ee:transform doc:name="Payload to Redis API Request"
+			doc:id="c2c111e9-76c8-4280-a0b2-40ef2986a733">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json skipNullOn = "everywhere"
+---
+{
+	"msisdn": vars.formattedSubscriberData.msisdn,
+	"requestPayload":{
+		"state": vars.state.state,
+		"expiry-date": vars.expiryDetails.'expiry-date'
+	}
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<until-successful maxRetries="3"
+			doc:name="Until 
+			Successful"
+			doc:id="a403b0e0-cc43-44b7-8b47-fff85dcc87f8"
+			millisBetweenRetries="50000">
+			<try doc:name="Try" doc:id="0d34fcc0-6056-477b-897a-d7c62bf400b4">
+				<flow-ref doc:name="sys-post-state-subflow"
+					doc:id="60da4d68-de6b-4003-bcfc-97cf4844385a"
+					name="sys-redis-api-post-state-msisdn-flow" />
+				<error-handler>
+					<on-error-continue enableNotifications="true"
+						logException="true" doc:name="On Error Continue"
+						doc:id="de0b026d-5261-4872-8ec9-70ada1bdf0ee" type="ANY">
+						<logger level="INFO" doc:name="Logger"
+							doc:id="fefe738f-c3df-4c76-81a1-4d217dc0e0b3" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+			<choice doc:name="Choice"
+				doc:id="d5af90db-947a-4ff4-af75-9ec08c352827">
+				<when expression="#[attributes.statusCode != 201]">
+					<logger level="INFO" doc:name="Logger"
+						doc:id="43095d7e-f4ca-4896-b45b-36aa0702d52d"
+						message='#[{&#10;  "step": "6 - Cache Save",&#10;  //"transactionId;" "idss",&#10;  "msisdn": "63xxxxxxxxxx",&#10;  "request_type": "Opt-In / Opt-Out / Bonus",&#10;  "cache_key": "spectre-freefb-63xxxxxxxxxx",&#10;  "cache_value": "1 or 0",&#10;  "attempt": 3,&#10;  "status": "failure",&#10;  "error": "Connection timeout / Write error / null",&#10;  "timestamp": "2025-05-30T10:30:15Z"&#10;}]' />
+				</when>
+			</choice>
+		</until-successful>
+		<logger level="INFO" doc:name="END - Save State"
+			doc:id="eff6d585-cdd8-493f-a785-a78cc1219840"
+			message="END - Save State - STEP 6: UPDATE REDIS STATE" />
+	</sub-flow>
+	<sub-flow name="impl-elgibility-check-subflow"
+		doc:id="badefcfd-e27d-4df8-8b80-f25111eb2cdd">
+		<logger level="INFO" doc:name="START - Eligibility Process"
+			doc:id="ef643cf9-c369-40b8-8978-b139f0b781d5"
+			message="START - STEP 4: ELIGIBILITY CHECK" />
+		<choice doc:name="Identify BrandId"
+			doc:id="527bd8e4-9594-48dc-b0d5-7eb7b9054d1c">
+			<when expression='#[[1, 2] contains (vars.brand."brand-id")]'>
+				<ee:transform doc:name="Payload TO NF API Request"
+					doc:id="f030769d-398d-41ca-b327-8457e9b8df39">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    msisdn: vars.originalPayload.msisdn replace /^(0|63)/ with ""
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="sys-nf-api-get-prepiad-msisdn-flow"
+					doc:id="4a60da90-8dc9-44ad-844b-dc47ff3e8c8d"
+					name="sys-nf-api-get-prepiad-msisdn-flow" />
+				<choice doc:name="Choice"
+					doc:id="b76230c2-bcda-4e9d-afb0-8675f06d6034">
+					<when
+						expression="#[!isEmpty(payload.bundles filter ($.service_id == vars.originalPayload.'as-service-id' and now() &lt; ($.expiry_date as LocalDateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;})))]">
+						<ee:transform
+							doc:name="NF API Response to Payload Response"
+							doc:id="f93609c6-8acb-49ff-ac3e-e676062ff794">
+							<ee:message>
+							</ee:message>
+							<ee:variables>
+								<ee:set-variable variableName="expiryDetails"><![CDATA[%dw 2.0
+output application/json
+
+---
+payload.bundles
+  filter (
+    $.service_id == vars.originalPayload.'as-service-id' and 
+    now() < ($.expiry_date as LocalDateTime { format: "yyyy-MM-dd HH:mm:ss" })
+  )
+  reduce (item, acc = {}) -> {
+    "msisdn": payload.msisdn,
+    "service-id": item.service_id,
+    "expiry-date": item.expiry_date
+  }
+]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+						<choice doc:name="Choice"
+							doc:id="ca688cc4-6283-48ad-bad6-30e68a0df589">
+							<when expression="vars.stateResponse.result.state == 0">
+								<ee:transform
+									doc:name="var-spielType(reactivation)"
+									doc:id="a416184a-af7b-4b00-b1c7-00e4a1059e90">
+									<ee:message>
+									</ee:message>
+									<ee:variables>
+										<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
+output application/json
+---
+'reactivation']]></ee:set-variable>
+									</ee:variables>
+								</ee:transform>
+							</when>
+							<otherwise>
+								<ee:transform doc:name="var-spielType(eligable)"
+									doc:id="be79eada-da1d-4164-90f3-ae8927bf5929">
+									<ee:message>
+									</ee:message>
+									<ee:variables>
+										<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
+output application/json
+---
+'eligible']]></ee:set-variable>
+									</ee:variables>
+								</ee:transform>
+							</otherwise>
+						</choice>
+					</when>
+					<otherwise>
+						<ee:transform doc:name="var-spielType(ineligable)"
+							doc:id="68f04986-a5e3-4dff-84b9-552bde30b2aa">
+							<ee:message>
+							</ee:message>
+							<ee:variables>
+								<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
+output application/json
+---
+'ineligible']]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+						<flow-ref doc:name="common-set-error-audit-log-subflow"
+							doc:id="e0432c57-bc0a-4d2c-9215-b1fdd59f44fb"
+							name="common-set-error-audit-log-subflow" />
+					</otherwise>
+				</choice>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Payload TO BSS API Request"
+					doc:id="e273c3b6-a960-4d16-9af6-e12c693eed85">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    msisdn: vars.originalPayload.msisdn replace /^(0|63)/ with ""
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="sys-bss-api-get-postpiad-msisdn-flow"
+					doc:id="be8bdb96-659f-428f-afbd-15981d5f2ff5"
+					name="sys-bss-api-get-postpiad-msisdn-flow" />
+				<choice doc:name="Choice"
+					doc:id="ee91fcaa-1312-4adf-a59d-f28b106e3060">
+					<when expression="#[!isEmpty(payload.bundles)]">
+						<ee:transform
+							doc:name="BSS API Response to Payload Reponse"
+							doc:id="c3cccf06-1b26-404c-94fa-f72b0e39f060">
+							<ee:message>
+							</ee:message>
+							<ee:variables>
+								<ee:set-variable variableName="expiryDetails"><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "service-id": vars.originalPayload.'as-service-id',
+  "expiry-date": p('default.expiry.date')
+}]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+						<choice doc:name="Choice"
+							doc:id="046d7b5a-19da-4022-860e-1b2f984b4b95">
+							<when expression="vars.stateResponse.result.state == 0">
+								<ee:transform
+									doc:name="var-spielType(reactivation)"
+									doc:id="3c4a5eab-32a1-4006-9d19-23d7d98010aa">
+									<ee:message>
+									</ee:message>
+									<ee:variables>
+										<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
+output application/json
+---
+'reactivation']]></ee:set-variable>
+									</ee:variables>
+								</ee:transform>
+							</when>
+							<otherwise>
+								<ee:transform doc:name="var-spielType(eligable)"
+									doc:id="06e8f152-106c-49df-965f-6fc501d1ce6c">
+									<ee:message>
+									</ee:message>
+									<ee:variables>
+										<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
+output application/json
+---
+'eligible']]></ee:set-variable>
+									</ee:variables>
+								</ee:transform>
+							</otherwise>
+						</choice>
+					</when>
+					<otherwise>
+						<ee:transform doc:name="var-spielType(ineligable)"
+							doc:id="d4091dad-a5a3-4219-81e0-c57816a8a936">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+'ineligible']]></ee:set-payload>
+							</ee:message>
+							<ee:variables>
+								<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+						<flow-ref doc:name="common-set-error-audit-log-subflow"
+							doc:id="bc83b267-e176-4cd3-b7fb-11d918a47948"
+							name="common-set-error-audit-log-subflow" />
+					</otherwise>
+				</choice>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="END - Eligibility Process"
+			doc:id="32230055-69ae-4d91-87a3-5e0b717c5e15"
+			message="END - STEP 4: ELIGIBILITY CHECK" />
+	</sub-flow>
+	<sub-flow name="impl-post-provision-subflow"
+		doc:id="5e05202e-e628-4eeb-a9c0-c2ac48c2f256">
+		<logger level="INFO" doc:name="START - Provision Process"
+			doc:id="8f6573cd-c964-4a12-af11-e2ed137ce718"
+			message="START - Provision Process - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
+		<ee:transform doc:name="Payload TO Provision API Request"
+			doc:id="48d5fb15-f034-4f1d-bcc2-ad0b7b90ee8e">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "msisdn": vars.formattedSubscriberData.msisdn,
+  "provision": {
+    "fb-product-id": vars.expiryDetails.'service-id' default vars.originalPayload.'as-service-id',
+    "expiry-date": vars.expiryDetails."expiry-date" default "1"
+  }
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="sys-post-provison-subflow"
+			doc:id="b6b9e7e2-08ff-41bc-b325-8c7972a5a4fd"
+			name="sys-post-provison-subflow" />
+		<choice doc:name="Choice"
+			doc:id="02407f94-947c-4314-83c4-845cc68778fd">
+			<when expression="#[attributes.statusCode == 201]">
+				<choice doc:name="Choice"
+					doc:id="68f8dd6f-6912-45a2-9693-1d946be6e4fc">
+					<when
+						expression='#[vars.formattedSubscriberData.keyword == "BONUS"]'>
+						<flow-ref doc:name="impl-delete-whitelist-subflow"
+							doc:id="13234db9-edd1-48a0-9406-1ad385720593"
+							name="impl-delete-whitelist-subflow" />
+					</when>
+				</choice>
+				<ee:transform doc:name="var-state"
+					doc:id="3863dc15-72e6-4361-9340-c69435505a23">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="state"><![CDATA[%dw 2.0
+output application/json
+
+var keyword = vars.formattedSubscriberData.keyword
+var state = if (keyword == "OPT-IN" or keyword == "BONUS") 1 else 0
+---
+{
+    state: state
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<ee:transform doc:name="var-auditLog"
+					doc:id="87c1e238-6519-40b1-a881-6a8ee236022d">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="auditLog"><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "success": 1,
+    "hasProcessorError": 0
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="var-smsSpielMapping"
+					doc:id="a6966731-71cc-407c-87d6-144ce6abeac6">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
+output application/json
+---
+'fb-unsuccess']]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="common-set-error-audit-log-subflow"
+					doc:id="6d2b6f6c-4a73-4c35-a1c5-aebc7e4bc032"
+					name="common-set-error-audit-log-subflow" />
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="END  - Provision Process "
+			doc:id="af797a39-04d9-4b63-9049-6823ec996b34"
+			message="END  - Provision Process - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
+	</sub-flow>
+	<sub-flow name="impl-put-audit-subflow"
+		doc:id="0c114945-f0a3-42b1-b2a8-7ef7d1693e05">
+		<logger level="INFO" doc:name="START- Update Audit Logging"
+			doc:id="e1dc0fc5-51a6-41dd-9653-fe4e4e1b1a26"
+			message="START- Update Audit Logging - STEP 7: UPDATE AUDIT LOGGING" />
+		<ee:transform doc:name="Payload to Audit API Request"
+			doc:id="c0f31921-8a8c-473a-857c-de553a800dd0">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"audit-id": vars.auditId."audit-id",
+	"requetPayload": vars.auditLog
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<until-successful maxRetries="3"
+			doc:name="Until 
+			Successful"
+			doc:id="9c148838-f733-40d9-ae84-69a2a581f516"
+			millisBetweenRetries="5000">
+			<try doc:name="Try" doc:id="a885e43d-9511-47a7-80b3-b898237a2752">
+				<flow-ref doc:name="sys-audit-api-put-audit-flow"
+					doc:id="82eee915-548b-4c4d-8d86-0407536d902e"
+					name="sys-audit-api-put-audit-flow" />
+				<error-handler>
+					<on-error-propagate enableNotifications="true"
+						logException="true" doc:name="On Error Propagate"
+						doc:id="24af72a3-0194-4dba-8463-dbfd6a4e9a52" type="ANY">
+						<logger level="INFO" doc:name="Logger"
+							doc:id="26dc6070-178b-4780-a439-59ad1777abe6" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+			<choice doc:name="IS successful?"
+				doc:id="558f5d09-4a55-4689-a3be-676c69c0fcb0">
+				<when expression="#[attributes.statusCode != 200]">
+					<logger level="INFO" doc:name="Logger"
+						doc:id="3da31939-4003-4372-9060-a4c4a90bd5d5" />
+				</when>
+			</choice>
+		</until-successful>
+		<logger level="INFO" doc:name="END - Update Audit Logging"
+			doc:id="dd75d9e7-9a71-4d19-94f4-41c212547619"
+			message="END - Update Audit Logging - STEP 7: UPDATE AUDIT LOGGING" />
+	</sub-flow>
+	<sub-flow name="impl-post-sms-subflow"
+		doc:id="ab7f9e86-0987-4639-a35d-cc177bb928f2">
+		<logger level="INFO" doc:name="START - SMS Messaging Process"
+			doc:id="85275436-9068-49ef-8876-def884faa94a"
+			message="START - SMS Messaging Process - STEP 8: SMS MESSAGING" />
+		<flow-ref doc:name="common-get-spiel-subflow"
+			doc:id="9963c985-706f-4271-a0ad-ddf51fb16e17"
+			name="common-get-spiel-subflow" />
+		<ee:transform doc:name="Payload to SMS API Request"
+			doc:id="2d3a1a9b-6712-4b77-bf49-108c15b9338a">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "fromAddress": vars.originalPayload.msisdn,
+    "smsMessaging": {
+        "address": vars.originalPayload.'sms-source-address',
+        "message": vars.smsSpielMapping.'sms-spiel'
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<until-successful maxRetries="3"
+			doc:name="Until Successful"
+			doc:id="cfc90b85-e3be-449c-b1a2-758e708b7e41"
+			millisBetweenRetries="50000">
+			<try doc:name="Try" doc:id="318708a6-c9a9-4ccf-b492-feb1c6740850">
+				<flow-ref doc:name="sys-sms-api-sublow"
+					doc:id="a53cccc2-654c-4066-8d5b-7284f8434493"
+					name="sys-sms-api-sublow" />
+				<error-handler>
+					<on-error-propagate enableNotifications="true"
+						logException="true" doc:name="On Error Propagate"
+						doc:id="03e38988-43d9-4ccd-ba88-3ba0a4ff8c26" type="ANY">
+						<logger level="INFO" doc:name="Logger"
+							doc:id="3e471234-41e0-4af0-8984-c4cc3299ef9f" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+			<choice doc:name="Choice"
+				doc:id="969a8d8c-9365-49f4-8eba-9962286d122f">
+				<when expression="#[attributes.statusCode != 200]">
+					<logger level="INFO" doc:name="Logger"
+						doc:id="0a2458bb-1d78-4d63-b5a7-1b473e312c01"
+						message="log failure" />
+				</when>
+			</choice>
+		</until-successful>
+		<logger level="INFO" doc:name="END - SMS Messaging Process"
+			doc:id="d2e18799-9a72-40a5-8add-3e5dc9051b0c"
+			message="END - SMS Messaging Process - STEP 8: SMS MESSAGING" />
+	</sub-flow>
+	<sub-flow name="impl-get-whitelist-subflow"
+		doc:id="c886cbf7-afd9-4281-a813-3a7b2133adef">
+		<logger level="INFO" doc:name="START - Bonus Handling"
+			doc:id="e3a1162a-aea4-45a8-9f0a-adffe01e944e"
+			message="END- Bonus Handling" />
+		<flow-ref doc:name="get-msisdn-whitelist-flow"
+			doc:id="0fdd0308-1b66-4eb4-99e3-c2a4d86df0b6"
+			name="get-msisdn-whitelist-flow" />
+		<choice doc:name="Choice"
+			doc:id="d0f4c68c-1ee3-45c7-9d31-a3f6df96a0fa">
+			<when
+				expression="#[(isEmpty(payload.result) and payload.results.eligible == true)]">
+				<ee:transform
+					doc:name="MongoDB Respose TO API Response"
+					doc:id="813d2baa-269a-4054-9038-e9cc891a9746">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="expiryDetails"><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "service-id": vars.originalPayload.'as-service-id',
+  "expiry-date": (now() + |P7D|) as String { format: "yyyy-MM-dd HH:mm:ss" }
+}
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<ee:transform doc:name="var - spielType"
+					doc:id="85de66e5-ccba-4669-b9ae-49b44ff9161c">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
+output application/json
+---
+'first-time']]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="var - spielType"
+					doc:id="4e7fbd5d-572c-4321-8675-d3e54d03c72c">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
+output application/json
+---
+'not-eligable']]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="common-set-success-audit-log-subflow"
+					doc:id="a23bc2b7-37be-49ff-b902-37d53cb1e483"
+					name="common-set-success-audit-log-subflow" />
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="END- Bonus Handling"
+			doc:id="8dad676f-4dbc-43c2-8e21-ef46e62d9ea3"
+			message="END- Bonus Handling" />
+	</sub-flow>
+	<sub-flow name="impl-delete-whitelist-subflow"
+		doc:id="aa665024-e4b2-499e-af6e-9281cdfd41fa">
+		<until-successful maxRetries="5"
+			doc:name="Until Successful"
+			doc:id="41d49cf9-ca58-4736-b91a-2597490b6dc8">
+			<try doc:name="Try" doc:id="5addf2c4-ba95-4a6f-9104-f8f4a18fd380">
+				<flow-ref doc:name="delete-msisdn-whitelist-flow"
+					doc:id="a2d06424-5d43-41c0-b999-f0fb57c8ab52"
+					name="delete-msisdn-whitelist-flow" />
+				<error-handler>
+					<on-error-propagate enableNotifications="true"
+						logException="true" doc:name="On Error Propagate"
+						doc:id="1aa62361-68c4-4dd0-b59f-6539e21eab13" type="ANY">
+						<logger level="INFO" doc:name="Logger"
+							doc:id="4a42ff9c-a6f2-4099-99ea-07a94b90f984" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+			<choice doc:name="Choice"
+				doc:id="21708bf7-5ef7-420f-b983-e96c3e01fc54">
+				<when expression="#[attributes.statusCode != 200]">
+					<logger level="INFO" doc:name="Logger"
+						doc:id="562be86f-6ab6-485e-92e2-9124d11941f1" />
+				</when>
+			</choice>
+		</until-successful>
 	</sub-flow>
 </mule>
