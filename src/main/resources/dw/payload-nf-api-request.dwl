@@ -2,5 +2,5 @@
 output application/json
 ---
 {
-    msisdn: vars.formattedSubscriberData.msisdn
+    msisdn: vars.formattedSubscriberData.msisdn replace /^(0|63)/ with ""
 }

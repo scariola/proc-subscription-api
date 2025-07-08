@@ -6,8 +6,13 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
-	<sub-flow name="impl-subscription-post-subscription-subflow"
-		doc:id="bd2e8438-d23d-4920-a8cf-fc152b7d4f25">
+
+	<flow name="impl-subscription-post-subscription-flow"
+		doc:id="11759503-62a6-46b0-8845-b3be461f145b">
+		<logger level="INFO"
+			doc:name="START - Subcription Process Request"
+			doc:id="55cd753e-07df-4976-af36-3079b042fd0f"
+			message="START - Subcription Process Request" />
 		<flow-ref doc:name="impl-subscription-post-audit-subflow"
 			doc:id="5841db2c-87c4-436c-98c2-d148b3643619"
 			name="impl-subscription-post-audit-subflow" />
@@ -29,8 +34,13 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<flow-ref doc:name="impl-subscription-post-sms-subflow"
 			doc:id="8050e4dc-5508-4fa4-8c19-191ce1f981d2"
 			name="impl-subscription-post-sms-subflow" />
-	</sub-flow>
-
+		<logger level="INFO"
+			doc:name="END - Subcription Process Request"
+			doc:id="b24f86b8-98de-40de-93d0-828aa25e7c11"
+			message="END - Subcription Process Request" />
+		<error-handler
+			ref="proc-subscription-api-Shared_Error_Handler" />
+	</flow>
 	<sub-flow
 		name="impl-subscription-process-eligibility-provision-state-subflow"
 		doc:id="6d366e81-537c-40ac-bbd9-ab7197a1b239">
@@ -75,9 +85,9 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					resource="dw/payload-audit-api-request.dwl" />
 			</ee:message>
 		</ee:transform>
-		<flow-ref doc:name="sys-audit-api-post-audit-flow"
+		<flow-ref doc:name="sys-audit-api-post-audit-subflow"
 			doc:id="47620c83-ad7e-497d-8d42-ce73446ecbcf"
-			name="sys-audit-api-post-audit-flow" />
+			name="sys-audit-api-post-audit-subflow" />
 		<ee:transform doc:name="var-auditId"
 			doc:id="748a0edb-39c4-45d8-94d9-57a8df7de6da">
 			<ee:message>
@@ -93,13 +103,13 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	</sub-flow>
 	<sub-flow name="impl-subscription-brand-state-check-subflow"
 		doc:id="3210188d-3331-41a5-9aa9-9efa69e808eb">
-		<logger level="INFO" doc:name="START - Redis Process"
+		<logger level="INFO" doc:name="START - Brand and State Check"
 			doc:id="2dbdc422-a67d-44a2-b961-01cb84171931"
-			message="START - STEP 3: REDIS LOGIC (BRAND &amp; STATE LOOKUP)" />
+			message="START - Brand and State Check  - STEP 3: REDIS LOGIC (BRAND &amp; STATE LOOKUP)" />
 		<try doc:name="Try" doc:id="935c55d8-8b21-48f4-99cb-9ebc76d8577c">
 			<flow-ref doc:name="sys-redis-api-get-brand-prefix-subflow"
 				doc:id="73ba302b-54fd-4be9-bf3e-3a80bef4031a"
-				name="sys-redis-api-get-brand-prefix-subflow" target="brandResponse" />
+				name="sys-redis-api-get-brand-prefix-subflow" />
 			<error-handler>
 				<on-error-continue enableNotifications="true"
 					logException="true" doc:name="On Error Continue"
@@ -112,14 +122,31 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		</try>
 		<choice doc:name="IS BrandId found?"
 			doc:id="09655b26-1c73-4431-a941-5dab12c5d093">
-			<when expression="#[isEmpty(vars.brandResponse.result)]">
-				<flow-ref doc:name="sys-bridge-api-get-bridge-prefix-flow"
+			<when expression="#[isEmpty(payload.result)]">
+				<flow-ref
+					doc:name="sys-bridge-api-get-bridge-prefix-subflow"
 					doc:id="8c1e7c02-b7f8-48a3-acf0-3b1c820e2622"
-					name="sys-bridge-api-get-bridge-prefix-flow"
-					target="bridgeResponse" />
-				<flow-ref doc:name="sys-redis-api-post-brand-prefix-flow"
-					doc:id="f488925a-519f-445c-963d-231f3f08cf9e"
-					name="sys-redis-api-post-brand-prefix-flow" />
+					name="sys-bridge-api-get-bridge-prefix-subflow" />
+				<ee:transform doc:name="Bridge API TO API Response"
+					doc:id="bcf0f0d3-06da-4f24-ac74-c3c9aaeeed03">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (!isEmpty(payload.result)) 
+  {
+    'prefix': payload.result[0].msisdn_prefix,
+    'brand-id': (if (payload.result[0].brand_flag == 4) 1 else payload.result[0].id) as Number,
+    'brand-name': (if (payload.result[0].brand_flag == 4) "GHP Prepaid" else payload.result[0].brand)
+  }
+else 
+  {
+    'prefix': vars.formattedSubscriberData.prefix, 
+    'brand-id': 0,
+    'brand-name': "UNSUPPORTED"
+  }]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
 			</when>
 		</choice>
 		<ee:transform doc:name="var-brand"
@@ -131,13 +158,17 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					variableName="brand" />
 			</ee:variables>
 		</ee:transform>
+		<flow-ref doc:name="sys-redis-api-post-brand-prefix-subflow"
+			doc:id="f488925a-519f-445c-963d-231f3f08cf9e"
+			name="sys-redis-api-post-brand-prefix-subflow" />
 		<choice doc:name="IS Brand Id Supported?"
 			doc:id="28376ce8-baf5-49f5-8ea0-d0474c5eade9">
 			<when
 				expression='#[[1, 2, 3] contains (vars.brand."brand-id" default 0)]'>
-				<flow-ref doc:name="sys-redis-api-get-state-msisdn-flow"
+				<flow-ref doc:name="sys-redis-api-get-state-msisdn-subflow"
 					doc:id="78189739-765a-454d-862f-ad0e3b23c700"
-					name="sys-redis-api-get-state-msisdn-flow" target="stateResponse" />
+					name="sys-redis-api-get-state-msisdn-subflow"
+					target="stateResponse" />
 				<choice doc:name="ROUTE request TO Screnarios"
 					doc:id="ee430490-f0ce-4877-9e7b-53e83db9f5a2">
 					<when
@@ -178,9 +209,9 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					name="common-set-error-audit-log-subflow" />
 			</otherwise>
 		</choice>
-		<logger level="INFO" doc:name="END - Redis Process"
+		<logger level="INFO" doc:name="END- Brand and State Check"
 			doc:id="6e639040-daa6-4b99-bf1a-ace8435fe943"
-			message="END - STEP 3: REDIS LOGIC (BRAND &amp; STATE LOOKUP)" />
+			message="END- Brand and State Check - STEP 3: REDIS LOGIC (BRAND &amp; STATE LOOKUP)" />
 	</sub-flow>
 	<sub-flow name="impl-subscription-process-bonus-subflow"
 		doc:id="7bb099ac-e3b6-485b-8194-e06a87347d08">
@@ -215,10 +246,10 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					name="common-set-success-audit-log-subflow" />
 			</when>
 			<otherwise>
-				<flow-ref doc:name="impl-get-whitelist-subflow"
+				<flow-ref doc:name="impl-subscription-get-bonus-subflow"
 					doc:id="faa47340-4079-4611-a588-9265c076d6ed"
-					name="impl-subscription-get-whitelist-subflow" />
-				<logger level="INFO" doc:name="Proceed to Deprovision flow"
+					name="impl-subscription-get-bonus-subflow" />
+				<logger level="INFO" doc:name="Proceed to Provision flow"
 					doc:id="0368ddef-6fc3-486f-aec7-4042862de51a"
 					message="Proceed - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
 			</otherwise>
@@ -297,9 +328,9 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	</sub-flow>
 	<sub-flow name="impl-subscription-post-state-subflow"
 		doc:id="353c9ba2-1171-4c3d-912a-9afb9cf95476">
-		<logger level="INFO" doc:name="START - Save State"
+		<logger level="INFO" doc:name="START - State Caching"
 			doc:id="067d3c99-54d2-43d4-a64d-d6504d18273a"
-			message="START - Save State - STEP 6: UPDATE REDIS STATE" />
+			message="START - State Caching - STEP 6: UPDATE REDIS STATE" />
 		<ee:transform doc:name="Payload to Redis API Request"
 			doc:id="c2c111e9-76c8-4280-a0b2-40ef2986a733">
 			<ee:message>
@@ -315,7 +346,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<try doc:name="Try" doc:id="0d34fcc0-6056-477b-897a-d7c62bf400b4">
 				<flow-ref doc:name="sys-post-state-subflow"
 					doc:id="60da4d68-de6b-4003-bcfc-97cf4844385a"
-					name="sys-redis-api-post-state-msisdn-flow" />
+					name="sys-redis-api-post-state-msisdn-subflow" />
 				<error-handler>
 					<on-error-continue enableNotifications="true"
 						logException="true" doc:name="On Error Continue"
@@ -334,28 +365,29 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				</when>
 			</choice>
 		</until-successful>
-		<logger level="INFO" doc:name="END - Save State"
+		<logger level="INFO" doc:name="END- State Caching"
 			doc:id="eff6d585-cdd8-493f-a785-a78cc1219840"
-			message="END - Save State - STEP 6: UPDATE REDIS STATE" />
+			message="START - State Caching - STEP 6: UPDATE REDIS STATE" />
 	</sub-flow>
 	<sub-flow name="impl-subscription-check-eligibility-subflow"
 		doc:id="badefcfd-e27d-4df8-8b80-f25111eb2cdd">
-		<logger level="INFO" doc:name="START - Eligibility Process"
+		<logger level="INFO"
+			doc:name="START - Check Eligibility Process"
 			doc:id="ef643cf9-c369-40b8-8978-b139f0b781d5"
-			message="START - STEP 4: ELIGIBILITY CHECK" />
+			message="START - Check Eligibility Process - STEP 4: ELIGIBILITY CHECK" />
+		<ee:transform doc:name="Payload TO NFor BSS API Request"
+			doc:id="f030769d-398d-41ca-b327-8457e9b8df39">
+			<ee:message>
+				<ee:set-payload
+					resource="dw/payload-nf-api-request.dwl" />
+			</ee:message>
+		</ee:transform>
 		<choice doc:name="Identify BrandId"
 			doc:id="527bd8e4-9594-48dc-b0d5-7eb7b9054d1c">
 			<when expression='#[[1, 2] contains (vars.brand."brand-id")]'>
-				<ee:transform doc:name="Payload TO NF API Request"
-					doc:id="f030769d-398d-41ca-b327-8457e9b8df39">
-					<ee:message>
-						<ee:set-payload
-							resource="dw/payload-nf-api-request.dwl" />
-					</ee:message>
-				</ee:transform>
-				<flow-ref doc:name="sys-nf-api-get-prepaid-msisdn-flow"
+				<flow-ref doc:name="sys-nf-api-get-prepaid-msisdn-subflow"
 					doc:id="4a60da90-8dc9-44ad-844b-dc47ff3e8c8d"
-					name="sys-nf-api-get-prepaid-msisdn-flow" />
+					name="sys-nf-api-get-prepaid-msisdn-subflow" />
 				<choice doc:name="Choice"
 					doc:id="b76230c2-bcda-4e9d-afb0-8675f06d6034">
 					<when
@@ -371,34 +403,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 									variableName="expiryDetails" />
 							</ee:variables>
 						</ee:transform>
-						<choice doc:name="Choice"
-							doc:id="ca688cc4-6283-48ad-bad6-30e68a0df589">
-							<when expression="vars.stateResponse.result.state == 0">
-								<ee:transform
-									doc:name="var-spielType(reactivation)"
-									doc:id="a416184a-af7b-4b00-b1c7-00e4a1059e90">
-									<ee:message>
-									</ee:message>
-									<ee:variables>
-										<ee:set-variable
-											resource="dw/var-spielType-reactivation.dwl"
-											variableName="spielType" />
-									</ee:variables>
-								</ee:transform>
-							</when>
-							<otherwise>
-								<ee:transform doc:name="var-spielType(eligable)"
-									doc:id="be79eada-da1d-4164-90f3-ae8927bf5929">
-									<ee:message>
-									</ee:message>
-									<ee:variables>
-										<ee:set-variable
-											resource="dw/var-spielType-eligible.dwl"
-											variableName="spielType" />
-									</ee:variables>
-								</ee:transform>
-							</otherwise>
-						</choice>
 					</when>
 					<otherwise>
 						<ee:transform doc:name="var-spielType(ineligable)"
@@ -418,16 +422,9 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				</choice>
 			</when>
 			<otherwise>
-				<ee:transform doc:name="Payload TO BSS API Request"
-					doc:id="e273c3b6-a960-4d16-9af6-e12c693eed85">
-					<ee:message>
-						<ee:set-payload
-							resource="dw/payload-bss-api-request.dwl" />
-					</ee:message>
-				</ee:transform>
 				<flow-ref doc:name="sys-bss-api-get-postpiad-msisdn-flow"
 					doc:id="be8bdb96-659f-428f-afbd-15981d5f2ff5"
-					name="sys-bss-api-get-postpaid-msisdn-flow" />
+					name="sys-bss-api-get-postpaid-msisdn-subflow" />
 				<choice doc:name="Choice"
 					doc:id="ee91fcaa-1312-4adf-a59d-f28b106e3060">
 					<when expression="#[!isEmpty(payload.bundles)]">
@@ -442,34 +439,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 									variableName="expiryDetails" />
 							</ee:variables>
 						</ee:transform>
-						<choice doc:name="Choice"
-							doc:id="046d7b5a-19da-4022-860e-1b2f984b4b95">
-							<when expression="vars.stateResponse.result.state == 0">
-								<ee:transform
-									doc:name="var-spielType(reactivation)"
-									doc:id="3c4a5eab-32a1-4006-9d19-23d7d98010aa">
-									<ee:message>
-									</ee:message>
-									<ee:variables>
-										<ee:set-variable
-											resource="dw/var-spielType-reactivation.dwl"
-											variableName="spielType" />
-									</ee:variables>
-								</ee:transform>
-							</when>
-							<otherwise>
-								<ee:transform doc:name="var-spielType(eligable)"
-									doc:id="06e8f152-106c-49df-965f-6fc501d1ce6c">
-									<ee:message>
-									</ee:message>
-									<ee:variables>
-										<ee:set-variable
-											resource="dw/var-spielType-eligible.dwl"
-											variableName="spielType" />
-									</ee:variables>
-								</ee:transform>
-							</otherwise>
-						</choice>
 					</when>
 					<otherwise>
 						<ee:transform doc:name="var-spielType(ineligable)"
@@ -493,9 +462,35 @@ output application/java
 				</choice>
 			</otherwise>
 		</choice>
-		<logger level="INFO" doc:name="END - Eligibility Process"
+		<choice doc:name="Choice"
+			doc:id="ca688cc4-6283-48ad-bad6-30e68a0df589">
+			<when expression="vars.stateResponse.result.state == 0">
+				<ee:transform doc:name="var-spielType(reactivation)"
+					doc:id="a416184a-af7b-4b00-b1c7-00e4a1059e90">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable
+							resource="dw/var-spielType-reactivation.dwl"
+							variableName="spielType" />
+					</ee:variables>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="var-spielType(eligable)"
+					doc:id="be79eada-da1d-4164-90f3-ae8927bf5929">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable
+							resource="dw/var-spielType-eligible.dwl" variableName="spielType" />
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="END - Check Eligibility Process"
 			doc:id="32230055-69ae-4d91-87a3-5e0b717c5e15"
-			message="END - STEP 4: ELIGIBILITY CHECK" />
+			message="END - Check Eligibility Process - STEP 4: ELIGIBILITY CHECK" />
 	</sub-flow>
 	<sub-flow
 		name="impl-subscription-post-facebook-provision-subflow"
@@ -510,9 +505,9 @@ output application/java
 					resource="dw/payload-provision-api-request.dwl" />
 			</ee:message>
 		</ee:transform>
-		<flow-ref doc:name="sys-post-provison-subflow"
+		<flow-ref doc:name="sys-facebook-api-post-provision-subflow"
 			doc:id="b6b9e7e2-08ff-41bc-b325-8c7972a5a4fd"
-			name="sys-post-provison-subflow" />
+			name="sys-facebook-api-post-provision-subflow" />
 		<choice doc:name="Choice"
 			doc:id="02407f94-947c-4314-83c4-845cc68778fd">
 			<when expression="#[attributes.statusCode == 201]">
@@ -520,9 +515,10 @@ output application/java
 					doc:id="68f8dd6f-6912-45a2-9693-1d946be6e4fc">
 					<when
 						expression='#[vars.formattedSubscriberData.keyword == "BONUS"]'>
-						<flow-ref doc:name="impl-delete-whitelist-subflow"
+						<flow-ref
+							doc:name="impl-subscription-delete-bonus-subflow"
 							doc:id="13234db9-edd1-48a0-9406-1ad385720593"
-							name="impl-subscription-delete-whitelist-subflow" />
+							name="impl-subscription-delete-bonus-subflow" />
 					</when>
 				</choice>
 				<ee:transform doc:name="var-state"
@@ -530,7 +526,8 @@ output application/java
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable resource="dw/var-state.dwl" variableName="state" />
+						<ee:set-variable resource="dw/var-state.dwl"
+							variableName="state" />
 					</ee:variables>
 				</ee:transform>
 				<ee:transform doc:name="var-auditLog"
@@ -538,7 +535,8 @@ output application/java
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable resource="dw/var-auditLog-success.dwl" variableName="auditLog" />
+						<ee:set-variable
+							resource="dw/var-auditLog-success.dwl" variableName="auditLog" />
 					</ee:variables>
 				</ee:transform>
 			</when>
@@ -548,7 +546,9 @@ output application/java
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable resource="dw/var-spielType-fb-unsuccess.dwl" variableName="spielType" />
+						<ee:set-variable
+							resource="dw/var-spielType-fb-unsuccess.dwl"
+							variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 				<flow-ref doc:name="common-set-error-audit-log-subflow"
@@ -568,7 +568,8 @@ output application/java
 		<ee:transform doc:name="Payload to Audit API Request"
 			doc:id="c0f31921-8a8c-473a-857c-de553a800dd0">
 			<ee:message>
-				<ee:set-payload resource="dw/payload-put-audit-request.dwl" />
+				<ee:set-payload
+					resource="dw/payload-put-audit-request.dwl" />
 			</ee:message>
 		</ee:transform>
 		<until-successful maxRetries="3"
@@ -577,9 +578,9 @@ output application/java
 			doc:id="9c148838-f733-40d9-ae84-69a2a581f516"
 			millisBetweenRetries="5000">
 			<try doc:name="Try" doc:id="a885e43d-9511-47a7-80b3-b898237a2752">
-				<flow-ref doc:name="sys-audit-api-put-audit-flow"
+				<flow-ref doc:name="sys-audit-api-put-audit-subflow"
 					doc:id="82eee915-548b-4c4d-8d86-0407536d902e"
-					name="sys-audit-api-put-audit-flow" />
+					name="sys-audit-api-put-audit-subflow" />
 				<error-handler>
 					<on-error-propagate enableNotifications="true"
 						logException="true" doc:name="On Error Propagate"
@@ -612,7 +613,8 @@ output application/java
 		<ee:transform doc:name="Payload to SMS API Request"
 			doc:id="2d3a1a9b-6712-4b77-bf49-108c15b9338a">
 			<ee:message>
-				<ee:set-payload resource="dw/payload-post-sms-api-request.dwl" />
+				<ee:set-payload
+					resource="dw/payload-post-sms-api-request.dwl" />
 			</ee:message>
 		</ee:transform>
 		<until-successful maxRetries="3"
@@ -622,7 +624,7 @@ output application/java
 			<try doc:name="Try" doc:id="318708a6-c9a9-4ccf-b492-feb1c6740850">
 				<flow-ref doc:name="sys-sms-api-subflow"
 					doc:id="a53cccc2-654c-4066-8d5b-7284f8434493"
-					name="sys-sms-api-subflow" />
+					name="sys-sms-api-post-message-subflow" />
 				<error-handler>
 					<on-error-propagate enableNotifications="true"
 						logException="true" doc:name="On Error Propagate"
@@ -645,14 +647,15 @@ output application/java
 			doc:id="d2e18799-9a72-40a5-8add-3e5dc9051b0c"
 			message="END - SMS Messaging Process - STEP 8: SMS MESSAGING" />
 	</sub-flow>
-	<sub-flow name="impl-subscription-get-whitelist-subflow"
+	<sub-flow name="impl-subscription-get-bonus-subflow"
 		doc:id="c886cbf7-afd9-4281-a813-3a7b2133adef">
-		<logger level="INFO" doc:name="START - Bonus Handling"
+		<logger level="INFO" doc:name="START - Get msisdn Bonus"
 			doc:id="e3a1162a-aea4-45a8-9f0a-adffe01e944e"
 			message="END- Bonus Handling" />
-		<flow-ref doc:name="get-msisdn-whitelist-flow"
+		<flow-ref
+			doc:name="sys-mongodb-api-get-whitelist-msisdn-subflow"
 			doc:id="0fdd0308-1b66-4eb4-99e3-c2a4d86df0b6"
-			name="get-msisdn-whitelist-flow" />
+			name="sys-mongodb-api-get-whitelist-msisdn-subflow" />
 		<choice doc:name="Choice"
 			doc:id="d0f4c68c-1ee3-45c7-9d31-a3f6df96a0fa">
 			<when
@@ -663,14 +666,18 @@ output application/java
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable resource="dw/payload-get-mongodb-api-response.dwl" variableName="expiryDetails" />
+						<ee:set-variable
+							resource="dw/payload-get-mongodb-api-response.dwl"
+							variableName="expiryDetails" />
 					</ee:variables>
 				</ee:transform>
 				<ee:transform doc:name="var - spielType"
 					doc:id="85de66e5-ccba-4669-b9ae-49b44ff9161c">
 					<ee:message />
 					<ee:variables>
-						<ee:set-variable resource="dw/var-spielType-first-time.dwl" variableName="spielType" />
+						<ee:set-variable
+							resource="dw/var-spielType-first-time.dwl"
+							variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 			</when>
@@ -680,7 +687,9 @@ output application/java
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable resource="dw/var-spielType-not-eligible.dwl" variableName="spielType" />
+						<ee:set-variable
+							resource="dw/var-spielType-not-eligible.dwl"
+							variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 				<flow-ref doc:name="common-set-success-audit-log-subflow"
@@ -688,19 +697,23 @@ output application/java
 					name="common-set-success-audit-log-subflow" />
 			</otherwise>
 		</choice>
-		<logger level="INFO" doc:name="END- Bonus Handling"
+		<logger level="INFO" doc:name="END - Get msisdn Bonus "
 			doc:id="8dad676f-4dbc-43c2-8e21-ef46e62d9ea3"
-			message="END- Bonus Handling" />
+			message="END - Get msisdn Bonus " />
 	</sub-flow>
-	<sub-flow name="impl-subscription-delete-whitelist-subflow"
+	<sub-flow name="impl-subscription-delete-bonus-subflow"
 		doc:id="aa665024-e4b2-499e-af6e-9281cdfd41fa">
+		<logger level="INFO" doc:name="START - Mongdb Delete msisdn "
+			doc:id="2b0b2435-b927-4e7d-bac2-0a1554c8e0db"
+			message="START - Mongdb Delete msisdn " />
 		<until-successful maxRetries="5"
 			doc:name="Until Successful"
 			doc:id="41d49cf9-ca58-4736-b91a-2597490b6dc8">
 			<try doc:name="Try" doc:id="5addf2c4-ba95-4a6f-9104-f8f4a18fd380">
-				<flow-ref doc:name="delete-msisdn-whitelist-flow"
+				<flow-ref
+					doc:name="sys-mongodb-api-delete-whitelist-msisdn-subflow"
 					doc:id="a2d06424-5d43-41c0-b999-f0fb57c8ab52"
-					name="delete-msisdn-whitelist-flow" />
+					name="sys-mongodb-api-delete-whitelist-msisdn-subflow" />
 				<error-handler>
 					<on-error-propagate enableNotifications="true"
 						logException="true" doc:name="On Error Propagate"
@@ -718,5 +731,8 @@ output application/java
 				</when>
 			</choice>
 		</until-successful>
+		<logger level="INFO" doc:name="END - Mongdb Delete msisdn"
+			doc:id="35ae0728-de2f-4188-bbfc-ebe30b9be8d2"
+			message="END - Mongdb Delete msisdn " />
 	</sub-flow>
 </mule>

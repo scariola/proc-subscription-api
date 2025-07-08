@@ -5,9 +5,10 @@
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<flow name="sys-post-provison-subflow" doc:id="a5e185d7-d85b-41bf-a0f5-eda51dc67843" >
-		<http:request method="POST" doc:name="Request" doc:id="260e9e01-35bd-4c63-b986-e054642d7946" config-ref="HTTP_Request_Config_facebook_Api" path="${provision.path}">
-			<http:headers ><![CDATA[#[output application/java
+	<sub-flow name="sys-facebook-api-post-provision-subflow" doc:id="7622641a-0787-409b-85a0-8f18e8a172b5" >
+		<logger level="INFO" doc:name="START - POST /provision" doc:id="5f987fe9-ca30-42db-bb6b-53fd01ba366b" message="START - POST /provision"/>
+		<http:request method="POST" doc:name="POST /provision" doc:id="260e9e01-35bd-4c63-b986-e054642d7946" config-ref="HTTP_Request_Config_facebook_Api" path="${provision.path}">
+			<http:headers><![CDATA[#[output application/java
 ---
 {
 	"X-Client-Id": p('provision.client_id'),
@@ -15,5 +16,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	"X-Correlation-Id": correlationId
 }]]]></http:headers>
 		</http:request>
-	</flow>
+		<logger level="INFO" doc:name="END - POST /provision" doc:id="e9481843-4cd3-4414-ae90-399574a096f3" message="END - POST /provision"/>
+	</sub-flow>
 </mule>

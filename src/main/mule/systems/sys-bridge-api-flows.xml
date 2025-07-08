@@ -8,9 +8,15 @@
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<flow name="sys-bridge-api-get-bridge-prefix-flow" doc:id="f6e25c4e-913c-425b-8402-2a957ee9ef58" >
-		<logger level="INFO" doc:name="START - GET /brigde/{prefix}" doc:id="0fc79033-c788-40a2-8558-065e9dc2f57a" message="START - GET /brigde/{prefix}"/>
-		<http:request method="GET" doc:name="GET /brigde/{prefix}" doc:id="f5faa08b-14c1-49ee-b875-d57ed6b2dee8" config-ref="HTTP_Request_Config_Bridge_Api" path="${bridge.path}">
+	<sub-flow name="sys-bridge-api-get-bridge-prefix-subflow"
+		doc:id="92222da4-73db-4558-8c30-948cf7b983d5">
+		<logger level="INFO" doc:name="START - GET /brigde/{prefix}"
+			doc:id="0fc79033-c788-40a2-8558-065e9dc2f57a"
+			message="START - GET /brigde/{prefix}" />
+		<http:request method="GET"
+			doc:name="GET /brigde/{prefix}"
+			doc:id="f5faa08b-14c1-49ee-b875-d57ed6b2dee8"
+			config-ref="HTTP_Request_Config_Bridge_Api" path="${bridge.path}">
 			<http:headers><![CDATA[#[output application/java
 ---
 {
@@ -24,23 +30,8 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	"prefix" : vars.formattedSubscriberData.prefix
 }]]]></http:uri-params>
 		</http:request>
-		<choice doc:name="HAS Bridge Response?" doc:id="cb0a10ab-68d4-4c9a-8a74-e108e426e235">
-			<when expression="#[!isEmpty(payload.result)]">
-				<ee:transform doc:name="Brige API to API Response" doc:id="c3a60c82-0432-44b8-803d-ed34bdd52ab9">
-					<ee:message>
-						<ee:set-payload resource="dw/payload-bridge-api-response.dwl" />
-					</ee:message>
-				</ee:transform>
-			</when>
-			<otherwise>
-				<ee:transform doc:name="Brige API to API Response (Unsupported)" doc:id="eb4930ac-2f3a-4b1a-893e-3783dd14c707">
-					<ee:message>
-						<ee:set-payload resource="dw/payload-bridge-api-unsupported-response.dwl" />
-					</ee:message>
-				</ee:transform>
-			</otherwise>
-		</choice>
-		<logger level="INFO" doc:name="START - GET /brigde/{prefix}" doc:id="4369d722-80a0-4a05-883d-f7746c24cae3" message="END - GET /brigde/{prefix}"/>
-		<error-handler ref="proc-subscription-api-Shared_Error_Handler" />
-	</flow>
+		<logger level="INFO" doc:name="START - GET /brigde/{prefix}"
+			doc:id="4369d722-80a0-4a05-883d-f7746c24cae3"
+			message="END - GET /brigde/{prefix}" />
+	</sub-flow>
 </mule>

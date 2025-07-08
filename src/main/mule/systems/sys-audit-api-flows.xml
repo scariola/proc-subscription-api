@@ -6,15 +6,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
-	<flow name="sys-audit-api-post-audit-flow"
-		doc:id="b17695de-533f-4364-bfec-6aac276e3943">
-		<logger level="INFO" doc:name="START - POST /audit"
-			doc:id="4b3f61f5-be56-4939-9d1a-1ffc564215b8"
-			message="START - POST /audit" />
-		<http:request method="POST"
-			doc:name="POST /sys-audit-api"
-			doc:id="ece12aea-15e9-4574-9ed3-e66ac4f1ac26"
-			config-ref="HTTP_Request_Config_Audit_Api" path="${audit.post.path}">
+	<sub-flow name="sys-audit-api-post-audit-subflow" doc:id="29b6e693-bc47-4786-8ea0-7834b6264a2e" >
+		<logger level="INFO" doc:name="START - POST /audit" doc:id="4b3f61f5-be56-4939-9d1a-1ffc564215b8" message="START - POST /audit" />
+		<http:request method="POST" doc:name="POST /sys-audit-api" doc:id="ece12aea-15e9-4574-9ed3-e66ac4f1ac26" config-ref="HTTP_Request_Config_Audit_Api" path="${audit.post.path}">
 			<http:headers><![CDATA[#[output application/java
 ---
 {
@@ -23,29 +17,25 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 	"X-Correlation-Id": correlationId
 }]]]></http:headers>
 		</http:request>
-		<logger level="INFO" doc:name="END - POST /audit"
-			doc:id="7baecd04-cace-4d70-a5a3-b0e546d9b4e8"
-			message="END - POST /audit" />
-		<error-handler ref="proc-subscription-api-Shared_Error_Handler" />
-	</flow>
-	<flow name="sys-audit-api-put-audit-flow" doc:id="5e2e4cce-aee5-4d18-a9f4-721a9889ac6e" >
-		<logger level="INFO" doc:name="START - PUT /sys-audit/api/{auditId}" doc:id="b4216201-5846-4e6e-a87c-b7e758363bb5" message="START - PUT /sys-audit/api/{auditId}"/>
-		<http:request method="PUT" doc:name="PUT /sys-audit/api/{auditId}" doc:id="e1a9802b-8505-4f2f-9cd3-2c56fbb1771c" config-ref="HTTP_Request_Config_Audit_Api" path="${audit.put.path}" >
-			<http:body ><![CDATA[#[payload.requetPayload]]]></http:body>
-			<http:headers ><![CDATA[#[output application/java
+		<logger level="INFO" doc:name="END - POST /audit" doc:id="7baecd04-cace-4d70-a5a3-b0e546d9b4e8" message="END - POST /audit" />
+	</sub-flow>
+	<sub-flow name="sys-audit-api-put-audit-subflow" doc:id="80ebd08d-b609-4fe8-9b5d-19a6bd5a3fde" >
+		<logger level="INFO" doc:name="START - PUT /sys-audit/api/{auditId}" doc:id="b4216201-5846-4e6e-a87c-b7e758363bb5" message="START - PUT /sys-audit/api/{auditId}" />
+		<http:request method="PUT" doc:name="PUT /sys-audit/api/{auditId}" doc:id="e1a9802b-8505-4f2f-9cd3-2c56fbb1771c" config-ref="HTTP_Request_Config_Audit_Api" path="${audit.put.path}">
+			<http:body><![CDATA[#[payload.requetPayload]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
 ---
 {
 	"X-Client-Id": p('audit.client_id'),
 	"X-Client-Secret": p('audit.client_secret'),
 	"X-Correlation-Id": correlationId
 }]]]></http:headers>
-			<http:uri-params ><![CDATA[#[output application/java
+			<http:uri-params><![CDATA[#[output application/java
 ---
 {
 	"auditId" : payload.'audit-id'
 }]]]></http:uri-params>
 		</http:request>
-		<logger level="INFO" doc:name="END - PUT /sys-audit/api/{auditId}" doc:id="c355e6ff-5a70-4f90-98fb-445a6eccafe9" message="END - PUT /sys-audit/api/{auditId}"/>
-		<error-handler ref="proc-subscription-api-Shared_Error_Handler" />
-	</flow>
+		<logger level="INFO" doc:name="END - PUT /sys-audit/api/{auditId}" doc:id="c355e6ff-5a70-4f90-98fb-445a6eccafe9" message="END - PUT /sys-audit/api/{auditId}" />
+	</sub-flow>
 </mule>

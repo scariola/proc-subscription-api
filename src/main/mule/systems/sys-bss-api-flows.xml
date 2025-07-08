@@ -7,11 +7,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<flow name="sys-bss-api-get-postpaid-msisdn-flow"
-		doc:id="03e64505-26a5-49b0-bd7a-6a55d62c32ad">
-		<http:request method="GET" doc:name="GET /postpaid/{msisdn}"
-			doc:id="36aad05d-054c-4c24-bb93-ea1021073e13"
-			config-ref="HTTP_Request_Config_BSS_Api" path="${bss.path}">
+	<sub-flow name="sys-bss-api-get-postpaid-msisdn-subflow" doc:id="3d5cc892-bcba-4a81-b46b-20bfd32f8136" >
+		<logger level="INFO" doc:name="START - GET /postpaid/{msisdn}" doc:id="c68d4d0c-3b6c-4d87-b373-cd0fa6338fcc" message="START - GET /postpaid/{msisdn}"/>
+		<http:request method="GET" doc:name="GET /postpaid/{msisdn}" doc:id="36aad05d-054c-4c24-bb93-ea1021073e13" config-ref="HTTP_Request_Config_BSS_Api" path="${bss.path}">
 			<http:headers><![CDATA[#[output application/java
 ---
 {
@@ -30,5 +28,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	"brand" : vars.brand.'brand-id'
 }]]]></http:query-params>
 		</http:request>
-	</flow>
+		<logger level="INFO" doc:name="END- GET /postpaid/{msisdn}" doc:id="f5a8b075-942a-4b47-b7f2-ff3f8baa1169" message="END- GET /postpaid/{msisdn}"/>
+	</sub-flow>
 </mule>

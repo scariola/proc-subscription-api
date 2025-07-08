@@ -27,6 +27,31 @@
 	<flow
 		name="post:\subscription:application\json:proc-subscription-api-config">
 		<logger level="INFO" doc:name="START - POST /subscription" doc:id="8515c7b5-8fbe-4995-a255-e4dfd5d3bcbf" message="START - POST /subscription - Start processing subscription request"/>
+		<ee:transform doc:name="Transform Message" doc:id="ef372b2d-4c87-401a-9751-a451bd43ae93" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+// Inline function
+fun getSpiel(map, keyword, brand, spielType) =
+  map[keyword][brand][spielType] 
+    default map["ANY"]["ANY"]["system-error"]
+
+// Load externalized mapping from classpath
+var spielMap = readUrl("classpath://dw/mapping-payload-sms-spiels.dwl", "application/json")
+
+---
+{
+  "sms-spiel": getSpiel(
+    spielMap,
+    vars.formattedSubscriberData.keyword default "ANY",
+    vars.brand.'brand-name' default "ANY",
+    vars.spielType default "system-error"
+  )
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<ee:transform doc:name="Store Orignal Payload" doc:id="fa72305f-bce5-4f0d-9547-555f4e9e58b0" >
 			<ee:message >
 			</ee:message>
@@ -37,11 +62,11 @@ output application/json
 payload]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<flow-ref doc:name="impl-post-subscription-subflow" doc:id="0e1c050a-6e2e-4695-a46d-51acd0d6453d" name="impl-subscription-post-subscription-subflow"/>
+		<flow-ref doc:name="impl-subscription-post-subscription-flow" doc:id="0e1c050a-6e2e-4695-a46d-51acd0d6453d" name="impl-subscription-post-subscription-flow"/>
 		<ee:transform doc:name="Construct Subscription Result Payload" doc:id="a4700e3e-cef6-499b-a788-b00e964ea957" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
+output application/json skipNullOn = 'everywhere'
 ---
 {
     "x-event-id": correlationId,
@@ -49,12 +74,11 @@ output application/json
     "x-event-msg": "Success",
     "result": {
         "transaction-id": vars.originalPayload.'transaction-id' default "",
-        "msisdn": vars.originalPayload.'msisdn' default "",
-        "status": if (!isEmpty(vars.expiryDetails.'expiry-date' default "")) 1 else 0,
-        "expiry-date": vars.stateResponse.result.'expiry-date' 
-                      default vars.expiryDetails.'expiry-date' 
-                      default "",
-        "sms-spiel": vars.smsSpielMapping.'sms-spiel' default ""
+        "msisdn": vars.originalPayload.'msisdn',
+        "status": if (!isEmpty(vars.expiryDetails.'expiry-date')) 1 else 0,
+        "expiry-date": vars.expiryDetails.'expiry-date' 
+                      default null,
+        "sms-spiel": vars.smsSpielMapping.'sms-spiel' default null
     }
 }]]></ee:set-payload>
 			</ee:message>

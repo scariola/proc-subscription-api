@@ -7,7 +7,8 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<flow name="sys-nf-api-get-prepaid-msisdn-flow" doc:id="7e644a4e-384f-49c6-bfb8-84e5989fe0af">
+	<sub-flow name="sys-nf-api-get-prepaid-msisdn-subflow" doc:id="9138c69f-c62f-436a-a8aa-adc6b88f58fe" >
+		<logger level="INFO" doc:name="START - GET /prepaid/{msisdn}" doc:id="f11c1254-91b5-465e-9f2d-15ababfd097f" message="START - GET /prepaid/{msisdn}"/>
 		<http:request method="GET" doc:name="GET /prepaid/{msisdn}" doc:id="c540448d-d5a4-42e7-a121-708bdc4a3bc1" config-ref="HTTP_Request_Config_NF_Api" path="${nf.path}">
 			<http:headers><![CDATA[#[output application/java
 ---
@@ -27,6 +28,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	"brand" : vars.brand.'brand-id'
 }]]]></http:query-params>
 		</http:request>
-		<error-handler ref="proc-subscription-api-Shared_Error_Handler" />
-	</flow>
+		<logger level="INFO" doc:name="END- GET /prepaid/{msisdn}" doc:id="66a59d7e-397a-4992-baf5-128080787fc5" message="END- GET /prepaid/{msisdn}" />
+	</sub-flow>
 </mule>

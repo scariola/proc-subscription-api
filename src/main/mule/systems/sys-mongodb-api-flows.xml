@@ -7,11 +7,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<flow name="get-msisdn-whitelist-flow"
-		doc:id="720e2f54-7f61-49c2-a210-96e358d7d22f">
-		<http:request method="GET" doc:name="GET/ whitelist/{msisdn}"
-			doc:id="b6f5ae47-c163-4281-b2b9-23f6dbe84063"
-			config-ref="HTTP_Request_Config_MongoDB_Api" path="${mongodb.path}">
+	<sub-flow name="sys-mongodb-api-get-whitelist-msisdn-subflow" doc:id="76deecb0-8d67-4827-95bb-0308d032d40d" >
+		<logger level="INFO" doc:name="START - GET/ whitelist/{msisdn}" doc:id="37d36c12-a635-4435-81fc-61ff70956e19" message="START - GET/ whitelist/{msisdn}"/>
+		<http:request method="GET" doc:name="GET/ whitelist/{msisdn}" doc:id="b6f5ae47-c163-4281-b2b9-23f6dbe84063" config-ref="HTTP_Request_Config_MongoDB_Api" path="${mongodb.path}">
 			<http:headers><![CDATA[#[output application/java
 ---
 {
@@ -25,9 +23,10 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	"msisdn" : vars.formattedSubscriberData.msisdn
 }]]]></http:uri-params>
 		</http:request>
-
-	</flow>
-	<flow name="delete-msisdn-whitelist-flow" doc:id="d9e41f07-8b47-4ab9-b31f-c98be4e0c1de">
+		<logger level="INFO" doc:name="END- GET/ whitelist/{msisdn}" doc:id="15837e78-53ce-41a4-b645-9460918a80d0" message="END- GET/ whitelist/{msisdn}"/>
+	</sub-flow>
+	<sub-flow name="sys-mongodb-api-delete-whitelist-msisdn-subflow" doc:id="6c8cfd43-7816-44f6-8c99-fad2683dada6" >
+		<logger level="INFO" doc:name="START - DELETE /whitelist/{msisdn}" doc:id="c833943c-3264-471d-954a-bec655c26def" message="START - DELETE /whitelist/{msisdn}" />
 		<http:request method="DELETE" doc:name="DELETE /whitelist/{msisdn}" doc:id="932ad56b-3baf-4bdb-a351-80292b9e1219" config-ref="HTTP_Request_Config_MongoDB_Api" path="${mongodb.path}">
 			<http:headers><![CDATA[#[output application/java
 ---
@@ -42,6 +41,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	"msisdn" : vars.formattedSubscriberData.msisdn
 }]]]></http:uri-params>
 		</http:request>
-
-	</flow>
+		<logger level="INFO" doc:name="END- DELETE /whitelist/{msisdn}" doc:id="f87f8bac-a685-4bfc-b8f3-e1cb1afe3c8e" message="END - DELETE /whitelist/{msisdn}" />
+	</sub-flow>
 </mule>
