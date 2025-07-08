@@ -17,43 +17,27 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<flow-ref doc:name="impl-redis-process-subflow"
 			doc:id="df1eddac-db79-438b-bf53-3012de73f9f2"
 			name="impl-redis-process-subflow" />
-		<choice doc:name="ROUTE request Based ON spielType Outcome"
-			doc:id="bcbd3d62-7c2b-4d65-a101-f2fa55a86bac">
-			<when
-				expression="#[vars.spielType != null and vars.spielType != 'first-time' and vars.spielType != 'eligible' and vars.spielType != 'normal-off']">
-				<flow-ref doc:name="impl-put-audit-subflow"
-					doc:id="2623c06b-9fe0-4168-a3fe-1a0d4fe04af0"
-					name="impl-put-audit-subflow" />
-				<flow-ref doc:name="impl-post-sms-subflow"
-					doc:id="f0306105-5b5b-44ce-b245-16f64fddc2b7"
-					name="impl-post-sms-subflow" />
+		<flow-ref doc:name="impl-provisioning-process-subflow" doc:id="ab7d3856-5216-414e-ae97-028fc544c626" name="impl-provisioning-process-subflow" />
+		<flow-ref doc:name="impl-put-audit-subflow" doc:id="f99817a2-bd6b-4386-a0e0-27864ad9d94a" name="impl-put-audit-subflow" />
+		<flow-ref doc:name="impl-post-sms-subflow" doc:id="8050e4dc-5508-4fa4-8c19-191ce1f981d2" name="impl-post-sms-subflow" />
+	</sub-flow>
+
+	<sub-flow name="impl-provisioning-process-subflow" doc:id="6d366e81-537c-40ac-bbd9-ab7197a1b239">
+		<choice doc:name="ROUTE request Based ON spielType Outcome" doc:id="bcbd3d62-7c2b-4d65-a101-f2fa55a86bac">
+			<when expression="#[vars.spielType != null and vars.spielType != 'first-time' and vars.spielType != 'eligible' and vars.spielType != 'normal-off']">
+				<logger level="INFO" doc:name="Do nothing" doc:id="41ced758-8956-4ad1-90e8-2792d3543da0" message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
 			</when>
 			<otherwise>
-				<choice doc:name="IS Keyword OPT-IN? ROUTE TO Eligibility"
-					doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb">
-					<when
-						expression="#[vars.formattedSubscriberData.keyword == 'OPT-IN']">
-						<flow-ref doc:name="impl-elgibility-check-subflow"
-							doc:id="210ab367-276a-4056-a5fc-21516a672df9"
-							name="impl-elgibility-check-subflow" />
+				<choice doc:name="IS Keyword OPT-IN? ROUTE TO Eligibility" doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb">
+					<when expression="#[vars.formattedSubscriberData.keyword == 'OPT-IN']">
+						<flow-ref doc:name="impl-elgibility-check-subflow" doc:id="210ab367-276a-4056-a5fc-21516a672df9" name="impl-elgibility-check-subflow" />
 					</when>
 				</choice>
-				<flow-ref doc:name="impl-provision-subflow"
-					doc:id="680793fa-786c-47ed-839e-92b10afa765d"
-					name="impl-post-provision-subflow" />
-				<flow-ref doc:name="impl-post-state-subflow"
-					doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92"
-					name="impl-post-state-subflow" />
-				<flow-ref doc:name="impl-put-audit-subflow"
-					doc:id="f99817a2-bd6b-4386-a0e0-27864ad9d94a"
-					name="impl-put-audit-subflow" />
-				<flow-ref doc:name="impl-post-sms-subflow"
-					doc:id="8050e4dc-5508-4fa4-8c19-191ce1f981d2"
-					name="impl-post-sms-subflow" />
+				<flow-ref doc:name="impl-provision-subflow" doc:id="680793fa-786c-47ed-839e-92b10afa765d" name="impl-post-provision-subflow" />
+				<flow-ref doc:name="impl-post-state-subflow" doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92" name="impl-post-state-subflow" />
 			</otherwise>
 		</choice>
 	</sub-flow>
-
 	<sub-flow name="impl-post-audit-subflow"
 		doc:id="81ed1a62-3c83-4c4e-9846-f937046c7ffb">
 		<logger level="INFO" doc:name="START - Audit Logging Process"
