@@ -6,7 +6,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
-	<sub-flow name="sys-sms-api-sublow"
+	<sub-flow name="sys-sms-api-subflow"
 		doc:id="d3accf41-55c8-45a6-a970-e938497829d1">
 		<logger level="INFO" doc:name="Logger"
 			doc:id="93b4fade-2492-4f0c-91c4-fe622adf42a2" />

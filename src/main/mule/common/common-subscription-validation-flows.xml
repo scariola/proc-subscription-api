@@ -6,25 +6,16 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<flow name="impl-sms-validation-flow"
-		doc:id="e3bf2861-f425-4cba-9261-46cccc469e60">
+	<flow name="common-validate-subscription-request-subflow"
+		doc:id="4eaba30c-b5ea-4dd1-b483-591659d8616a">
 		<logger level="INFO" doc:name="START - Validation Process"
-			doc:id="668be819-4d9e-41ea-b797-49fe2acb4c54"
+			doc:id="52ef1e8a-498f-4c7c-9803-b8a26dbf1fc0"
 			message="START - STEP 2: RECEIVE &amp; VALIDATE REQUEST " />
-		<choice doc:name="HAS sms message and msisdn?"
-			doc:id="cef5380e-fccd-4113-9837-37fa1ec45c48">
-			<when
-				expression="#[(isEmpty(vars.originalPayload.'sms-message') and isEmpty(vars.originalPayload.'msisdn'))]">
-				<raise-error doc:name="Raise Error - Missing Fields" doc:id="9165a5b5-0a18-451b-b45c-ef000bf6303e" type="INPUT:MISSING_FIELDS" description="Missing required fields: sms-message and/or msisdn"/>
-			</when>
-			<otherwise>
-				<ee:transform doc:name="var-formattedSubscriberData"
-					doc:id="231e8b2f-2ae5-4035-b048-35216bc4b514">
+		<ee:transform doc:name="var-formattedSubscriberData" doc:id="32739979-922f-4c1e-8bbc-fec8ac2686b4">
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable
-							variableName="formattedSubscriberData"><![CDATA[%dw 2.0
+						<ee:set-variable variableName="formattedSubscriberData"><![CDATA[%dw 2.0
 output application/json
 fun formatMsisdn(msisdn) = 
     msisdn match {
@@ -48,12 +39,9 @@ fun formatMsisdn(msisdn) =
 }]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
-				<choice doc:name="CONTAINS Invalid Keword?"
-					doc:id="2157aad9-35cc-4938-ab38-1b4c9cb6ff93">
-					<when
-						expression="#[vars.formattedSubscriberData.keyword == 'INVALID']">
-						<ee:transform doc:name="var-spielType"
-							doc:id="741212b0-6680-47dd-aaf2-694381e51f11">
+		<choice doc:name="CONTAINS Invalid Keword?" doc:id="83d9946e-322c-4828-9225-80dbb4fa660b">
+					<when expression="#[vars.formattedSubscriberData.keyword == 'INVALID']">
+						<ee:transform doc:name="var-spielType" doc:id="8b20cd3e-fb86-498e-a1ab-d6894ece0053">
 							<ee:message>
 							</ee:message>
 							<ee:variables>
@@ -63,25 +51,27 @@ output application/java
 'ANY']]></ee:set-variable>
 							</ee:variables>
 						</ee:transform>
-						<raise-error doc:name="Raise Error - Invalid Keyword" doc:id="6452ee80-664d-4c97-ac4f-eba5c8c912e2" type="INPUT:INVALID_KEYWORD" description="Invalid SMS keyword provided"/>
+						<raise-error doc:name="Raise Error - Invalid Keyword" doc:id="9908a27a-539c-4bda-a8dc-fc787cf0449b" type="INPUT:INVALID_KEYWORD" description="Invalid SMS keyword provided" />
 					</when>
-				</choice>
+			<otherwise >
+				<logger level="INFO" doc:name="Proceed to next step" doc:id="cd853372-e413-472d-8bbf-eb0405150e91" message="Proceed to next step."/>
 			</otherwise>
-		</choice>
+				
+</choice>
 		<logger level="INFO" doc:name="END - Validation Process"
-			doc:id="080130ac-248f-41ed-b836-63e3a0f7bfc0"
+			doc:id="cd21b076-f794-4035-bee8-2a22bbfd3b51"
 			message="END - STEP 2: RECEIVE &amp; VALIDATE REQUEST" />
 		<error-handler>
 			<on-error-propagate enableNotifications="true"
 				logException="true" doc:name="On Error Propagate"
-				doc:id="6b4caa9a-fde5-401e-8625-bf9aca160f11"
+				doc:id="323826ea-36f5-4407-89c2-30ae799912d7"
 				type="INPUT:*">
 				<flow-ref doc:name="common-set-error-audit-log-subflow"
-					doc:id="5ad275d2-71d4-46f8-ab5b-ca0033bf2f7b"
+					doc:id="c3413fd0-eca4-4ab3-b4b7-4e28f3b1ae54"
 					name="common-set-error-audit-log-subflow" />
-				<flow-ref doc:name="impl-put-audit-subflow" doc:id="112c7301-2593-40ad-bae2-256ed6468154" name="impl-put-audit-subflow"/>
-				<flow-ref doc:name="impl-post-sms-subflow" doc:id="312cb01f-c5f9-44f7-aafb-602e8fa1ebd4" name="impl-post-sms-subflow"/>
-				<ee:transform doc:name="Set Payload - Validation Error" doc:id="c5921121-552f-4363-93d8-7149badbf3ee">
+				<flow-ref doc:name="impl-subscription-put-audit-subflow" doc:id="2ada9f75-39fb-401b-8abe-2dec61f4069b" name="impl-subscription-put-audit-subflow"/>
+				<flow-ref doc:name="impl-subscription-post-sms-subflow" doc:id="7e9ba286-d113-4468-8a5e-61497ab9dd7d" name="impl-subscription-post-sms-subflow"/>
+				<ee:transform doc:name="Set Payload - Validation Error" doc:id="4911f308-2786-4efc-99b7-8a8fb87a013b">
 					<ee:message>
 						<ee:set-payload><![CDATA[%dw 2.0
 output application/json

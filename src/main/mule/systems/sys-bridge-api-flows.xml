@@ -28,31 +28,14 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<when expression="#[!isEmpty(payload.result)]">
 				<ee:transform doc:name="Brige API to API Response" doc:id="c3a60c82-0432-44b8-803d-ed34bdd52ab9">
 					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  "prefix": payload.result[0].msisdn_prefix,
-  "brand-id": (if (payload.result[0].brand_flag == 4) 1 else payload.result[0].brand_flag) as Number,
-  "brand-name": payload.result[0].brand
-}
-]]></ee:set-payload>
+						<ee:set-payload resource="dw/payload-bridge-api-response.dwl" />
 					</ee:message>
 				</ee:transform>
 			</when>
 			<otherwise>
 				<ee:transform doc:name="Brige API to API Response (Unsupported)" doc:id="eb4930ac-2f3a-4b1a-893e-3783dd14c707">
 					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
-output application/json
-
----
-{
-  "prefix": vars.formattedSubscriberData.prefix,
-  "brand-id": 0,
-  "brand-name": "UNSUPPORTED"
-}
-]]></ee:set-payload>
+						<ee:set-payload resource="dw/payload-bridge-api-unsupported-response.dwl" />
 					</ee:message>
 				</ee:transform>
 			</otherwise>

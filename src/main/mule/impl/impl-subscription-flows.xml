@@ -6,39 +6,64 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
-	<sub-flow name="impl-post-subscription-subflow"
+	<sub-flow name="impl-subscription-post-subscription-subflow"
 		doc:id="bd2e8438-d23d-4920-a8cf-fc152b7d4f25">
-		<flow-ref doc:name="impl-post-audit-subflow"
+		<flow-ref doc:name="impl-subscription-post-audit-subflow"
 			doc:id="5841db2c-87c4-436c-98c2-d148b3643619"
-			name="impl-post-audit-subflow" />
-		<flow-ref doc:name="impl-sms-validation-flow"
+			name="impl-subscription-post-audit-subflow" />
+		<flow-ref
+			doc:name="common-validate-subscription-request-subflow"
 			doc:id="d4826b9f-7be8-41b0-8915-02076282c04c"
-			name="impl-sms-validation-flow" />
-		<flow-ref doc:name="impl-redis-process-subflow"
+			name="common-validate-subscription-request-subflow" />
+		<flow-ref
+			doc:name="impl-subscription-brand-state-check-subflow"
 			doc:id="df1eddac-db79-438b-bf53-3012de73f9f2"
-			name="impl-redis-process-subflow" />
-		<flow-ref doc:name="impl-provisioning-process-subflow" doc:id="ab7d3856-5216-414e-ae97-028fc544c626" name="impl-provisioning-process-subflow" />
-		<flow-ref doc:name="impl-put-audit-subflow" doc:id="f99817a2-bd6b-4386-a0e0-27864ad9d94a" name="impl-put-audit-subflow" />
-		<flow-ref doc:name="impl-post-sms-subflow" doc:id="8050e4dc-5508-4fa4-8c19-191ce1f981d2" name="impl-post-sms-subflow" />
+			name="impl-subscription-brand-state-check-subflow" />
+		<flow-ref
+			doc:name="impl-subscription-process-eligibility-provision-state-subflow"
+			doc:id="ab7d3856-5216-414e-ae97-028fc544c626"
+			name="impl-subscription-process-eligibility-provision-state-subflow" />
+		<flow-ref doc:name="impl-subscription-put-audit-subflow"
+			doc:id="f99817a2-bd6b-4386-a0e0-27864ad9d94a"
+			name="impl-subscription-put-audit-subflow" />
+		<flow-ref doc:name="impl-subscription-post-sms-subflow"
+			doc:id="8050e4dc-5508-4fa4-8c19-191ce1f981d2"
+			name="impl-subscription-post-sms-subflow" />
 	</sub-flow>
 
-	<sub-flow name="impl-provisioning-process-subflow" doc:id="6d366e81-537c-40ac-bbd9-ab7197a1b239">
-		<choice doc:name="ROUTE request Based ON spielType Outcome" doc:id="bcbd3d62-7c2b-4d65-a101-f2fa55a86bac">
-			<when expression="#[vars.spielType != null and vars.spielType != 'first-time' and vars.spielType != 'eligible' and vars.spielType != 'normal-off']">
-				<logger level="INFO" doc:name="Do nothing" doc:id="41ced758-8956-4ad1-90e8-2792d3543da0" message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
+	<sub-flow
+		name="impl-subscription-process-eligibility-provision-state-subflow"
+		doc:id="6d366e81-537c-40ac-bbd9-ab7197a1b239">
+		<choice doc:name="ROUTE request Based ON spielType Outcome"
+			doc:id="bcbd3d62-7c2b-4d65-a101-f2fa55a86bac">
+			<when
+				expression="#[vars.spielType != null and vars.spielType != 'first-time' and vars.spielType != 'eligible' and vars.spielType != 'normal-off']">
+				<logger level="INFO" doc:name="Do nothing"
+					doc:id="41ced758-8956-4ad1-90e8-2792d3543da0"
+					message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
 			</when>
 			<otherwise>
-				<choice doc:name="IS Keyword OPT-IN? ROUTE TO Eligibility" doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb">
-					<when expression="#[vars.formattedSubscriberData.keyword == 'OPT-IN']">
-						<flow-ref doc:name="impl-elgibility-check-subflow" doc:id="210ab367-276a-4056-a5fc-21516a672df9" name="impl-elgibility-check-subflow" />
+				<choice doc:name="IS Keyword OPT-IN? ROUTE TO Eligibility"
+					doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb">
+					<when
+						expression="#[vars.formattedSubscriberData.keyword == 'OPT-IN']">
+						<flow-ref
+							doc:name="impl-subscription-check-eligibility-subflow"
+							doc:id="210ab367-276a-4056-a5fc-21516a672df9"
+							name="impl-subscription-check-eligibility-subflow" />
 					</when>
 				</choice>
-				<flow-ref doc:name="impl-provision-subflow" doc:id="680793fa-786c-47ed-839e-92b10afa765d" name="impl-post-provision-subflow" />
-				<flow-ref doc:name="impl-post-state-subflow" doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92" name="impl-post-state-subflow" />
+				<flow-ref
+					doc:name="impl-subscription-post-facebook-provision-subflow"
+					doc:id="680793fa-786c-47ed-839e-92b10afa765d"
+					name="impl-subscription-post-facebook-provision-subflow" />
+				<flow-ref doc:name="impl-subscription-post-state-subflow"
+					doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92"
+					name="impl-subscription-post-state-subflow" />
 			</otherwise>
 		</choice>
 	</sub-flow>
-	<sub-flow name="impl-post-audit-subflow"
+	<sub-flow name="impl-subscription-post-audit-subflow"
 		doc:id="81ed1a62-3c83-4c4e-9846-f937046c7ffb">
 		<logger level="INFO" doc:name="START - Audit Logging Process"
 			doc:id="07963c6a-5d72-4776-917c-cbda22b3dd60"
@@ -46,20 +71,8 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<ee:transform doc:name="Payload to Audit API Request"
 			doc:id="f672b6bb-985b-4ac4-b353-4b8db56c5c83">
 			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  "csp_txid": payload.'transaction-id',
-  "sms_message_string":payload.'sms-message',
-  "sub_mobtel": payload.msisdn,
-  "sms_source_address": payload.'sms-source-address',
-  "sub_device_details":payload.'sub-device',
-  "hplmn": payload.hlprm,
-  "as_service_id": payload.'as-service-id'
-}
-
-]]></ee:set-payload>
+				<ee:set-payload
+					resource="dw/payload-audit-api-request.dwl" />
 			</ee:message>
 		</ee:transform>
 		<flow-ref doc:name="sys-audit-api-post-audit-flow"
@@ -70,19 +83,15 @@ output application/json
 			<ee:message>
 			</ee:message>
 			<ee:variables>
-				<ee:set-variable variableName="auditId"><![CDATA[%dw 2.0
-output application/json
----
-{
-	"audit-id": payload.id
-}]]></ee:set-variable>
+				<ee:set-variable resource="dw/var-auditId.dwl"
+					variableName="auditId" />
 			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="END  - Audit Logging Process"
 			doc:id="125a6417-0c97-4601-904d-65d2e5ef1d3a"
 			message="END - Audit Logging Process - STEP 1: AUDIT LOGGING" />
 	</sub-flow>
-	<sub-flow name="impl-redis-process-subflow"
+	<sub-flow name="impl-subscription-brand-state-check-subflow"
 		doc:id="3210188d-3331-41a5-9aa9-9efa69e808eb">
 		<logger level="INFO" doc:name="START - Redis Process"
 			doc:id="2dbdc422-a67d-44a2-b961-01cb84171931"
@@ -97,7 +106,7 @@ output application/json
 					doc:id="20b2ac8e-14bd-47ed-945d-421182a01360">
 					<logger level="INFO" doc:name="Proceed Anyway"
 						doc:id="bbe9a74d-ea57-4ea9-b6cd-d831988d3e11"
-						message="Proceed Anyway" />
+						message='#["Failed to get brand prefix from Redis. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
 				</on-error-continue>
 			</error-handler>
 		</try>
@@ -118,18 +127,8 @@ output application/json
 			<ee:message>
 			</ee:message>
 			<ee:variables>
-				<ee:set-variable variableName="brand"><![CDATA[%dw 2.0
-output application/json
-
-var redis = vars.brandResponse
-var bridge = vars.bridgeResponse
-
-var data = 
-    if (!isEmpty(redis.result)) redis.result
-    else bridge          
----
-data
-]]></ee:set-variable>
+				<ee:set-variable resource="dw/var-brand.dwl"
+					variableName="brand" />
 			</ee:variables>
 		</ee:transform>
 		<choice doc:name="IS Brand Id Supported?"
@@ -143,20 +142,23 @@ data
 					doc:id="ee430490-f0ce-4877-9e7b-53e83db9f5a2">
 					<when
 						expression='#[vars.formattedSubscriberData.keyword == "OPT-IN"]'>
-						<flow-ref doc:name="impl-process-opt-in-subflow"
+						<flow-ref
+							doc:name="impl-subscription-process-opt-in-subflow"
 							doc:id="790471b1-1492-4682-99a7-43e718cd5d2a"
-							name="impl-process-opt-in-subflow" />
+							name="impl-subscription-process-opt-in-subflow" />
 					</when>
 					<when
 						expression='#[vars.formattedSubscriberData.keyword == "OPT-OUT"]'>
-						<flow-ref doc:name="impl-process-opt-out-subflow"
+						<flow-ref
+							doc:name="impl-subscription-process-opt-out-subflow"
 							doc:id="f32dd1f9-f56d-4fa5-9484-595696c18032"
-							name="impl-process-opt-out-subflow" />
+							name="impl-subscription-process-opt-out-subflow" />
 					</when>
 					<otherwise>
-						<flow-ref doc:name="impl-process-bonus-subflow"
+						<flow-ref
+							doc:name="impl-subscription-process-bonus-subflow"
 							doc:id="66404357-6efd-4789-8c4e-9a76b51ffb32"
-							name="impl-process-bonus-subflow" />
+							name="impl-subscription-process-bonus-subflow" />
 					</otherwise>
 				</choice>
 			</when>
@@ -166,10 +168,9 @@ data
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
-output application/json
----
-'unsupported']]></ee:set-variable>
+						<ee:set-variable
+							resource="dw/var-spielType-unsupported.dwl"
+							variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 				<flow-ref doc:name="common-set-error-audit-log-subflow"
@@ -181,7 +182,7 @@ output application/json
 			doc:id="6e639040-daa6-4b99-bf1a-ace8435fe943"
 			message="END - STEP 3: REDIS LOGIC (BRAND &amp; STATE LOOKUP)" />
 	</sub-flow>
-	<sub-flow name="impl-process-bonus-subflow"
+	<sub-flow name="impl-subscription-process-bonus-subflow"
 		doc:id="7bb099ac-e3b6-485b-8194-e06a87347d08">
 		<choice doc:name="Choice"
 			doc:id="f97e8cac-5b4c-4eb8-8f7d-825b58a3b37e">
@@ -190,10 +191,9 @@ output application/json
 					doc:id="41e23992-acb9-4c9b-a124-30cf8672793d">
 					<ee:message />
 					<ee:variables>
-						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
-output application/json
----
-'dual-bonus']]></ee:set-variable>
+						<ee:set-variable
+							resource="dw/var-spielType-dual-bonus.dwl"
+							variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 				<flow-ref doc:name="common-set-success-audit-log-subflow"
@@ -205,11 +205,9 @@ output application/json
 					doc:id="ee872330-ef7f-4f83-a32f-ef00741c2a59">
 					<ee:message />
 					<ee:variables>
-						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
-output application/json
----
-'not-eligable'
-]]></ee:set-variable>
+						<ee:set-variable
+							resource="dw/var-spielType-not-eligible.dwl"
+							variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 				<flow-ref doc:name="common-set-success-audit-log-subflow"
@@ -219,11 +217,14 @@ output application/json
 			<otherwise>
 				<flow-ref doc:name="impl-get-whitelist-subflow"
 					doc:id="faa47340-4079-4611-a588-9265c076d6ed"
-					name="impl-get-whitelist-subflow" />
+					name="impl-subscription-get-whitelist-subflow" />
+				<logger level="INFO" doc:name="Proceed to Deprovision flow"
+					doc:id="0368ddef-6fc3-486f-aec7-4042862de51a"
+					message="Proceed - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
 			</otherwise>
 		</choice>
 	</sub-flow>
-	<sub-flow name="impl-process-opt-out-subflow"
+	<sub-flow name="impl-subscription-process-opt-out-subflow"
 		doc:id="230b2f75-82af-48cc-b1d1-621ed4f8b0d5">
 		<choice doc:name="IS State found?"
 			doc:id="5a02223b-40b5-492d-9209-16c8c3d01d20">
@@ -232,11 +233,8 @@ output application/json
 					doc:id="c590e602-098e-4bd8-9b8f-873739abb44a">
 					<ee:message />
 					<ee:variables>
-						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
-output application/json
----
-'dual-off'
-]]></ee:set-variable>
+						<ee:set-variable
+							resource="dw/var-spielType-dual-off.dwl" variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 				<flow-ref doc:name="common-set-success-audit-log-subflow"
@@ -248,11 +246,9 @@ output application/json
 					doc:id="46ea4617-e5da-4bd4-bc77-2c37f8f7ab90">
 					<ee:message />
 					<ee:variables>
-						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
-output application/json
----
-'normal-off'
-]]></ee:set-variable>
+						<ee:set-variable
+							resource="dw/var-spielType-normal-off.dwl"
+							variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 				<logger level="INFO" doc:name="Proceed to Deprovision flow"
@@ -264,11 +260,9 @@ output application/json
 					doc:id="521b19bf-9dff-4f9d-b9d5-ba4944226983">
 					<ee:message />
 					<ee:variables>
-						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
-output application/json
----
-'not-registered'
-]]></ee:set-variable>
+						<ee:set-variable
+							resource="dw/var-spielType-not-registered.dwl"
+							variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 				<flow-ref doc:name="common-set-success-audit-log-subflow"
@@ -277,7 +271,7 @@ output application/json
 			</otherwise>
 		</choice>
 	</sub-flow>
-	<sub-flow name="impl-process-opt-in-subflow"
+	<sub-flow name="impl-subscription-process-opt-in-subflow"
 		doc:id="47a79029-c2eb-4ec0-acef-7392b4c63a77">
 		<choice doc:name="IS State found?"
 			doc:id="fba108f2-8612-43da-8e3f-070ea96f2781">
@@ -286,11 +280,9 @@ output application/json
 					doc:id="c1f5f697-2c9d-4015-8141-1eef0b8abfc4">
 					<ee:message />
 					<ee:variables>
-						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
-output application/json
----
-'dual-provisioning'
-]]></ee:set-variable>
+						<ee:set-variable
+							resource="dw/var-spielType-dual-provisioning.dwl"
+							variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 				<flow-ref doc:name="common-set-success-audit-log-subflow"
@@ -303,7 +295,7 @@ output application/json
 			</otherwise>
 		</choice>
 	</sub-flow>
-	<sub-flow name="impl-post-state-subflow"
+	<sub-flow name="impl-subscription-post-state-subflow"
 		doc:id="353c9ba2-1171-4c3d-912a-9afb9cf95476">
 		<logger level="INFO" doc:name="START - Save State"
 			doc:id="067d3c99-54d2-43d4-a64d-d6504d18273a"
@@ -311,17 +303,8 @@ output application/json
 		<ee:transform doc:name="Payload to Redis API Request"
 			doc:id="c2c111e9-76c8-4280-a0b2-40ef2986a733">
 			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json skipNullOn = "everywhere"
----
-{
-	"msisdn": vars.formattedSubscriberData.msisdn,
-	"requestPayload":{
-		"state": vars.state.state,
-		"expiry-date": vars.expiryDetails.'expiry-date'
-	}
-	
-}]]></ee:set-payload>
+				<ee:set-payload
+					resource="dw/payload-redis-api-post-state-request.dwl" />
 			</ee:message>
 		</ee:transform>
 		<until-successful maxRetries="3"
@@ -355,7 +338,7 @@ output application/json skipNullOn = "everywhere"
 			doc:id="eff6d585-cdd8-493f-a785-a78cc1219840"
 			message="END - Save State - STEP 6: UPDATE REDIS STATE" />
 	</sub-flow>
-	<sub-flow name="impl-elgibility-check-subflow"
+	<sub-flow name="impl-subscription-check-eligibility-subflow"
 		doc:id="badefcfd-e27d-4df8-8b80-f25111eb2cdd">
 		<logger level="INFO" doc:name="START - Eligibility Process"
 			doc:id="ef643cf9-c369-40b8-8978-b139f0b781d5"
@@ -366,17 +349,13 @@ output application/json skipNullOn = "everywhere"
 				<ee:transform doc:name="Payload TO NF API Request"
 					doc:id="f030769d-398d-41ca-b327-8457e9b8df39">
 					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-    msisdn: vars.originalPayload.msisdn replace /^(0|63)/ with ""
-}]]></ee:set-payload>
+						<ee:set-payload
+							resource="dw/payload-nf-api-request.dwl" />
 					</ee:message>
 				</ee:transform>
-				<flow-ref doc:name="sys-nf-api-get-prepiad-msisdn-flow"
+				<flow-ref doc:name="sys-nf-api-get-prepaid-msisdn-flow"
 					doc:id="4a60da90-8dc9-44ad-844b-dc47ff3e8c8d"
-					name="sys-nf-api-get-prepiad-msisdn-flow" />
+					name="sys-nf-api-get-prepaid-msisdn-flow" />
 				<choice doc:name="Choice"
 					doc:id="b76230c2-bcda-4e9d-afb0-8675f06d6034">
 					<when
@@ -387,21 +366,9 @@ output application/json
 							<ee:message>
 							</ee:message>
 							<ee:variables>
-								<ee:set-variable variableName="expiryDetails"><![CDATA[%dw 2.0
-output application/json
-
----
-payload.bundles
-  filter (
-    $.service_id == vars.originalPayload.'as-service-id' and 
-    now() < ($.expiry_date as LocalDateTime { format: "yyyy-MM-dd HH:mm:ss" })
-  )
-  reduce (item, acc = {}) -> {
-    "msisdn": payload.msisdn,
-    "service-id": item.service_id,
-    "expiry-date": item.expiry_date
-  }
-]]></ee:set-variable>
+								<ee:set-variable
+									resource="dw/payload-nf-api-response.dwl"
+									variableName="expiryDetails" />
 							</ee:variables>
 						</ee:transform>
 						<choice doc:name="Choice"
@@ -413,10 +380,9 @@ payload.bundles
 									<ee:message>
 									</ee:message>
 									<ee:variables>
-										<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
-output application/json
----
-'reactivation']]></ee:set-variable>
+										<ee:set-variable
+											resource="dw/var-spielType-reactivation.dwl"
+											variableName="spielType" />
 									</ee:variables>
 								</ee:transform>
 							</when>
@@ -426,10 +392,9 @@ output application/json
 									<ee:message>
 									</ee:message>
 									<ee:variables>
-										<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
-output application/json
----
-'eligible']]></ee:set-variable>
+										<ee:set-variable
+											resource="dw/var-spielType-eligible.dwl"
+											variableName="spielType" />
 									</ee:variables>
 								</ee:transform>
 							</otherwise>
@@ -441,10 +406,9 @@ output application/json
 							<ee:message>
 							</ee:message>
 							<ee:variables>
-								<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
-output application/json
----
-'ineligible']]></ee:set-variable>
+								<ee:set-variable
+									resource="dw/var-spielType-ineligible.dwl"
+									variableName="spielType" />
 							</ee:variables>
 						</ee:transform>
 						<flow-ref doc:name="common-set-error-audit-log-subflow"
@@ -457,17 +421,13 @@ output application/json
 				<ee:transform doc:name="Payload TO BSS API Request"
 					doc:id="e273c3b6-a960-4d16-9af6-e12c693eed85">
 					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-    msisdn: vars.originalPayload.msisdn replace /^(0|63)/ with ""
-}]]></ee:set-payload>
+						<ee:set-payload
+							resource="dw/payload-bss-api-request.dwl" />
 					</ee:message>
 				</ee:transform>
 				<flow-ref doc:name="sys-bss-api-get-postpiad-msisdn-flow"
 					doc:id="be8bdb96-659f-428f-afbd-15981d5f2ff5"
-					name="sys-bss-api-get-postpiad-msisdn-flow" />
+					name="sys-bss-api-get-postpaid-msisdn-flow" />
 				<choice doc:name="Choice"
 					doc:id="ee91fcaa-1312-4adf-a59d-f28b106e3060">
 					<when expression="#[!isEmpty(payload.bundles)]">
@@ -477,13 +437,9 @@ output application/json
 							<ee:message>
 							</ee:message>
 							<ee:variables>
-								<ee:set-variable variableName="expiryDetails"><![CDATA[%dw 2.0
-output application/json
----
-{
-  "service-id": vars.originalPayload.'as-service-id',
-  "expiry-date": p('default.expiry.date')
-}]]></ee:set-variable>
+								<ee:set-variable
+									resource="dw/payload-bss-api-response.dwl"
+									variableName="expiryDetails" />
 							</ee:variables>
 						</ee:transform>
 						<choice doc:name="Choice"
@@ -495,10 +451,9 @@ output application/json
 									<ee:message>
 									</ee:message>
 									<ee:variables>
-										<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
-output application/json
----
-'reactivation']]></ee:set-variable>
+										<ee:set-variable
+											resource="dw/var-spielType-reactivation.dwl"
+											variableName="spielType" />
 									</ee:variables>
 								</ee:transform>
 							</when>
@@ -508,10 +463,9 @@ output application/json
 									<ee:message>
 									</ee:message>
 									<ee:variables>
-										<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
-output application/json
----
-'eligible']]></ee:set-variable>
+										<ee:set-variable
+											resource="dw/var-spielType-eligible.dwl"
+											variableName="spielType" />
 									</ee:variables>
 								</ee:transform>
 							</otherwise>
@@ -521,10 +475,8 @@ output application/json
 						<ee:transform doc:name="var-spielType(ineligable)"
 							doc:id="d4091dad-a5a3-4219-81e0-c57816a8a936">
 							<ee:message>
-								<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-'ineligible']]></ee:set-payload>
+								<ee:set-payload
+									resource="dw/var-spielType-ineligible.dwl" />
 							</ee:message>
 							<ee:variables>
 								<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
@@ -545,7 +497,8 @@ output application/java
 			doc:id="32230055-69ae-4d91-87a3-5e0b717c5e15"
 			message="END - STEP 4: ELIGIBILITY CHECK" />
 	</sub-flow>
-	<sub-flow name="impl-post-provision-subflow"
+	<sub-flow
+		name="impl-subscription-post-facebook-provision-subflow"
 		doc:id="5e05202e-e628-4eeb-a9c0-c2ac48c2f256">
 		<logger level="INFO" doc:name="START - Provision Process"
 			doc:id="8f6573cd-c964-4a12-af11-e2ed137ce718"
@@ -553,17 +506,8 @@ output application/java
 		<ee:transform doc:name="Payload TO Provision API Request"
 			doc:id="48d5fb15-f034-4f1d-bcc2-ad0b7b90ee8e">
 			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  "msisdn": vars.formattedSubscriberData.msisdn,
-  "provision": {
-    "fb-product-id": vars.expiryDetails.'service-id' default vars.originalPayload.'as-service-id',
-    "expiry-date": vars.expiryDetails."expiry-date" default "1"
-  }
-}
-]]></ee:set-payload>
+				<ee:set-payload
+					resource="dw/payload-provision-api-request.dwl" />
 			</ee:message>
 		</ee:transform>
 		<flow-ref doc:name="sys-post-provison-subflow"
@@ -578,7 +522,7 @@ output application/json
 						expression='#[vars.formattedSubscriberData.keyword == "BONUS"]'>
 						<flow-ref doc:name="impl-delete-whitelist-subflow"
 							doc:id="13234db9-edd1-48a0-9406-1ad385720593"
-							name="impl-delete-whitelist-subflow" />
+							name="impl-subscription-delete-whitelist-subflow" />
 					</when>
 				</choice>
 				<ee:transform doc:name="var-state"
@@ -586,15 +530,7 @@ output application/json
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable variableName="state"><![CDATA[%dw 2.0
-output application/json
-
-var keyword = vars.formattedSubscriberData.keyword
-var state = if (keyword == "OPT-IN" or keyword == "BONUS") 1 else 0
----
-{
-    state: state
-}]]></ee:set-variable>
+						<ee:set-variable resource="dw/var-state.dwl" variableName="state" />
 					</ee:variables>
 				</ee:transform>
 				<ee:transform doc:name="var-auditLog"
@@ -602,13 +538,7 @@ var state = if (keyword == "OPT-IN" or keyword == "BONUS") 1 else 0
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable variableName="auditLog"><![CDATA[%dw 2.0
-output application/json
----
-{
-    "success": 1,
-    "hasProcessorError": 0
-}]]></ee:set-variable>
+						<ee:set-variable resource="dw/var-auditLog-success.dwl" variableName="auditLog" />
 					</ee:variables>
 				</ee:transform>
 			</when>
@@ -618,10 +548,7 @@ output application/json
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
-output application/json
----
-'fb-unsuccess']]></ee:set-variable>
+						<ee:set-variable resource="dw/var-spielType-fb-unsuccess.dwl" variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 				<flow-ref doc:name="common-set-error-audit-log-subflow"
@@ -633,7 +560,7 @@ output application/json
 			doc:id="af797a39-04d9-4b63-9049-6823ec996b34"
 			message="END  - Provision Process - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
 	</sub-flow>
-	<sub-flow name="impl-put-audit-subflow"
+	<sub-flow name="impl-subscription-put-audit-subflow"
 		doc:id="0c114945-f0a3-42b1-b2a8-7ef7d1693e05">
 		<logger level="INFO" doc:name="START- Update Audit Logging"
 			doc:id="e1dc0fc5-51a6-41dd-9653-fe4e4e1b1a26"
@@ -641,13 +568,7 @@ output application/json
 		<ee:transform doc:name="Payload to Audit API Request"
 			doc:id="c0f31921-8a8c-473a-857c-de553a800dd0">
 			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-	"audit-id": vars.auditId."audit-id",
-	"requetPayload": vars.auditLog
-}]]></ee:set-payload>
+				<ee:set-payload resource="dw/payload-put-audit-request.dwl" />
 			</ee:message>
 		</ee:transform>
 		<until-successful maxRetries="3"
@@ -680,7 +601,7 @@ output application/json
 			doc:id="dd75d9e7-9a71-4d19-94f4-41c212547619"
 			message="END - Update Audit Logging - STEP 7: UPDATE AUDIT LOGGING" />
 	</sub-flow>
-	<sub-flow name="impl-post-sms-subflow"
+	<sub-flow name="impl-subscription-post-sms-subflow"
 		doc:id="ab7f9e86-0987-4639-a35d-cc177bb928f2">
 		<logger level="INFO" doc:name="START - SMS Messaging Process"
 			doc:id="85275436-9068-49ef-8876-def884faa94a"
@@ -691,16 +612,7 @@ output application/json
 		<ee:transform doc:name="Payload to SMS API Request"
 			doc:id="2d3a1a9b-6712-4b77-bf49-108c15b9338a">
 			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-    "fromAddress": vars.originalPayload.msisdn,
-    "smsMessaging": {
-        "address": vars.originalPayload.'sms-source-address',
-        "message": vars.smsSpielMapping.'sms-spiel'
-    }
-}]]></ee:set-payload>
+				<ee:set-payload resource="dw/payload-post-sms-api-request.dwl" />
 			</ee:message>
 		</ee:transform>
 		<until-successful maxRetries="3"
@@ -708,9 +620,9 @@ output application/json
 			doc:id="cfc90b85-e3be-449c-b1a2-758e708b7e41"
 			millisBetweenRetries="50000">
 			<try doc:name="Try" doc:id="318708a6-c9a9-4ccf-b492-feb1c6740850">
-				<flow-ref doc:name="sys-sms-api-sublow"
+				<flow-ref doc:name="sys-sms-api-subflow"
 					doc:id="a53cccc2-654c-4066-8d5b-7284f8434493"
-					name="sys-sms-api-sublow" />
+					name="sys-sms-api-subflow" />
 				<error-handler>
 					<on-error-propagate enableNotifications="true"
 						logException="true" doc:name="On Error Propagate"
@@ -733,7 +645,7 @@ output application/json
 			doc:id="d2e18799-9a72-40a5-8add-3e5dc9051b0c"
 			message="END - SMS Messaging Process - STEP 8: SMS MESSAGING" />
 	</sub-flow>
-	<sub-flow name="impl-get-whitelist-subflow"
+	<sub-flow name="impl-subscription-get-whitelist-subflow"
 		doc:id="c886cbf7-afd9-4281-a813-3a7b2133adef">
 		<logger level="INFO" doc:name="START - Bonus Handling"
 			doc:id="e3a1162a-aea4-45a8-9f0a-adffe01e944e"
@@ -751,24 +663,14 @@ output application/json
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable variableName="expiryDetails"><![CDATA[%dw 2.0
-output application/json
----
-{
-  "service-id": vars.originalPayload.'as-service-id',
-  "expiry-date": (now() + |P7D|) as String { format: "yyyy-MM-dd HH:mm:ss" }
-}
-]]></ee:set-variable>
+						<ee:set-variable resource="dw/payload-get-mongodb-api-response.dwl" variableName="expiryDetails" />
 					</ee:variables>
 				</ee:transform>
 				<ee:transform doc:name="var - spielType"
 					doc:id="85de66e5-ccba-4669-b9ae-49b44ff9161c">
 					<ee:message />
 					<ee:variables>
-						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
-output application/json
----
-'first-time']]></ee:set-variable>
+						<ee:set-variable resource="dw/var-spielType-first-time.dwl" variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 			</when>
@@ -778,10 +680,7 @@ output application/json
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
-output application/json
----
-'not-eligable']]></ee:set-variable>
+						<ee:set-variable resource="dw/var-spielType-not-eligible.dwl" variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 				<flow-ref doc:name="common-set-success-audit-log-subflow"
@@ -793,7 +692,7 @@ output application/json
 			doc:id="8dad676f-4dbc-43c2-8e21-ef46e62d9ea3"
 			message="END- Bonus Handling" />
 	</sub-flow>
-	<sub-flow name="impl-delete-whitelist-subflow"
+	<sub-flow name="impl-subscription-delete-whitelist-subflow"
 		doc:id="aa665024-e4b2-499e-af6e-9281cdfd41fa">
 		<until-successful maxRetries="5"
 			doc:name="Until Successful"

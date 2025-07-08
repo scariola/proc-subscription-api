@@ -11,8 +11,8 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		doc:id="ce502ca3-fef7-49aa-b16a-0eafa6daa05f">
 		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="31c28ae5-0b29-4149-816e-adb539aea003" type="HTTP:BAD_REQUEST">
 			<flow-ref doc:name="common-set-error-audit-log-subflow" doc:id="7322a817-d410-4b70-a331-76d8d4509842" name="common-set-error-audit-log-subflow" />
-			<flow-ref doc:name="impl-put-audit-subflow" doc:id="03f00fdd-d99b-46c7-adf1-9dd7659d22a3" name="impl-put-audit-subflow" />
-			<flow-ref doc:name="impl-post-sms-subflow" doc:id="a9d3eb95-0d1c-433b-8361-eb02b2b68eac" name="impl-post-sms-subflow" />
+			<flow-ref doc:name="impl-subscription-put-audit-subflow" doc:id="03f00fdd-d99b-46c7-adf1-9dd7659d22a3" name="impl-subscription-put-audit-subflow" />
+			<flow-ref doc:name="impl-subscription-post-sms-subflow" doc:id="a9d3eb95-0d1c-433b-8361-eb02b2b68eac" name="impl-subscription-post-sms-subflow" />
 			<ee:transform doc:name="Set Payload - http bad request" doc:id="dab8d964-a2e7-4415-9cde-71266c365368">
 				<ee:message>
 					<ee:set-payload><![CDATA[%dw 2.0
@@ -34,8 +34,8 @@ output application/json
 		</on-error-propagate>
 		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="90a4686e-0e9f-46de-9887-2d1cbcbadf43" type="HTTP:CONNECTIVITY">
 			<flow-ref doc:name="common-set-error-audit-log-subflow" doc:id="ffb7f398-edb8-4e25-a779-1dc78f43666e" name="common-set-error-audit-log-subflow" />
-			<flow-ref doc:name="impl-put-audit-subflow" doc:id="4c6aaa8e-2c41-42a2-97a7-0280f168709e" name="impl-put-audit-subflow" />
-			<flow-ref doc:name="impl-post-sms-subflow" doc:id="a17a479a-73fd-4ddf-9ac6-cb7569b9d02c" name="impl-post-sms-subflow" />
+			<flow-ref doc:name="impl-subscription-put-audit-subflow" doc:id="4c6aaa8e-2c41-42a2-97a7-0280f168709e" name="impl-subscription-put-audit-subflow" />
+			<flow-ref doc:name="impl-subscription-post-sms-subflow" doc:id="a17a479a-73fd-4ddf-9ac6-cb7569b9d02c" name="impl-subscription-post-sms-subflow" />
 			<ee:transform doc:name="Set Payload - http connectivity" doc:id="e8ff00c8-4af6-4c14-b95e-c654505cb6b5">
 				<ee:message>
 					<ee:set-payload><![CDATA[%dw 2.0
@@ -61,12 +61,12 @@ output application/json
 			<flow-ref doc:name="common-set-error-audit-log-subflow"
 				doc:id="f526b026-fc00-4528-9850-06d8d774c8fb"
 				name="common-set-error-audit-log-subflow" />
-			<flow-ref doc:name="impl-put-audit-subflow"
+			<flow-ref doc:name="impl-subscription-put-audit-subflow"
 				doc:id="48baded3-34d2-40c6-a5cb-5fb459c00e26"
-				name="impl-put-audit-subflow" />
-			<flow-ref doc:name="impl-post-sms-subflow"
+				name="impl-subscription-put-audit-subflow" />
+			<flow-ref doc:name="impl-subscription-post-sms-subflow"
 				doc:id="e849949e-9b61-4a02-a3c8-41862913a32b"
-				name="impl-post-sms-subflow" />
+				name="impl-subscription-post-sms-subflow" />
 			<ee:transform doc:name="Set Payload - any"
 				doc:id="b1a08c09-06a0-455a-91d9-c9fb3c0f94b0">
 				<ee:message>

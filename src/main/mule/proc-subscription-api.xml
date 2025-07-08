@@ -37,7 +37,7 @@ output application/json
 payload]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<flow-ref doc:name="impl-post-subscription-subflow" doc:id="0e1c050a-6e2e-4695-a46d-51acd0d6453d" name="impl-post-subscription-subflow"/>
+		<flow-ref doc:name="impl-post-subscription-subflow" doc:id="0e1c050a-6e2e-4695-a46d-51acd0d6453d" name="impl-subscription-post-subscription-subflow"/>
 		<ee:transform doc:name="Construct Subscription Result Payload" doc:id="a4700e3e-cef6-499b-a788-b00e964ea957" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
