@@ -27,31 +27,6 @@
 	<flow
 		name="post:\subscription:application\json:proc-subscription-api-config">
 		<logger level="INFO" doc:name="START - POST /subscription" doc:id="8515c7b5-8fbe-4995-a255-e4dfd5d3bcbf" message="START - POST /subscription - Start processing subscription request"/>
-		<ee:transform doc:name="Transform Message" doc:id="ef372b2d-4c87-401a-9751-a451bd43ae93" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
-
-// Inline function
-fun getSpiel(map, keyword, brand, spielType) =
-  map[keyword][brand][spielType] 
-    default map["ANY"]["ANY"]["system-error"]
-
-// Load externalized mapping from classpath
-var spielMap = readUrl("classpath://dw/mapping-payload-sms-spiels.dwl", "application/json")
-
----
-{
-  "sms-spiel": getSpiel(
-    spielMap,
-    vars.formattedSubscriberData.keyword default "ANY",
-    vars.brand.'brand-name' default "ANY",
-    vars.spielType default "system-error"
-  )
-}
-]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
 		<ee:transform doc:name="Store Orignal Payload" doc:id="fa72305f-bce5-4f0d-9547-555f4e9e58b0" >
 			<ee:message >
 			</ee:message>

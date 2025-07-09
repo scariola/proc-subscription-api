@@ -13,17 +13,23 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
       <ee:set-variable variableName="smsSpielMapping"><![CDATA[%dw 2.0
 output application/json
 
-var map = readUrl("classpath://dw/mapping_payload_sms_spiels.json", "application/json")
-var keyword = vars.formattedSubscriberData.keyword default "ANY" 
-var brand = upper(vars.brand.'brand-name') default "ANY"    
-var spielType = vars.spielType default "system-error" 
+
+fun getSpiel(map, keyword, brand, spielType) =
+  map[keyword][brand][spielType] 
+    default map["ANY"]["ANY"]["system-error"]
+
+var spielMap = readUrl("classpath://dw/mapping-payload-sms-spiels.dwl", "application/json")
+
 ---
 {
-  "sms-spiel": (
-    map[keyword][brand][spielType]    
-      default map["ANY"]["ANY"]["system-error"] 
+  "sms-spiel": getSpiel(
+    spielMap,
+    vars.formattedSubscriberData.keyword default "ANY",
+    vars.brand.'brand-name' default "ANY",
+    vars.spielType default "system-error"
   )
-}]]></ee:set-variable>
+}
+]]></ee:set-variable>
     </ee:variables>
   </ee:transform>
 </sub-flow>
