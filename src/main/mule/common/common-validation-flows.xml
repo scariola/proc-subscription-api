@@ -73,7 +73,7 @@ output application/java
 		<error-handler>
 			<on-error-propagate enableNotifications="true"
 				logException="true" doc:name="On Error Propagate"
-				doc:id="323826ea-36f5-4407-89c2-30ae799912d7" type="INPUT:*">
+				doc:id="323826ea-36f5-4407-89c2-30ae799912d7" type="INPUT:INVALID_KEYWORD">
 				<ee:transform
 					doc:name="var-smsSpiel, var-auditLog(failure)"
 					doc:id="2129d6f8-d104-4401-ac79-94429c95c921">

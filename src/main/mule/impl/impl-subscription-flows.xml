@@ -676,16 +676,16 @@ output application/java
 					<on-error-propagate enableNotifications="true"
 						logException="true" doc:name="On Error Propagate"
 						doc:id="24af72a3-0194-4dba-8463-dbfd6a4e9a52" type="ANY">
-						<logger level="INFO" doc:name="Logger"
-							doc:id="26dc6070-178b-4780-a439-59ad1777abe6" />
+						<logger level="INFO" doc:name="Proceed anyway"
+							doc:id="26dc6070-178b-4780-a439-59ad1777abe6" message='#["Failed to update audit log. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]'/>
 					</on-error-propagate>
 				</error-handler>
 			</try>
 			<choice doc:name="IS successful?"
 				doc:id="558f5d09-4a55-4689-a3be-676c69c0fcb0">
 				<when expression="#[attributes.statusCode != 200]">
-					<logger level="INFO" doc:name="Logger"
-						doc:id="3da31939-4003-4372-9060-a4c4a90bd5d5" />
+					<logger level="INFO" doc:name="Log Failure"
+						doc:id="3da31939-4003-4372-9060-a4c4a90bd5d5" message="log failure"/>
 				</when>
 			</choice>
 		</until-successful>
@@ -725,15 +725,15 @@ output application/java
 					<on-error-propagate enableNotifications="true"
 						logException="true" doc:name="On Error Propagate"
 						doc:id="03e38988-43d9-4ccd-ba88-3ba0a4ff8c26" type="ANY">
-						<logger level="INFO" doc:name="Logger"
-							doc:id="3e471234-41e0-4af0-8984-c4cc3299ef9f" />
+						<logger level="INFO" doc:name="Proceed Anyway"
+							doc:id="3e471234-41e0-4af0-8984-c4cc3299ef9f" message='#["Failed to send sms. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]'/>
 					</on-error-propagate>
 				</error-handler>
 			</try>
 			<choice doc:name="Choice"
 				doc:id="969a8d8c-9365-49f4-8eba-9962286d122f">
 				<when expression="#[attributes.statusCode != 200]">
-					<logger level="INFO" doc:name="Logger"
+					<logger level="INFO" doc:name="Log Failure"
 						doc:id="0a2458bb-1d78-4d63-b5a7-1b473e312c01"
 						message="log failure" />
 				</when>
@@ -778,14 +778,12 @@ output application/java
 				</ee:transform>
 			</when>
 			<otherwise>
-				<ee:transform doc:name="var - spielType"
+				<ee:transform doc:name="var - spielType(ineligible)"
 					doc:id="4e7fbd5d-572c-4321-8675-d3e54d03c72c">
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable
-							resource="dw/var-spielType-not-eligible.dwl"
-							variableName="spielType" />
+						<ee:set-variable resource="dw/var-spielType-ineligible.dwl" variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 				<ee:transform
@@ -823,16 +821,16 @@ output application/java
 					<on-error-propagate enableNotifications="true"
 						logException="true" doc:name="On Error Propagate"
 						doc:id="1aa62361-68c4-4dd0-b59f-6539e21eab13" type="ANY">
-						<logger level="INFO" doc:name="Logger"
-							doc:id="4a42ff9c-a6f2-4099-99ea-07a94b90f984" />
+						<logger level="INFO" doc:name="Proceed Anyway"
+							doc:id="4a42ff9c-a6f2-4099-99ea-07a94b90f984" message='#["Failed to delete msisdn whitelist. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]'/>
 					</on-error-propagate>
 				</error-handler>
 			</try>
 			<choice doc:name="Choice"
 				doc:id="21708bf7-5ef7-420f-b983-e96c3e01fc54">
 				<when expression="#[attributes.statusCode != 200]">
-					<logger level="INFO" doc:name="Logger"
-						doc:id="562be86f-6ab6-485e-92e2-9124d11941f1" />
+					<logger level="INFO" doc:name="Log Failure"
+						doc:id="562be86f-6ab6-485e-92e2-9124d11941f1" message="Log Failure "/>
 				</when>
 			</choice>
 		</until-successful>

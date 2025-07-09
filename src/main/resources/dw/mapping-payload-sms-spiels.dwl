@@ -3,12 +3,12 @@
     "GHP Prepaid": {
       "first-time": "Your request is currently being processed. You will receive a message within 48 hours once your 7 days of Free FB has been activated. This promo is not applicable for BlackBerry devices. For local use only. To avail of free internet, just text FREE to 8888. Use your free MB to play Clash of Clans or Candy Crush, browse your FB, Twitter or simply visit any sites you want! Thank you. Per DTI# 3784, S15. Valid until 12/31/2025.",
       "dual-bonus": "Sorry, you already activated your Free FB from your mobile sim sampler. For other wonderful Globe promos, dial *143# and select Surf Promos.",
-      "not-eligible": "Sorry, you have entered an invalid keyword. Please make sure your keyword is correct with no extra characters and spaces. For more info on promos, dial *143# and select Surf Promos."
+      "ineligible": "Sorry, you have entered an invalid keyword. Please make sure your keyword is correct with no extra characters and spaces. For more info on promos, dial *143# and select Surf Promos."
     },
     "TM": {
       "first-time": "Kasalukuyang prinoproseso ang iyong request. Makakatanggap ka ng text sa loob ng 48 oras kapag na-activate na ang iyong Free FB. Hindi available ang promong ito sa BlackBerry devices. For local use only. Per DTI#3784,S S15. Valid until 12/31/2025.",
       "dual-bonus": "Sorry, na-activate mo na ang iyong Free FB mula sa iyong mobile sim sampler. Para sa iba pang TM promos, i-dial ang *143# at pumunta sa Mobile Internet Promos.",
-      "not-eligible": "Sorry, invalid ang ginamit mong keyword. Siguraduhing tama ang keyword at walang extrang characters o spaces. For more info sa mga TM promos, i-dial ang *143# at piliin ang Mobile Internet Promos."
+      "ineligible": "Sorry, invalid ang ginamit mong keyword. Siguraduhing tama ang keyword at walang extrang characters o spaces. For more info sa mga TM promos, i-dial ang *143# at piliin ang Mobile Internet Promos."
     },
     "POSTPAID": {
       "rejected": "Sorry, you have entered an invalid keyword. Please make sure your keyword is correct with no extra characters and spaces. For more info on promos, dial *143# and select Surf Promos."
