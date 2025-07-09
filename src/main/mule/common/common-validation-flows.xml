@@ -17,28 +17,8 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			</ee:message>
 			<ee:variables>
 				<ee:set-variable
-					variableName="formattedSubscriberData"><![CDATA[%dw 2.0
-output application/json
-fun formatMsisdn(msisdn) = 
-    msisdn match {
-        case m if m startsWith "63" -> m
-        case m if m startsWith "0" -> "63" ++ m[1 to -1]
-        else -> "63" ++ msisdn
-    }
----
-{
-    msisdn: formatMsisdn(vars.originalPayload.msisdn),
-    prefix: formatMsisdn(vars.originalPayload.msisdn)[2 to 6],
-    keyword: upper(vars.originalPayload.'sms-message') match {
-        case "FREE FB ON" -> "OPT-IN"
-        case "ON FREE FB" -> "OPT-IN"
-        case "FREE FB OFF" -> "OPT-OUT"
-        case "OFF FREE FB" -> "OPT-OUT"
-        case "BONUSFB" -> "BONUS"
-        case "BONUS FB" -> "BONUS"
-        else -> "INVALID"
-    }
-}]]></ee:set-variable>
+					resource="dw/vars-formattedSubscriberData.dwl"
+					variableName="formattedSubscriberData" />
 			</ee:variables>
 		</ee:transform>
 		<choice doc:name="CONTAINS Invalid Keword?"
@@ -50,10 +30,7 @@ fun formatMsisdn(msisdn) =
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
-output application/java
----
-'ANY']]></ee:set-variable>
+						<ee:set-variable resource="dw/var-spielType-invalid-keyword.dwl" variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 				<raise-error doc:name="Raise Error - Invalid Keyword"
@@ -73,24 +50,9 @@ output application/java
 		<error-handler>
 			<on-error-propagate enableNotifications="true"
 				logException="true" doc:name="On Error Propagate"
-				doc:id="323826ea-36f5-4407-89c2-30ae799912d7" type="INPUT:INVALID_KEYWORD">
-				<ee:transform
-					doc:name="var-smsSpiel, var-auditLog(failure)"
-					doc:id="2129d6f8-d104-4401-ac79-94429c95c921">
-					<ee:message />
-					<ee:variables>
-						<ee:set-variable resource="dw/get-sms-spiel.dwl"
-							variableName="smsSpiel" />
-						<ee:set-variable
-							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-					</ee:variables>
-				</ee:transform>
-				<flow-ref doc:name="impl-subscription-put-audit-subflow"
-					doc:id="2ada9f75-39fb-401b-8abe-2dec61f4069b"
-					name="impl-subscription-put-audit-subflow" />
-				<flow-ref doc:name="impl-subscription-post-sms-subflow"
-					doc:id="7e9ba286-d113-4468-8a5e-61497ab9dd7d"
-					name="impl-subscription-post-sms-subflow" />
+				doc:id="323826ea-36f5-4407-89c2-30ae799912d7"
+				type="INPUT:INVALID_KEYWORD">
+				<flow-ref doc:name="common-error-processing-subflow" doc:id="e206025d-03f7-4628-a4af-42bc57a3379e" name="common-error-processing-subflow"/>
 				<ee:transform doc:name="Set Payload - Validation Error"
 					doc:id="4911f308-2786-4efc-99b7-8a8fb87a013b">
 					<ee:message>
@@ -109,7 +71,7 @@ output application/json
 ]]></ee:set-payload>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+						<ee:set-variable resource="dw/var-httpStatus-400.dwl" variableName="httpStatus" />
 					</ee:variables>
 				</ee:transform>
 			</on-error-propagate>

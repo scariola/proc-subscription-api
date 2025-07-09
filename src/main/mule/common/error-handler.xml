@@ -6,141 +6,94 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="common-error-processing-subflow"
+		doc:id="b2162486-934c-449e-b657-f53de081f72b">
+		<logger level="INFO"
+			doc:name="START - Common Error  Processing"
+			doc:id="3540012f-b031-4564-8890-5a34e2150563"
+			message="START - Common Error  Processing " />
+		<ee:transform
+			doc:name="var-smsSpiel, var-auditLog(failure)"
+			doc:id="75b66577-958c-4b63-b067-e27f3e325311">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable resource="dw/get-sms-spiel.dwl"
+					variableName="smsSpiel" />
+				<ee:set-variable
+					resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="impl-subscription-put-audit-subflow"
+			doc:id="03f00fdd-d99b-46c7-adf1-9dd7659d22a3"
+			name="impl-subscription-put-audit-subflow" />
+		<flow-ref doc:name="impl-subscription-post-sms-subflow"
+			doc:id="a9d3eb95-0d1c-433b-8361-eb02b2b68eac"
+			name="impl-subscription-post-sms-subflow" />
+		<logger level="INFO" doc:name="END - Common Error  Processing "
+			doc:id="75a9cf47-b2e5-4353-8e74-c674e73f8c8b"
+			message="END - Common Error  Processing " />
+	</sub-flow>
 	<error-handler
 		name="proc-subscription-api-Shared_Error_Handler"
 		doc:id="ce502ca3-fef7-49aa-b16a-0eafa6daa05f">
 		<on-error-propagate enableNotifications="true"
 			logException="true" doc:name="On Error Propagate"
 			doc:id="31c28ae5-0b29-4149-816e-adb539aea003" type="HTTP:BAD_REQUEST">
-			<ee:transform doc:name="var-smsSpiel" doc:id="75b66577-958c-4b63-b067-e27f3e325311" >
-				<ee:message >
-				</ee:message>
-				<ee:variables >
-					<ee:set-variable resource="dw/get-sms-spiel.dwl" variableName="smsSpiel" />
-				</ee:variables>
-			</ee:transform>
-			<ee:transform doc:name="var-auditLog(failure)" doc:id="2fbeaed5-bab3-4b7c-9e5a-d472589fa2b8" >
-				<ee:message >
-				</ee:message>
-				<ee:variables >
-					<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-				</ee:variables>
-			</ee:transform>
-			<flow-ref doc:name="impl-subscription-put-audit-subflow"
-				doc:id="03f00fdd-d99b-46c7-adf1-9dd7659d22a3"
-				name="impl-subscription-put-audit-subflow" />
-			<flow-ref doc:name="impl-subscription-post-sms-subflow"
-				doc:id="a9d3eb95-0d1c-433b-8361-eb02b2b68eac"
-				name="impl-subscription-post-sms-subflow" />
-			<ee:transform doc:name="Set Payload - http bad request"
+			<flow-ref doc:name="common-error-processing-subflow"
+				doc:id="0b8631e6-fdb7-4275-910d-93ebbf5a271d"
+				name="common-error-processing-subflow" />
+			<ee:transform
+				doc:name="Set Payload - http bad request,var-httpStatus"
 				doc:id="dab8d964-a2e7-4415-9cde-71266c365368">
 				<ee:message>
-					<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  "x-event-code": correlationId,	
-  "x-event-code": 9204,
-  "x-event-msg": "Bad Request - Invalid Parameter or Request",
-  "result": {
-    "error-type": error.errorType.namespace ++ ":" ++ error.errorType.identifier,
-    "error-description": error.detailedDescription
-  }
-}
-]]></ee:set-payload>
+					<ee:set-payload
+						resource="dw/payload-http-bad-request-response.dwl" />
 				</ee:message>
-				
+				<ee:variables>
+					<ee:set-variable
+						resource="dw/var-httpStatus-400.dwl" variableName="httpStatus" />
+				</ee:variables>
 			</ee:transform>
-			<set-variable value="400" doc:name="httpStatus"
-				doc:id="c7758acb-7a89-449e-a96e-dd326b8906d3"
-				variableName="httpStatus" />
 		</on-error-propagate>
 		<on-error-propagate enableNotifications="true"
 			logException="true" doc:name="On Error Propagate"
 			doc:id="90a4686e-0e9f-46de-9887-2d1cbcbadf43"
 			type="HTTP:CONNECTIVITY">
-			<ee:transform doc:name="var-smsSpiel" doc:id="5828840c-4896-4d03-be4b-12ce8320abfc" >
-				<ee:message />
-				<ee:variables >
-					<ee:set-variable resource="dw/get-sms-spiel.dwl" variableName="smsSpiel" />
-				</ee:variables>
-			</ee:transform>
-			<ee:transform doc:name="var-auditLog(failure)" doc:id="98c59572-a68c-462e-8ea3-3dd4acee3c52" >
-				<ee:message />
-				<ee:variables >
-					<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-				</ee:variables>
-			</ee:transform>
-			<flow-ref doc:name="impl-subscription-put-audit-subflow"
-				doc:id="4c6aaa8e-2c41-42a2-97a7-0280f168709e"
-				name="impl-subscription-put-audit-subflow" />
-			<flow-ref doc:name="impl-subscription-post-sms-subflow"
-				doc:id="a17a479a-73fd-4ddf-9ac6-cb7569b9d02c"
-				name="impl-subscription-post-sms-subflow" />
-			<ee:transform doc:name="Set Payload - http connectivity"
+			<flow-ref doc:name="common-error-processing-subflow"
+				doc:id="f1b5928a-e753-4dad-9857-c9f7a40c4b1b"
+				name="common-error-processing-subflow" />
+			<ee:transform
+				doc:name="Set Payload - http connectivity,var-httpStatus"
 				doc:id="e8ff00c8-4af6-4c14-b95e-c654505cb6b5">
 				<ee:message>
-					<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  "x-event-code": correlationId,	
-  "x-event-code": 9200,
-  "x-event-msg": "Connectivity Error.",
-  "result": {
-    "error-type": error.errorType.namespace ++ ":" ++ error.errorType.identifier,
-    "error-description": error.detailedDescription
-  }
-}
-]]></ee:set-payload>
+					<ee:set-payload
+						resource="dw/payload-http-connectiviry-response.dwl" />
 				</ee:message>
+				<ee:variables>
+					<ee:set-variable
+						resource="dw/var-httpStatus-503.dwl" variableName="httpStatus" />
+				</ee:variables>
 			</ee:transform>
-			<set-variable value="500" doc:name="httpStatus"
-				doc:id="1b79d4d6-aa71-4225-aee2-23a78a648ca0"
-				variableName="httpStatus" />
 		</on-error-propagate>
 		<on-error-propagate enableNotifications="true"
 			logException="true" doc:name="On Error Propagate"
 			doc:id="b2797cb4-29c7-45ad-be4d-60ecd3727179" type="ANY">
-			<ee:transform doc:name="var-smsSpiel" doc:id="1d647490-f5a5-4f3e-a2ab-b3f6eb6c9493" >
-				<ee:message />
-				<ee:variables >
-					<ee:set-variable resource="dw/get-sms-spiel.dwl" variableName="smsSpiel" />
-				</ee:variables>
-			</ee:transform>
-			<ee:transform doc:name="var-auditLog(failure)" doc:id="f01769bc-9032-47da-8b72-dd93b06570fc" >
-				<ee:message />
-				<ee:variables >
-					<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-				</ee:variables>
-			</ee:transform>
-			<flow-ref doc:name="impl-subscription-put-audit-subflow"
-				doc:id="48baded3-34d2-40c6-a5cb-5fb459c00e26"
-				name="impl-subscription-put-audit-subflow" />
-			<flow-ref doc:name="impl-subscription-post-sms-subflow"
-				doc:id="e849949e-9b61-4a02-a3c8-41862913a32b"
-				name="impl-subscription-post-sms-subflow" />
-			<ee:transform doc:name="Set Payload - any"
+			<flow-ref doc:name="common-error-processing-subflow"
+				doc:id="aeb0f069-204b-450e-bee1-193752d3d568"
+				name="common-error-processing-subflow" />
+			<ee:transform
+				doc:name="Set Payload - any, var-httpStatus"
 				doc:id="b1a08c09-06a0-455a-91d9-c9fb3c0f94b0">
 				<ee:message>
-					<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  "x-event-code": correlationId,	
-  "x-event-code": 9201,
-  "x-event-msg": "We encountered a system issue while processing your request. Please try again later.",
-  "result": {
-    "error-type": error.errorType.namespace ++ ":" ++ error.errorType.identifier,
-    "error-description": error.detailedDescription
-  }
-}
-]]></ee:set-payload>
+					<ee:set-payload
+						resource="dw/payload-http-any-response.dwl" />
 				</ee:message>
+				<ee:variables>
+					<ee:set-variable
+						resource="dw/var-httpStatus-500.dwl" variableName="httpStatus" />
+				</ee:variables>
 			</ee:transform>
-			<set-variable value="500" doc:name="httpStatus"
-				doc:id="8a11fba4-95bf-406f-bdae-c5ad6c679147"
-				variableName="httpStatus" />
 		</on-error-propagate>
 	</error-handler>
 
@@ -149,23 +102,29 @@ output application/json
 		name="proc-subscription-api_APIKIT_Error_Handler">
 
 		<on-error-propagate type="APIKIT:BAD_REQUEST">
-			<ee:transform doc:name="Set Payload - Bad Request">
+			<ee:transform
+				doc:name="Set Payload - Bad Request, var-httpStatus">
 				<ee:message>
 					<ee:set-payload resource="dw/api-bad-request.dwl" />
 				</ee:message>
+				<ee:variables>
+					<ee:set-variable
+						resource="dw/var-httpStatus-400.dwl" variableName="httpStatus" />
+				</ee:variables>
 			</ee:transform>
-			<set-variable variableName="httpStatus" value="400"
-				doc:name="Set httpStatus  = 400" />
 		</on-error-propagate>
 
 		<on-error-propagate type="APIKIT:NOT_FOUND">
-			<ee:transform doc:name="Set Payload - Not Found">
+			<ee:transform
+				doc:name="Set Payload - Not Found, var-httpStatus">
 				<ee:message>
 					<ee:set-payload resource="dw/api-not-found.dwl" />
 				</ee:message>
+				<ee:variables>
+					<ee:set-variable
+						resource="dw/var-httpStatus-404.dwl" variableName="httpStatus" />
+				</ee:variables>
 			</ee:transform>
-			<set-variable variableName="httpStatus" value="404"
-				doc:name="Set httpStatus  = 404" />
 		</on-error-propagate>
 
 		<on-error-propagate
@@ -176,9 +135,11 @@ output application/json
 					<ee:set-payload
 						resource="dw/api-method-not-allowed.dwl" />
 				</ee:message>
+				<ee:variables>
+					<ee:set-variable
+						resource="dw/var-httpStatus-405.dwl" variableName="httpStatus" />
+				</ee:variables>
 			</ee:transform>
-			<set-variable variableName="httpStatus" value="405"
-				doc:name="Set httpStatus  = 405" />
 		</on-error-propagate>
 
 		<on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
@@ -186,9 +147,11 @@ output application/json
 				<ee:message>
 					<ee:set-payload resource="dw/api-not-acceptable.dwl" />
 				</ee:message>
+				<ee:variables>
+					<ee:set-variable
+						resource="dw/var-httpStatus-406.dwl" variableName="httpStatus" />
+				</ee:variables>
 			</ee:transform>
-			<set-variable variableName="httpStatus" value="406"
-				doc:name="Set httpStatus  = 406" />
 		</on-error-propagate>
 
 		<on-error-propagate
@@ -199,9 +162,11 @@ output application/json
 					<ee:set-payload
 						resource="dw/api-unsupported-media-type.dwl" />
 				</ee:message>
+				<ee:variables>
+					<ee:set-variable
+						resource="dw/var-httpStatus-415.dwl" variableName="httpStatus" />
+				</ee:variables>
 			</ee:transform>
-			<set-variable variableName="httpStatus" value="415"
-				doc:name="Set httpStatus  = 415" />
 		</on-error-propagate>
 
 		<on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
@@ -210,9 +175,11 @@ output application/json
 					<ee:set-payload
 						resource="dw/api-not-implemented.dwl" />
 				</ee:message>
+				<ee:variables>
+					<ee:set-variable
+						resource="dw/var-httpStatus-501.dwl" variableName="httpStatus" />
+				</ee:variables>
 			</ee:transform>
-			<set-variable variableName="httpStatus" value="501"
-				doc:name="Set httpStatus  = 501" />
 		</on-error-propagate>
 
 	</error-handler>

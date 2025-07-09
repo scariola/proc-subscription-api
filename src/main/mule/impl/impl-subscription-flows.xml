@@ -21,13 +21,13 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:id="d4826b9f-7be8-41b0-8915-02076282c04c"
 			name="common-validate-subscription-request-subflow" />
 		<flow-ref
-			doc:name="impl-subscription-brand-state-check-subflow"
+			doc:name="impl-subscription-lookup-brand-and-state-subflow"
 			doc:id="df1eddac-db79-438b-bf53-3012de73f9f2"
-			name="impl-subscription-brand-state-check-subflow" />
+			name="impl-subscription-lookup-brand-and-state-subflow" />
 		<flow-ref
-			doc:name="impl-subscription-process-eligibility-provision-state-subflow"
+			doc:name="impl-subscription-handle-eligibility-and-provision-subflow"
 			doc:id="ab7d3856-5216-414e-ae97-028fc544c626"
-			name="impl-subscription-process-eligibility-provision-state-subflow" />
+			name="impl-subscription-handle-eligibility-and-provision-subflow" />
 		<flow-ref doc:name="impl-subscription-put-audit-subflow"
 			doc:id="f99817a2-bd6b-4386-a0e0-27864ad9d94a"
 			name="impl-subscription-put-audit-subflow" />
@@ -42,37 +42,51 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			ref="proc-subscription-api-Shared_Error_Handler" />
 	</flow>
 	<sub-flow
-		name="impl-subscription-process-eligibility-provision-state-subflow"
-		doc:id="6d366e81-537c-40ac-bbd9-ab7197a1b239">
-		<choice doc:name="ROUTE request BASED ON spielType"
-			doc:id="bcbd3d62-7c2b-4d65-a101-f2fa55a86bac">
-			<when
-				expression="#[vars.spielType != null and vars.spielType != 'first-time' and vars.spielType != 'eligible' and vars.spielType != 'normal-off']">
-				<logger level="INFO" doc:name="Do nothing"
-					doc:id="41ced758-8956-4ad1-90e8-2792d3543da0"
-					message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
-			</when>
-			<otherwise>
-				<choice doc:name="IS keyword OPT-IN? ROUTE TO eligibility subflow"
-					doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb">
-					<when
-						expression="#[vars.formattedSubscriberData.keyword == 'OPT-IN']">
-						<flow-ref
-							doc:name="impl-subscription-check-eligibility-subflow"
-							doc:id="210ab367-276a-4056-a5fc-21516a672df9"
-							name="impl-subscription-check-eligibility-subflow" />
-					</when>
-					<otherwise >
-						<logger level="INFO" doc:name="Do nothing" doc:id="e556118d-7f92-4063-918a-9cec2cca6d81" message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
-					</otherwise>
-				</choice>
-				<choice doc:name="IS spielType eligible FOR provisioning?" doc:id="5ba87f19-f47d-48c0-bb71-93110d4cb01f">
-					<when expression="#[vars.spielType != 'ineligible']">
-						<flow-ref doc:name="impl-subscription-post-facebook-provision-subflow" doc:id="680793fa-786c-47ed-839e-92b10afa765d" name="impl-subscription-post-facebook-provision-subflow" />
-						<flow-ref doc:name="impl-subscription-post-state-subflow" doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92" name="impl-subscription-post-state-subflow" />
-					</when>
+	name="impl-subscription-handle-eligibility-and-provision-subflow"
+	doc:id="6d366e81-537c-40ac-bbd9-ab7197a1b239">
+	<choice doc:name="ROUTE based on user eligibility status"
+		doc:id="bcbd3d62-7c2b-4d65-a101-f2fa55a86bac">
+		<when
+			expression="#[vars.spielType != null and vars.spielType != 'first-time' and vars.spielType != 'eligible' and vars.spielType != 'normal-off']">
+			<logger level="INFO" doc:name="Do nothing"
+				doc:id="41ced758-8956-4ad1-90e8-2792d3543da0"
+				message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
+		</when>
+		<otherwise>
+			<choice
+				doc:name="IS request type OPT-IN? ROUTE TO eligibility check"
+				doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb">
+				<when
+					expression="#[vars.formattedSubscriberData.keyword == 'OPT-IN']">
+					<flow-ref
+						doc:name="impl-subscription-check-eligibility-subflow"
+						doc:id="210ab367-276a-4056-a5fc-21516a672df9"
+						name="impl-subscription-check-eligibility-subflow" />
+				</when>
+				<otherwise>
+					<logger level="INFO" doc:name="Do nothing"
+						doc:id="e556118d-7f92-4063-918a-9cec2cca6d81"
+						message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
+				</otherwise>
+			</choice>
+			<choice doc:name="IS user eligible for provisioning?"
+				doc:id="5ba87f19-f47d-48c0-bb71-93110d4cb01f">
+				<when expression="#[vars.spielType != 'ineligible']">
+					<flow-ref
+						doc:name="impl-subscription-post-facebook-provision-subflow"
+						doc:id="680793fa-786c-47ed-839e-92b10afa765d"
+						name="impl-subscription-post-facebook-provision-subflow" />
+				</when>
 					<otherwise >
 						<logger level="INFO" doc:name="Do nothing" doc:id="d9460b4a-a4d5-4942-9a32-e6b08eca535b" message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
+					</otherwise>
+				</choice>
+				<choice doc:name="IS provisioning successful? ROUTE TO update cache" doc:id="6f66766b-e702-47a2-b685-91f2277ac7da" >
+					<when expression="#[vars.spielType == 'fb-unsuccess']">
+						<logger level="INFO" doc:name="Do nothing" doc:id="0aaf9af9-b61a-4771-afd0-b0da1d316482" message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
+					</when>
+					<otherwise>
+						<flow-ref doc:name="impl-subscription-post-state-subflow" doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92" name="impl-subscription-post-state-subflow" />
 					</otherwise>
 				</choice>
 			</otherwise>
@@ -106,7 +120,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:id="125a6417-0c97-4601-904d-65d2e5ef1d3a"
 			message="END - Audit Logging Process - STEP 1: AUDIT LOGGING" />
 	</sub-flow>
-	<sub-flow name="impl-subscription-brand-state-check-subflow"
+	<sub-flow name="impl-subscription-lookup-brand-and-state-subflow"
 		doc:id="3210188d-3331-41a5-9aa9-9efa69e808eb">
 		<logger level="INFO" doc:name="START - Brand and State Check"
 			doc:id="2dbdc422-a67d-44a2-b961-01cb84171931"
