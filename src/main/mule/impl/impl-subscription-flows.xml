@@ -62,14 +62,19 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 							doc:id="210ab367-276a-4056-a5fc-21516a672df9"
 							name="impl-subscription-check-eligibility-subflow" />
 					</when>
+					<otherwise >
+						<logger level="INFO" doc:name="Do nothing" doc:id="e556118d-7f92-4063-918a-9cec2cca6d81" message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
+					</otherwise>
 				</choice>
-				<flow-ref
-					doc:name="impl-subscription-post-facebook-provision-subflow"
-					doc:id="680793fa-786c-47ed-839e-92b10afa765d"
-					name="impl-subscription-post-facebook-provision-subflow" />
-				<flow-ref doc:name="impl-subscription-post-state-subflow"
-					doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92"
-					name="impl-subscription-post-state-subflow" />
+				<choice doc:name="Choice" doc:id="5ba87f19-f47d-48c0-bb71-93110d4cb01f">
+					<when expression="#[vars.spielType != 'ineligible']">
+						<flow-ref doc:name="impl-subscription-post-facebook-provision-subflow" doc:id="680793fa-786c-47ed-839e-92b10afa765d" name="impl-subscription-post-facebook-provision-subflow" />
+						<flow-ref doc:name="impl-subscription-post-state-subflow" doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92" name="impl-subscription-post-state-subflow" />
+					</when>
+					<otherwise >
+						<logger level="INFO" doc:name="Do nothing" doc:id="d9460b4a-a4d5-4942-9a32-e6b08eca535b" message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
+					</otherwise>
+				</choice>
 			</otherwise>
 		</choice>
 	</sub-flow>
@@ -130,21 +135,8 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				<ee:transform doc:name="Bridge API TO API Response"
 					doc:id="bcf0f0d3-06da-4f24-ac74-c3c9aaeeed03">
 					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-if (!isEmpty(payload.result)) 
-  {
-    'prefix': payload.result[0].msisdn_prefix,
-    'brand-id': (if (payload.result[0].brand_flag == 4) 1 else payload.result[0].id) as Number,
-    'brand-name': (if (payload.result[0].brand_flag == 4) "GHP Prepaid" else payload.result[0].brand)
-  }
-else 
-  {
-    'prefix': vars.formattedSubscriberData.prefix, 
-    'brand-id': 0,
-    'brand-name': "UNSUPPORTED"
-  }]]></ee:set-payload>
+						<ee:set-payload
+							resource="dw/payload-get-bridge-prefix-response.dwl" />
 					</ee:message>
 				</ee:transform>
 			</when>
@@ -194,8 +186,8 @@ else
 				</choice>
 			</when>
 			<otherwise>
-				<ee:transform doc:name="var-spielTpye(unsupported)"
-					doc:id="ee0784f9-70af-47a2-871f-98f338ad2bec">
+				<ee:transform doc:name="var-spielType(unsupported)"
+					doc:id="7d0c8316-a7b0-4c5d-99d2-8364a72be96d">
 					<ee:message>
 					</ee:message>
 					<ee:variables>
@@ -204,9 +196,18 @@ else
 							variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
-				<flow-ref doc:name="common-set-error-audit-log-subflow"
-					doc:id="ff3654b2-d90f-41da-b77b-1b8106471510"
-					name="common-set-error-audit-log-subflow" />
+				<ee:transform
+					doc:name="var-smsSpiel,var-auditLog(failure)"
+					doc:id="ee0784f9-70af-47a2-871f-98f338ad2bec">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable resource="dw/get-sms-spiel.dwl"
+							variableName="smsSpiel" />
+						<ee:set-variable
+							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+					</ee:variables>
+				</ee:transform>
 			</otherwise>
 		</choice>
 		<logger level="INFO" doc:name="END- Brand and State Check"
@@ -218,8 +219,8 @@ else
 		<choice doc:name="Choice"
 			doc:id="f97e8cac-5b4c-4eb8-8f7d-825b58a3b37e">
 			<when expression="#[vars.stateResponse.result.state == 1]">
-				<ee:transform doc:name="var-spielType(dual bonus)"
-					doc:id="41e23992-acb9-4c9b-a124-30cf8672793d">
+				<ee:transform doc:name="var-spielType(dual-bonus)"
+					doc:id="1811f09a-a853-4ccb-a64f-6a97aa7e8875">
 					<ee:message />
 					<ee:variables>
 						<ee:set-variable
@@ -227,23 +228,39 @@ else
 							variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
-				<flow-ref doc:name="common-set-success-audit-log-subflow"
-					doc:id="023cd346-e082-49e9-820f-e6377e3c1e2c"
-					name="common-set-success-audit-log-subflow" />
+				<ee:transform
+					doc:name="var-smsSpiel, var-auditLog(success)"
+					doc:id="3b7e6ae3-0fd5-4bf4-a28c-cf667dcf2697">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable resource="dw/get-sms-spiel.dwl"
+							variableName="smsSpiel" />
+						<ee:set-variable
+							resource="dw/var-auditLog-sucess.dwl" variableName="auditLog" />
+					</ee:variables>
+				</ee:transform>
 			</when>
-			<when expression="#[vars.stateResponse.result.state == 0]">
-				<ee:transform doc:name="var-spielType(not eligbale)"
-					doc:id="ee872330-ef7f-4f83-a32f-ef00741c2a59">
+			<when
+				expression="#[vars.brand.'brand-name' == &quot;Postpaid&quot;]">
+				<ee:transform doc:name="var-spielType(rejected)"
+					doc:id="2f51c368-1d85-4629-ac6b-2c2084d0f870">
 					<ee:message />
 					<ee:variables>
 						<ee:set-variable
-							resource="dw/var-spielType-not-eligible.dwl"
-							variableName="spielType" />
+							resource="dw/var-spielType-rejected.dwl" variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
-				<flow-ref doc:name="common-set-success-audit-log-subflow"
-					doc:id="a421263f-435c-4607-b23e-013093af7920"
-					name="common-set-success-audit-log-subflow" />
+				<ee:transform
+					doc:name="var-smsSpiel, var-auditLog(failure)"
+					doc:id="67ff2aab-2446-4256-9764-b50e8feac3b7">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable resource="dw/get-sms-spiel.dwl"
+							variableName="smsSpiel" />
+						<ee:set-variable
+							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+					</ee:variables>
+				</ee:transform>
 			</when>
 			<otherwise>
 				<flow-ref doc:name="impl-subscription-get-bonus-subflow"
@@ -261,16 +278,24 @@ else
 			doc:id="5a02223b-40b5-492d-9209-16c8c3d01d20">
 			<when expression="#[vars.stateResponse.result.state == 0]">
 				<ee:transform doc:name="var-spielType(dual off)"
-					doc:id="c590e602-098e-4bd8-9b8f-873739abb44a">
+					doc:id="6cd8e65b-652a-4e59-8909-d1373bbaac69">
 					<ee:message />
 					<ee:variables>
 						<ee:set-variable
 							resource="dw/var-spielType-dual-off.dwl" variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
-				<flow-ref doc:name="common-set-success-audit-log-subflow"
-					doc:id="a9a4dbcf-0450-4979-87b3-9b1873cdd7cc"
-					name="common-set-success-audit-log-subflow" />
+				<ee:transform
+					doc:name="var-smsSpiel, var-auditLog(success)"
+					doc:id="b5cdadc6-6f8e-45de-a78d-e2d0443d235c">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable resource="dw/get-sms-spiel.dwl"
+							variableName="smsSpiel" />
+						<ee:set-variable
+							resource="dw/var-auditLog-sucess.dwl" variableName="auditLog" />
+					</ee:variables>
+				</ee:transform>
 			</when>
 			<when expression="#[vars.stateResponse.result.state == 1]">
 				<ee:transform doc:name="var-spielType(normal off)"
@@ -288,7 +313,7 @@ else
 			</when>
 			<otherwise>
 				<ee:transform doc:name="var-spielType(not registered)"
-					doc:id="521b19bf-9dff-4f9d-b9d5-ba4944226983">
+					doc:id="5da39d96-954b-4b58-8e27-c8a9f34829e7">
 					<ee:message />
 					<ee:variables>
 						<ee:set-variable
@@ -296,9 +321,17 @@ else
 							variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
-				<flow-ref doc:name="common-set-success-audit-log-subflow"
-					doc:id="e40d5728-ea15-490d-9a7e-8190ac43d1ee"
-					name="common-set-success-audit-log-subflow" />
+				<ee:transform
+					doc:name="var-smsSpiel, var-auditLog(success)"
+					doc:id="cdd3bcb1-d026-4265-80ee-38ccc9dc00cc">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable resource="dw/get-sms-spiel.dwl"
+							variableName="smsSpiel" />
+						<ee:set-variable
+							resource="dw/var-auditLog-sucess.dwl" variableName="auditLog" />
+					</ee:variables>
+				</ee:transform>
 			</otherwise>
 		</choice>
 	</sub-flow>
@@ -308,7 +341,7 @@ else
 			doc:id="fba108f2-8612-43da-8e3f-070ea96f2781">
 			<when expression="#[vars.stateResponse.result.state == 1]">
 				<ee:transform doc:name="var-spielType(dual provision)"
-					doc:id="c1f5f697-2c9d-4015-8141-1eef0b8abfc4">
+					doc:id="15ddd074-31bd-4cb0-b5be-67e9c9ba1371">
 					<ee:message />
 					<ee:variables>
 						<ee:set-variable
@@ -316,9 +349,17 @@ else
 							variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
-				<flow-ref doc:name="common-set-success-audit-log-subflow"
-					doc:id="ab231abe-5872-4268-935a-8123eaf8e770"
-					name="common-set-success-audit-log-subflow" />
+				<ee:transform
+					doc:name="var-smsSpiel, var-auditLog(success)"
+					doc:id="ed019e7e-480f-4de9-b4eb-5a12979a7fb5">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable resource="dw/get-sms-spiel.dwl"
+							variableName="smsSpiel" />
+						<ee:set-variable
+							resource="dw/var-auditLog-sucess.dwl" variableName="auditLog" />
+					</ee:variables>
+				</ee:transform>
 			</when>
 			<otherwise>
 				<logger level="INFO" doc:name="Proceed to Eligibility check"
@@ -339,10 +380,9 @@ else
 			</ee:message>
 		</ee:transform>
 		<until-successful maxRetries="3"
-			doc:name="Until 
-			Successful"
+			doc:name="Until Successful"
 			doc:id="a403b0e0-cc43-44b7-8b47-fff85dcc87f8"
-			millisBetweenRetries="50000">
+			millisBetweenRetries="5000">
 			<try doc:name="Try" doc:id="0d34fcc0-6056-477b-897a-d7c62bf400b4">
 				<flow-ref doc:name="sys-post-state-subflow"
 					doc:id="60da4d68-de6b-4003-bcfc-97cf4844385a"
@@ -375,7 +415,8 @@ else
 			doc:name="START - Check Eligibility Process"
 			doc:id="ef643cf9-c369-40b8-8978-b139f0b781d5"
 			message="START - Check Eligibility Process - STEP 4: ELIGIBILITY CHECK" />
-		<ee:transform doc:name="Payload TO NFor BSS API Request"
+		<ee:transform
+			doc:name="Payload TO NF API Request, Payload TO BSS API Request"
 			doc:id="f030769d-398d-41ca-b327-8457e9b8df39">
 			<ee:message>
 				<ee:set-payload
@@ -403,21 +444,54 @@ else
 									variableName="expiryDetails" />
 							</ee:variables>
 						</ee:transform>
+						<choice doc:name="Choice"
+							doc:id="0d6262a3-64a5-4fff-8fd5-635b59f48617">
+							<when expression="vars.stateResponse.result.state == 0">
+								<ee:transform
+									doc:name="var-spielType(reactivation)"
+									doc:id="f2d11832-3b20-4b52-bcfa-ac6d17614ad2">
+									<ee:message />
+									<ee:variables>
+										<ee:set-variable
+											resource="dw/var-spielType-reactivation.dwl"
+											variableName="spielType" />
+									</ee:variables>
+								</ee:transform>
+							</when>
+							<otherwise>
+								<ee:transform doc:name="var-spielType(eligable)"
+									doc:id="a9a0297f-c19b-4fef-94f3-9d5d9767523f">
+									<ee:message />
+									<ee:variables>
+										<ee:set-variable
+											resource="dw/var-spielType-eligible.dwl"
+											variableName="spielType" />
+									</ee:variables>
+								</ee:transform>
+							</otherwise>
+						</choice>
 					</when>
 					<otherwise>
-						<ee:transform doc:name="var-spielType(ineligable)"
-							doc:id="68f04986-a5e3-4dff-84b9-552bde30b2aa">
-							<ee:message>
-							</ee:message>
+						<ee:transform doc:name="var-spielType(ineligible)"
+							doc:id="b6e0bf84-9664-4e31-8735-e7997fb28904">
+							<ee:message />
 							<ee:variables>
 								<ee:set-variable
 									resource="dw/var-spielType-ineligible.dwl"
 									variableName="spielType" />
 							</ee:variables>
 						</ee:transform>
-						<flow-ref doc:name="common-set-error-audit-log-subflow"
-							doc:id="e0432c57-bc0a-4d2c-9215-b1fdd59f44fb"
-							name="common-set-error-audit-log-subflow" />
+						<ee:transform
+							doc:name="var-smsSpiel, var-auditLog(failure)"
+							doc:id="4ebfe5ba-59e1-4e2e-b639-f5f5f40da56b">
+							<ee:message />
+							<ee:variables>
+								<ee:set-variable resource="dw/get-sms-spiel.dwl"
+									variableName="smsSpiel" />
+								<ee:set-variable
+									resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+							</ee:variables>
+						</ee:transform>
 					</otherwise>
 				</choice>
 			</when>
@@ -439,6 +513,34 @@ else
 									variableName="expiryDetails" />
 							</ee:variables>
 						</ee:transform>
+						<choice doc:name="Choice"
+							doc:id="ca688cc4-6283-48ad-bad6-30e68a0df589">
+							<when expression="vars.stateResponse.result.state == 0">
+								<ee:transform
+									doc:name="var-spielType(reactivation)"
+									doc:id="a416184a-af7b-4b00-b1c7-00e4a1059e90">
+									<ee:message>
+									</ee:message>
+									<ee:variables>
+										<ee:set-variable
+											resource="dw/var-spielType-reactivation.dwl"
+											variableName="spielType" />
+									</ee:variables>
+								</ee:transform>
+							</when>
+							<otherwise>
+								<ee:transform doc:name="var-spielType(eligable)"
+									doc:id="be79eada-da1d-4164-90f3-ae8927bf5929">
+									<ee:message>
+									</ee:message>
+									<ee:variables>
+										<ee:set-variable
+											resource="dw/var-spielType-eligible.dwl"
+											variableName="spielType" />
+									</ee:variables>
+								</ee:transform>
+							</otherwise>
+						</choice>
 					</when>
 					<otherwise>
 						<ee:transform doc:name="var-spielType(ineligable)"
@@ -455,37 +557,19 @@ output application/java
 }]]></ee:set-variable>
 							</ee:variables>
 						</ee:transform>
-						<flow-ref doc:name="common-set-error-audit-log-subflow"
-							doc:id="bc83b267-e176-4cd3-b7fb-11d918a47948"
-							name="common-set-error-audit-log-subflow" />
+						<ee:transform
+							doc:name="var-smsSpiel, var-auditLog(failure)"
+							doc:id="5b3dc34c-65f5-4e60-8040-6486c283ea8a">
+							<ee:message />
+							<ee:variables>
+								<ee:set-variable resource="dw/get-sms-spiel.dwl"
+									variableName="smsSpiel" />
+								<ee:set-variable
+									resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+							</ee:variables>
+						</ee:transform>
 					</otherwise>
 				</choice>
-			</otherwise>
-		</choice>
-		<choice doc:name="Choice"
-			doc:id="ca688cc4-6283-48ad-bad6-30e68a0df589">
-			<when expression="vars.stateResponse.result.state == 0">
-				<ee:transform doc:name="var-spielType(reactivation)"
-					doc:id="a416184a-af7b-4b00-b1c7-00e4a1059e90">
-					<ee:message>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable
-							resource="dw/var-spielType-reactivation.dwl"
-							variableName="spielType" />
-					</ee:variables>
-				</ee:transform>
-			</when>
-			<otherwise>
-				<ee:transform doc:name="var-spielType(eligable)"
-					doc:id="be79eada-da1d-4164-90f3-ae8927bf5929">
-					<ee:message>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable
-							resource="dw/var-spielType-eligible.dwl" variableName="spielType" />
-					</ee:variables>
-				</ee:transform>
 			</otherwise>
 		</choice>
 		<logger level="INFO" doc:name="END - Check Eligibility Process"
@@ -530,7 +614,7 @@ output application/java
 							variableName="state" />
 					</ee:variables>
 				</ee:transform>
-				<ee:transform doc:name="var-auditLog"
+				<ee:transform doc:name="var-auditLog(success)"
 					doc:id="87c1e238-6519-40b1-a881-6a8ee236022d">
 					<ee:message>
 					</ee:message>
@@ -541,7 +625,7 @@ output application/java
 				</ee:transform>
 			</when>
 			<otherwise>
-				<ee:transform doc:name="var-smsSpielMapping"
+				<ee:transform doc:name="var-spielType"
 					doc:id="a6966731-71cc-407c-87d6-144ce6abeac6">
 					<ee:message>
 					</ee:message>
@@ -551,9 +635,17 @@ output application/java
 							variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
-				<flow-ref doc:name="common-set-error-audit-log-subflow"
-					doc:id="6d2b6f6c-4a73-4c35-a1c5-aebc7e4bc032"
-					name="common-set-error-audit-log-subflow" />
+				<ee:transform
+					doc:name="var-smsSpiel, var-auditLog(failure)"
+					doc:id="cb18f1b4-2f54-4857-a324-9d73dafa259b">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable resource="dw/get-sms-spiel.dwl"
+							variableName="smsSpiel" />
+						<ee:set-variable
+							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+					</ee:variables>
+				</ee:transform>
 			</otherwise>
 		</choice>
 		<logger level="INFO" doc:name="END  - Provision Process "
@@ -573,8 +665,7 @@ output application/java
 			</ee:message>
 		</ee:transform>
 		<until-successful maxRetries="3"
-			doc:name="Until 
-			Successful"
+			doc:name="Until Successful"
 			doc:id="9c148838-f733-40d9-ae84-69a2a581f516"
 			millisBetweenRetries="5000">
 			<try doc:name="Try" doc:id="a885e43d-9511-47a7-80b3-b898237a2752">
@@ -607,9 +698,14 @@ output application/java
 		<logger level="INFO" doc:name="START - SMS Messaging Process"
 			doc:id="85275436-9068-49ef-8876-def884faa94a"
 			message="START - SMS Messaging Process - STEP 8: SMS MESSAGING" />
-		<flow-ref doc:name="common-get-spiel-subflow"
-			doc:id="9963c985-706f-4271-a0ad-ddf51fb16e17"
-			name="common-get-spiel-subflow" />
+		<ee:transform doc:name="var-smsSpiel"
+			doc:id="57302fc3-03b2-46ca-a460-a21e757a9887">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable resource="dw/get-sms-spiel.dwl"
+					variableName="smsSpiel" />
+			</ee:variables>
+		</ee:transform>
 		<ee:transform doc:name="Payload to SMS API Request"
 			doc:id="2d3a1a9b-6712-4b77-bf49-108c15b9338a">
 			<ee:message>
@@ -692,9 +788,17 @@ output application/java
 							variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
-				<flow-ref doc:name="common-set-success-audit-log-subflow"
-					doc:id="a23bc2b7-37be-49ff-b902-37d53cb1e483"
-					name="common-set-success-audit-log-subflow" />
+				<ee:transform
+					doc:name="var-smsSpiel, var-auditLog(failure)"
+					doc:id="c3e22efb-36e5-4ffc-a1fb-72fdccb042df">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable resource="dw/get-sms-spiel.dwl"
+							variableName="smsSpiel" />
+						<ee:set-variable
+							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+					</ee:variables>
+				</ee:transform>
 			</otherwise>
 		</choice>
 		<logger level="INFO" doc:name="END - Get msisdn Bonus "
@@ -706,9 +810,10 @@ output application/java
 		<logger level="INFO" doc:name="START - Mongdb Delete msisdn "
 			doc:id="2b0b2435-b927-4e7d-bac2-0a1554c8e0db"
 			message="START - Mongdb Delete msisdn " />
-		<until-successful maxRetries="5"
+		<until-successful maxRetries="3"
 			doc:name="Until Successful"
-			doc:id="41d49cf9-ca58-4736-b91a-2597490b6dc8">
+			doc:id="41d49cf9-ca58-4736-b91a-2597490b6dc8"
+			millisBetweenRetries="5000">
 			<try doc:name="Try" doc:id="5addf2c4-ba95-4a6f-9104-f8f4a18fd380">
 				<flow-ref
 					doc:name="sys-mongodb-api-delete-whitelist-msisdn-subflow"

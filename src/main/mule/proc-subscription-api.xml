@@ -45,15 +45,15 @@ output application/json skipNullOn = 'everywhere'
 ---
 {
     "x-event-id": correlationId,
-    "x-event-code": 1005,
-    "x-event-msg": "Success",
+    "x-event-code": if (vars.auditLog.success == 1) 1005 else 9200,
+    "x-event-msg": if (vars.auditLog.success == 1)"Success" else "Failure",
     "result": {
-        "transaction-id": vars.originalPayload.'transaction-id' default "",
+        "transaction-id": vars.originalPayload.'transaction-id',
         "msisdn": vars.originalPayload.'msisdn',
-        "status": if (!isEmpty(vars.expiryDetails.'expiry-date')) 1 else 0,
-        "expiry-date": vars.expiryDetails.'expiry-date' 
-                      default null,
-        "sms-spiel": vars.smsSpielMapping.'sms-spiel' default null
+        "status": if (vars.formattedSubscriberData.keyword =='OPT-OUT') 0 else if (vars.formattedSubscriberData.keyword =='BONUS' and (vars.spielType == 'not-eligible'or vars.spielType == 'rejected')) null else if (vars.brand.'brand-name' == 'unsupported') null else if (vars.spielType == 'ineligible') null else 1,
+        "expiry-date": if (vars.formattedSubscriberData.keyword =='OPT-OUT') null else vars.expiryDetails.'expiry-date' 
+                      default vars.stateResponse.result.'expiry-date',
+        "sms-spiel": vars.smsSpiel.'sms-spiel' default null
     }
 }]]></ee:set-payload>
 			</ee:message>

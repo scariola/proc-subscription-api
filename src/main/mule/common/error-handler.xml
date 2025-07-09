@@ -9,11 +9,31 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	<error-handler
 		name="proc-subscription-api-Shared_Error_Handler"
 		doc:id="ce502ca3-fef7-49aa-b16a-0eafa6daa05f">
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="31c28ae5-0b29-4149-816e-adb539aea003" type="HTTP:BAD_REQUEST">
-			<flow-ref doc:name="common-set-error-audit-log-subflow" doc:id="7322a817-d410-4b70-a331-76d8d4509842" name="common-set-error-audit-log-subflow" />
-			<flow-ref doc:name="impl-subscription-put-audit-subflow" doc:id="03f00fdd-d99b-46c7-adf1-9dd7659d22a3" name="impl-subscription-put-audit-subflow" />
-			<flow-ref doc:name="impl-subscription-post-sms-subflow" doc:id="a9d3eb95-0d1c-433b-8361-eb02b2b68eac" name="impl-subscription-post-sms-subflow" />
-			<ee:transform doc:name="Set Payload - http bad request" doc:id="dab8d964-a2e7-4415-9cde-71266c365368">
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="31c28ae5-0b29-4149-816e-adb539aea003" type="HTTP:BAD_REQUEST">
+			<ee:transform doc:name="var-smsSpiel" doc:id="75b66577-958c-4b63-b067-e27f3e325311" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable resource="dw/get-sms-spiel.dwl" variableName="smsSpiel" />
+				</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="var-auditLog(failure)" doc:id="2fbeaed5-bab3-4b7c-9e5a-d472589fa2b8" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="impl-subscription-put-audit-subflow"
+				doc:id="03f00fdd-d99b-46c7-adf1-9dd7659d22a3"
+				name="impl-subscription-put-audit-subflow" />
+			<flow-ref doc:name="impl-subscription-post-sms-subflow"
+				doc:id="a9d3eb95-0d1c-433b-8361-eb02b2b68eac"
+				name="impl-subscription-post-sms-subflow" />
+			<ee:transform doc:name="Set Payload - http bad request"
+				doc:id="dab8d964-a2e7-4415-9cde-71266c365368">
 				<ee:message>
 					<ee:set-payload><![CDATA[%dw 2.0
 output application/json
@@ -29,14 +49,36 @@ output application/json
 }
 ]]></ee:set-payload>
 				</ee:message>
+				
 			</ee:transform>
-			<set-variable value="400" doc:name="httpStatus" doc:id="c7758acb-7a89-449e-a96e-dd326b8906d3" variableName="httpStatus" />
+			<set-variable value="400" doc:name="httpStatus"
+				doc:id="c7758acb-7a89-449e-a96e-dd326b8906d3"
+				variableName="httpStatus" />
 		</on-error-propagate>
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="90a4686e-0e9f-46de-9887-2d1cbcbadf43" type="HTTP:CONNECTIVITY">
-			<flow-ref doc:name="common-set-error-audit-log-subflow" doc:id="ffb7f398-edb8-4e25-a779-1dc78f43666e" name="common-set-error-audit-log-subflow" />
-			<flow-ref doc:name="impl-subscription-put-audit-subflow" doc:id="4c6aaa8e-2c41-42a2-97a7-0280f168709e" name="impl-subscription-put-audit-subflow" />
-			<flow-ref doc:name="impl-subscription-post-sms-subflow" doc:id="a17a479a-73fd-4ddf-9ac6-cb7569b9d02c" name="impl-subscription-post-sms-subflow" />
-			<ee:transform doc:name="Set Payload - http connectivity" doc:id="e8ff00c8-4af6-4c14-b95e-c654505cb6b5">
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="90a4686e-0e9f-46de-9887-2d1cbcbadf43"
+			type="HTTP:CONNECTIVITY">
+			<ee:transform doc:name="var-smsSpiel" doc:id="5828840c-4896-4d03-be4b-12ce8320abfc" >
+				<ee:message />
+				<ee:variables >
+					<ee:set-variable resource="dw/get-sms-spiel.dwl" variableName="smsSpiel" />
+				</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="var-auditLog(failure)" doc:id="98c59572-a68c-462e-8ea3-3dd4acee3c52" >
+				<ee:message />
+				<ee:variables >
+					<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="impl-subscription-put-audit-subflow"
+				doc:id="4c6aaa8e-2c41-42a2-97a7-0280f168709e"
+				name="impl-subscription-put-audit-subflow" />
+			<flow-ref doc:name="impl-subscription-post-sms-subflow"
+				doc:id="a17a479a-73fd-4ddf-9ac6-cb7569b9d02c"
+				name="impl-subscription-post-sms-subflow" />
+			<ee:transform doc:name="Set Payload - http connectivity"
+				doc:id="e8ff00c8-4af6-4c14-b95e-c654505cb6b5">
 				<ee:message>
 					<ee:set-payload><![CDATA[%dw 2.0
 output application/json
@@ -53,14 +95,25 @@ output application/json
 ]]></ee:set-payload>
 				</ee:message>
 			</ee:transform>
-			<set-variable value="500" doc:name="httpStatus" doc:id="1b79d4d6-aa71-4225-aee2-23a78a648ca0" variableName="httpStatus" />
+			<set-variable value="500" doc:name="httpStatus"
+				doc:id="1b79d4d6-aa71-4225-aee2-23a78a648ca0"
+				variableName="httpStatus" />
 		</on-error-propagate>
 		<on-error-propagate enableNotifications="true"
 			logException="true" doc:name="On Error Propagate"
 			doc:id="b2797cb4-29c7-45ad-be4d-60ecd3727179" type="ANY">
-			<flow-ref doc:name="common-set-error-audit-log-subflow"
-				doc:id="f526b026-fc00-4528-9850-06d8d774c8fb"
-				name="common-set-error-audit-log-subflow" />
+			<ee:transform doc:name="var-smsSpiel" doc:id="1d647490-f5a5-4f3e-a2ab-b3f6eb6c9493" >
+				<ee:message />
+				<ee:variables >
+					<ee:set-variable resource="dw/get-sms-spiel.dwl" variableName="smsSpiel" />
+				</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="var-auditLog(failure)" doc:id="f01769bc-9032-47da-8b72-dd93b06570fc" >
+				<ee:message />
+				<ee:variables >
+					<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+				</ee:variables>
+			</ee:transform>
 			<flow-ref doc:name="impl-subscription-put-audit-subflow"
 				doc:id="48baded3-34d2-40c6-a5cb-5fb459c00e26"
 				name="impl-subscription-put-audit-subflow" />
