@@ -44,7 +44,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	<sub-flow
 		name="impl-subscription-process-eligibility-provision-state-subflow"
 		doc:id="6d366e81-537c-40ac-bbd9-ab7197a1b239">
-		<choice doc:name="ROUTE request Based ON spielType Outcome"
+		<choice doc:name="ROUTE request BASED ON spielType"
 			doc:id="bcbd3d62-7c2b-4d65-a101-f2fa55a86bac">
 			<when
 				expression="#[vars.spielType != null and vars.spielType != 'first-time' and vars.spielType != 'eligible' and vars.spielType != 'normal-off']">
@@ -53,7 +53,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
 			</when>
 			<otherwise>
-				<choice doc:name="IS Keyword OPT-IN? ROUTE TO Eligibility"
+				<choice doc:name="IS keyword OPT-IN? ROUTE TO eligibility subflow"
 					doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb">
 					<when
 						expression="#[vars.formattedSubscriberData.keyword == 'OPT-IN']">
@@ -66,7 +66,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 						<logger level="INFO" doc:name="Do nothing" doc:id="e556118d-7f92-4063-918a-9cec2cca6d81" message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
 					</otherwise>
 				</choice>
-				<choice doc:name="Choice" doc:id="5ba87f19-f47d-48c0-bb71-93110d4cb01f">
+				<choice doc:name="IS spielType eligible FOR provisioning?" doc:id="5ba87f19-f47d-48c0-bb71-93110d4cb01f">
 					<when expression="#[vars.spielType != 'ineligible']">
 						<flow-ref doc:name="impl-subscription-post-facebook-provision-subflow" doc:id="680793fa-786c-47ed-839e-92b10afa765d" name="impl-subscription-post-facebook-provision-subflow" />
 						<flow-ref doc:name="impl-subscription-post-state-subflow" doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92" name="impl-subscription-post-state-subflow" />
@@ -161,7 +161,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					doc:id="78189739-765a-454d-862f-ad0e3b23c700"
 					name="sys-redis-api-get-state-msisdn-subflow"
 					target="stateResponse" />
-				<choice doc:name="ROUTE request TO Screnarios"
+				<choice doc:name="ROUTE request TO scenario subflow"
 					doc:id="ee430490-f0ce-4877-9e7b-53e83db9f5a2">
 					<when
 						expression='#[vars.formattedSubscriberData.keyword == "OPT-IN"]'>
@@ -216,7 +216,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	</sub-flow>
 	<sub-flow name="impl-subscription-process-bonus-subflow"
 		doc:id="7bb099ac-e3b6-485b-8194-e06a87347d08">
-		<choice doc:name="Choice"
+		<choice doc:name="ROUTE BONUS path BASED ON state/brand"
 			doc:id="f97e8cac-5b4c-4eb8-8f7d-825b58a3b37e">
 			<when expression="#[vars.stateResponse.result.state == 1]">
 				<ee:transform doc:name="var-spielType(dual-bonus)"
@@ -274,7 +274,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	</sub-flow>
 	<sub-flow name="impl-subscription-process-opt-out-subflow"
 		doc:id="230b2f75-82af-48cc-b1d1-621ed4f8b0d5">
-		<choice doc:name="IS State found?"
+		<choice doc:name="ROUTE opt-out BASED ON state"
 			doc:id="5a02223b-40b5-492d-9209-16c8c3d01d20">
 			<when expression="#[vars.stateResponse.result.state == 0]">
 				<ee:transform doc:name="var-spielType(dual off)"
@@ -337,7 +337,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	</sub-flow>
 	<sub-flow name="impl-subscription-process-opt-in-subflow"
 		doc:id="47a79029-c2eb-4ec0-acef-7392b4c63a77">
-		<choice doc:name="IS State found?"
+		<choice doc:name="ROUTE opt-in BASED ON state"
 			doc:id="fba108f2-8612-43da-8e3f-070ea96f2781">
 			<when expression="#[vars.stateResponse.result.state == 1]">
 				<ee:transform doc:name="var-spielType(dual provision)"
@@ -396,7 +396,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					</on-error-continue>
 				</error-handler>
 			</try>
-			<choice doc:name="Choice"
+			<choice doc:name="IS Redis state caching successful?"
 				doc:id="d5af90db-947a-4ff4-af75-9ec08c352827">
 				<when expression="#[attributes.statusCode != 201]">
 					<logger level="INFO" doc:name="Logger"
@@ -423,13 +423,13 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					resource="dw/payload-nf-api-request.dwl" />
 			</ee:message>
 		</ee:transform>
-		<choice doc:name="Identify BrandId"
+		<choice doc:name="IS brandId Prepaid or Postpaid?"
 			doc:id="527bd8e4-9594-48dc-b0d5-7eb7b9054d1c">
 			<when expression='#[[1, 2] contains (vars.brand."brand-id")]'>
 				<flow-ref doc:name="sys-nf-api-get-prepaid-msisdn-subflow"
 					doc:id="4a60da90-8dc9-44ad-844b-dc47ff3e8c8d"
 					name="sys-nf-api-get-prepaid-msisdn-subflow" />
-				<choice doc:name="Choice"
+				<choice doc:name="HAS valid NF bundles?"
 					doc:id="b76230c2-bcda-4e9d-afb0-8675f06d6034">
 					<when
 						expression="#[!isEmpty(payload.bundles filter ($.service_id == vars.originalPayload.'as-service-id' and now() &lt; ($.expiry_date as LocalDateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;})))]">
@@ -444,7 +444,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 									variableName="expiryDetails" />
 							</ee:variables>
 						</ee:transform>
-						<choice doc:name="Choice"
+						<choice doc:name="IS existing state = 0?"
 							doc:id="0d6262a3-64a5-4fff-8fd5-635b59f48617">
 							<when expression="vars.stateResponse.result.state == 0">
 								<ee:transform
@@ -499,7 +499,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				<flow-ref doc:name="sys-bss-api-get-postpiad-msisdn-flow"
 					doc:id="be8bdb96-659f-428f-afbd-15981d5f2ff5"
 					name="sys-bss-api-get-postpaid-msisdn-subflow" />
-				<choice doc:name="Choice"
+				<choice doc:name="HAS valid BSS bundles?"
 					doc:id="ee91fcaa-1312-4adf-a59d-f28b106e3060">
 					<when expression="#[!isEmpty(payload.bundles)]">
 						<ee:transform
@@ -513,7 +513,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 									variableName="expiryDetails" />
 							</ee:variables>
 						</ee:transform>
-						<choice doc:name="Choice"
+						<choice doc:name="IS existing state = 0?"
 							doc:id="ca688cc4-6283-48ad-bad6-30e68a0df589">
 							<when expression="vars.stateResponse.result.state == 0">
 								<ee:transform
@@ -592,10 +592,10 @@ output application/java
 		<flow-ref doc:name="sys-facebook-api-post-provision-subflow"
 			doc:id="b6b9e7e2-08ff-41bc-b325-8c7972a5a4fd"
 			name="sys-facebook-api-post-provision-subflow" />
-		<choice doc:name="Choice"
+		<choice doc:name="IS Facebook provisioning successful?"
 			doc:id="02407f94-947c-4314-83c4-845cc68778fd">
 			<when expression="#[attributes.statusCode == 201]">
-				<choice doc:name="Choice"
+				<choice doc:name="IS keyword BONUS?"
 					doc:id="68f8dd6f-6912-45a2-9693-1d946be6e4fc">
 					<when
 						expression='#[vars.formattedSubscriberData.keyword == "BONUS"]'>
@@ -681,7 +681,7 @@ output application/java
 					</on-error-propagate>
 				</error-handler>
 			</try>
-			<choice doc:name="IS successful?"
+			<choice doc:name="IS PUT audit logging successful?"
 				doc:id="558f5d09-4a55-4689-a3be-676c69c0fcb0">
 				<when expression="#[attributes.statusCode != 200]">
 					<logger level="INFO" doc:name="Log Failure"
@@ -730,7 +730,7 @@ output application/java
 					</on-error-propagate>
 				</error-handler>
 			</try>
-			<choice doc:name="Choice"
+			<choice doc:name="IS Redis state caching successful?"
 				doc:id="969a8d8c-9365-49f4-8eba-9962286d122f">
 				<when expression="#[attributes.statusCode != 200]">
 					<logger level="INFO" doc:name="Log Failure"
@@ -752,7 +752,7 @@ output application/java
 			doc:name="sys-mongodb-api-get-whitelist-msisdn-subflow"
 			doc:id="0fdd0308-1b66-4eb4-99e3-c2a4d86df0b6"
 			name="sys-mongodb-api-get-whitelist-msisdn-subflow" />
-		<choice doc:name="Choice"
+		<choice doc:name="IS bonus whitelist entry eligible?"
 			doc:id="d0f4c68c-1ee3-45c7-9d31-a3f6df96a0fa">
 			<when
 				expression="#[(isEmpty(payload.result) and payload.results.eligible == true)]">
@@ -826,7 +826,7 @@ output application/java
 					</on-error-propagate>
 				</error-handler>
 			</try>
-			<choice doc:name="Choice"
+			<choice doc:name="IS MongoDB delete successful?"
 				doc:id="21708bf7-5ef7-420f-b983-e96c3e01fc54">
 				<when expression="#[attributes.statusCode != 200]">
 					<logger level="INFO" doc:name="Log Failure"
