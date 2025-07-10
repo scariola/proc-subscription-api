@@ -139,34 +139,25 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				</on-error-continue>
 			</error-handler>
 		</try>
-		<choice doc:name="IS BrandId found?"
+		<choice doc:name="IS Brand Id Not found?"
 			doc:id="09655b26-1c73-4431-a941-5dab12c5d093">
 			<when expression="#[isEmpty(payload.result)]">
-				<flow-ref
-					doc:name="sys-bridge-api-get-bridge-prefix-subflow"
-					doc:id="8c1e7c02-b7f8-48a3-acf0-3b1c820e2622"
-					name="sys-bridge-api-get-bridge-prefix-subflow" />
-				<ee:transform doc:name="Bridge API TO API Response"
-					doc:id="bcf0f0d3-06da-4f24-ac74-c3c9aaeeed03">
+				<flow-ref doc:name="sys-bridge-api-get-bridge-prefix-subflow" doc:id="8c1e7c02-b7f8-48a3-acf0-3b1c820e2622" name="sys-bridge-api-get-bridge-prefix-subflow" />
+				<ee:transform doc:name="Bridge API TO API Response" doc:id="bcf0f0d3-06da-4f24-ac74-c3c9aaeeed03">
 					<ee:message>
-						<ee:set-payload
-							resource="dw/payload-get-bridge-prefix-response.dwl" />
+						<ee:set-payload resource="dw/payload-get-bridge-prefix-response.dwl" />
 					</ee:message>
 				</ee:transform>
+				<flow-ref doc:name="sys-redis-api-post-brand-prefix-subflow" doc:id="f488925a-519f-445c-963d-231f3f08cf9e" name="sys-redis-api-post-brand-prefix-subflow" />
 			</when>
 		</choice>
-		<ee:transform doc:name="var-brand"
-			doc:id="46f7f1c4-49ea-4138-ae61-c942ba48f325">
+		<ee:transform doc:name="var-brand" doc:id="46f7f1c4-49ea-4138-ae61-c942ba48f325">
 			<ee:message>
 			</ee:message>
 			<ee:variables>
-				<ee:set-variable resource="dw/var-brand.dwl"
-					variableName="brand" />
+				<ee:set-variable resource="dw/var-brand.dwl" variableName="brand" />
 			</ee:variables>
 		</ee:transform>
-		<flow-ref doc:name="sys-redis-api-post-brand-prefix-subflow"
-			doc:id="f488925a-519f-445c-963d-231f3f08cf9e"
-			name="sys-redis-api-post-brand-prefix-subflow" />
 		<choice doc:name="IS Brand Id Supported?"
 			doc:id="28376ce8-baf5-49f5-8ea0-d0474c5eade9">
 			<when

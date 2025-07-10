@@ -6,75 +6,30 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<flow name="common-validate-subscription-request-subflow"
-		doc:id="4eaba30c-b5ea-4dd1-b483-591659d8616a">
-		<logger level="INFO" doc:name="START - Validation Process"
-			doc:id="52ef1e8a-498f-4c7c-9803-b8a26dbf1fc0"
-			message="START - STEP 2: RECEIVE &amp; VALIDATE REQUEST " />
-		<ee:transform doc:name="var-formattedSubscriberData"
-			doc:id="32739979-922f-4c1e-8bbc-fec8ac2686b4">
+	<sub-flow name="common-validate-subscription-request-subflow" doc:id="0f3abb99-9601-42a1-b37c-d81f79f8d2ac" >
+		<logger level="INFO" doc:name="START - Validation Process" doc:id="52ef1e8a-498f-4c7c-9803-b8a26dbf1fc0" message="START - STEP 2: RECEIVE &amp; VALIDATE REQUEST " />
+		<ee:transform doc:name="var-formattedSubscriberData" doc:id="32739979-922f-4c1e-8bbc-fec8ac2686b4">
 			<ee:message>
 			</ee:message>
 			<ee:variables>
-				<ee:set-variable
-					resource="dw/vars-formattedSubscriberData.dwl"
-					variableName="formattedSubscriberData" />
+				<ee:set-variable resource="dw/vars-formattedSubscriberData.dwl" variableName="formattedSubscriberData" />
 			</ee:variables>
 		</ee:transform>
-		<choice doc:name="CONTAINS Invalid Keword?"
-			doc:id="83d9946e-322c-4828-9225-80dbb4fa660b">
-			<when
-				expression="#[vars.formattedSubscriberData.keyword == 'INVALID']">
-				<ee:transform doc:name="var-spielType"
-					doc:id="8b20cd3e-fb86-498e-a1ab-d6894ece0053">
+		<choice doc:name="CONTAINS Invalid Keword?" doc:id="83d9946e-322c-4828-9225-80dbb4fa660b">
+			<when expression="#[vars.formattedSubscriberData.keyword == 'INVALID']">
+				<ee:transform doc:name="var-spielType" doc:id="8b20cd3e-fb86-498e-a1ab-d6894ece0053">
 					<ee:message>
 					</ee:message>
 					<ee:variables>
 						<ee:set-variable resource="dw/var-spielType-invalid-keyword.dwl" variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
-				<raise-error doc:name="Raise Error - Invalid Keyword"
-					doc:id="9908a27a-539c-4bda-a8dc-fc787cf0449b"
-					type="INPUT:INVALID_KEYWORD"
-					description="Invalid SMS keyword provided" />
+				<raise-error doc:name="Raise Error - Invalid Keyword" doc:id="9908a27a-539c-4bda-a8dc-fc787cf0449b" type="INPUT:INVALID_KEYWORD" description="Invalid SMS keyword provided" />
 			</when>
 			<otherwise>
-				<logger level="INFO" doc:name="Proceed to next step"
-					doc:id="cd853372-e413-472d-8bbf-eb0405150e91"
-					message="Proceed to next step." />
+				<logger level="INFO" doc:name="Proceed to next step" doc:id="cd853372-e413-472d-8bbf-eb0405150e91" message="Proceed to next step." />
 			</otherwise>
 		</choice>
-		<logger level="INFO" doc:name="END - Validation Process"
-			doc:id="cd21b076-f794-4035-bee8-2a22bbfd3b51"
-			message="END - STEP 2: RECEIVE &amp; VALIDATE REQUEST" />
-		<error-handler>
-			<on-error-propagate enableNotifications="true"
-				logException="true" doc:name="On Error Propagate"
-				doc:id="323826ea-36f5-4407-89c2-30ae799912d7"
-				type="INPUT:INVALID_KEYWORD">
-				<flow-ref doc:name="common-error-processing-subflow" doc:id="e206025d-03f7-4628-a4af-42bc57a3379e" name="common-error-processing-subflow"/>
-				<ee:transform doc:name="Set Payload - Validation Error"
-					doc:id="4911f308-2786-4efc-99b7-8a8fb87a013b">
-					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  "x-event-code": correlationId,	
-  "x-event-code": 9209,
-  "x-event-msg": error.detailedDescription,
-  "result": {
-    "error-type": error.errorType.namespace ++ ":" ++ error.errorType.identifier,
-    "error-description": error.detailedDescription
-  }
-}
-]]></ee:set-payload>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable resource="dw/var-httpStatus-400.dwl" variableName="httpStatus" />
-					</ee:variables>
-				</ee:transform>
-			</on-error-propagate>
-		</error-handler>
-	</flow>
+		<logger level="INFO" doc:name="END - Validation Process" doc:id="cd21b076-f794-4035-bee8-2a22bbfd3b51" message="END - STEP 2: RECEIVE &amp; VALIDATE REQUEST" />
+	</sub-flow>
 </mule>

@@ -37,61 +37,59 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	<error-handler
 		name="proc-subscription-api-Shared_Error_Handler"
 		doc:id="ce502ca3-fef7-49aa-b16a-0eafa6daa05f">
-		<on-error-propagate enableNotifications="true"
-			logException="true" doc:name="On Error Propagate"
-			doc:id="31c28ae5-0b29-4149-816e-adb539aea003" type="HTTP:BAD_REQUEST">
-			<flow-ref doc:name="common-error-processing-subflow"
-				doc:id="0b8631e6-fdb7-4275-910d-93ebbf5a271d"
-				name="common-error-processing-subflow" />
-			<ee:transform
-				doc:name="Set Payload - http bad request,var-httpStatus"
-				doc:id="dab8d964-a2e7-4415-9cde-71266c365368">
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="323826ea-36f5-4407-89c2-30ae799912d7" type="INPUT:INVALID_KEYWORD">
+				<flow-ref doc:name="common-error-processing-subflow" doc:id="e206025d-03f7-4628-a4af-42bc57a3379e" name="common-error-processing-subflow" />
+				<ee:transform doc:name="Set Payload - Validation Error, var-httpStatus" doc:id="4911f308-2786-4efc-99b7-8a8fb87a013b">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "x-event-code": correlationId,	
+  "x-event-code": 9209,
+  "x-event-msg": error.detailedDescription,
+  "result": {
+    "error-type": error.errorType.namespace ++ ":" ++ error.errorType.identifier,
+    "error-description": error.detailedDescription
+  }
+}
+]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable resource="dw/var-httpStatus-400.dwl" variableName="httpStatus" />
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="31c28ae5-0b29-4149-816e-adb539aea003" type="HTTP:BAD_REQUEST">
+			<flow-ref doc:name="common-error-processing-subflow" doc:id="0b8631e6-fdb7-4275-910d-93ebbf5a271d" name="common-error-processing-subflow" />
+			<ee:transform doc:name="Set Payload - http bad request,var-httpStatus" doc:id="dab8d964-a2e7-4415-9cde-71266c365368">
 				<ee:message>
-					<ee:set-payload
-						resource="dw/payload-http-bad-request-response.dwl" />
+					<ee:set-payload resource="dw/payload-http-bad-request-response.dwl" />
 				</ee:message>
 				<ee:variables>
-					<ee:set-variable
-						resource="dw/var-httpStatus-400.dwl" variableName="httpStatus" />
+					<ee:set-variable resource="dw/var-httpStatus-400.dwl" variableName="httpStatus" />
 				</ee:variables>
 			</ee:transform>
 		</on-error-propagate>
-		<on-error-propagate enableNotifications="true"
-			logException="true" doc:name="On Error Propagate"
-			doc:id="90a4686e-0e9f-46de-9887-2d1cbcbadf43"
-			type="HTTP:CONNECTIVITY">
-			<flow-ref doc:name="common-error-processing-subflow"
-				doc:id="f1b5928a-e753-4dad-9857-c9f7a40c4b1b"
-				name="common-error-processing-subflow" />
-			<ee:transform
-				doc:name="Set Payload - http connectivity,var-httpStatus"
-				doc:id="e8ff00c8-4af6-4c14-b95e-c654505cb6b5">
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="90a4686e-0e9f-46de-9887-2d1cbcbadf43" type="HTTP:CONNECTIVITY">
+			<flow-ref doc:name="common-error-processing-subflow" doc:id="f1b5928a-e753-4dad-9857-c9f7a40c4b1b" name="common-error-processing-subflow" />
+			<ee:transform doc:name="Set Payload - http connectivity,var-httpStatus" doc:id="e8ff00c8-4af6-4c14-b95e-c654505cb6b5">
 				<ee:message>
-					<ee:set-payload
-						resource="dw/payload-http-connectiviry-response.dwl" />
+					<ee:set-payload resource="dw/payload-http-connectiviry-response.dwl" />
 				</ee:message>
 				<ee:variables>
-					<ee:set-variable
-						resource="dw/var-httpStatus-503.dwl" variableName="httpStatus" />
+					<ee:set-variable resource="dw/var-httpStatus-503.dwl" variableName="httpStatus" />
 				</ee:variables>
 			</ee:transform>
 		</on-error-propagate>
-		<on-error-propagate enableNotifications="true"
-			logException="true" doc:name="On Error Propagate"
-			doc:id="b2797cb4-29c7-45ad-be4d-60ecd3727179" type="ANY">
-			<flow-ref doc:name="common-error-processing-subflow"
-				doc:id="aeb0f069-204b-450e-bee1-193752d3d568"
-				name="common-error-processing-subflow" />
-			<ee:transform
-				doc:name="Set Payload - any, var-httpStatus"
-				doc:id="b1a08c09-06a0-455a-91d9-c9fb3c0f94b0">
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b2797cb4-29c7-45ad-be4d-60ecd3727179" type="ANY">
+			<flow-ref doc:name="common-error-processing-subflow" doc:id="aeb0f069-204b-450e-bee1-193752d3d568" name="common-error-processing-subflow" />
+			<ee:transform doc:name="Set Payload - any, var-httpStatus" doc:id="b1a08c09-06a0-455a-91d9-c9fb3c0f94b0">
 				<ee:message>
-					<ee:set-payload
-						resource="dw/payload-http-any-response.dwl" />
+					<ee:set-payload resource="dw/payload-http-any-response.dwl" />
 				</ee:message>
 				<ee:variables>
-					<ee:set-variable
-						resource="dw/var-httpStatus-500.dwl" variableName="httpStatus" />
+					<ee:set-variable resource="dw/var-httpStatus-500.dwl" variableName="httpStatus" />
 				</ee:variables>
 			</ee:transform>
 		</on-error-propagate>

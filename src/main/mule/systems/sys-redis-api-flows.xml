@@ -35,7 +35,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	<sub-flow name="sys-redis-api-post-brand-prefix-subflow" doc:id="b2ac97ea-9373-4733-b9b2-2fec6dabe562" >
 		<logger level="INFO" doc:name="START - POST /brand" doc:id="bb661849-d9c2-4e42-b5dc-1d9beec326a6" message="START - POST /brand" />
 		<http:request method="POST" doc:name="POST /brand" doc:id="9d8b5ef6-a263-4ab2-b747-94ec6acfefcd" config-ref="HTTP_Request_Config_Redis_Api" path="${redis.post.brand.path}">
-			<http:body><![CDATA[#[vars.brand]]]></http:body>
 			<http:headers><![CDATA[#[output application/java
 ---
 {
