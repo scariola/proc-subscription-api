@@ -86,5 +86,6 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 		doc:id="868a7a39-e728-4fdb-8928-3ecf382589e7">
 		<http:request-connection host="${sms.host}" />
 	</http:request-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="0036f345-1a0e-4bab-9fcd-465bf4b8485f" file="config/dev/spiels.properties" />
 	
 </mule>

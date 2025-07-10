@@ -42,51 +42,61 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			ref="proc-subscription-api-Shared_Error_Handler" />
 	</flow>
 	<sub-flow
-	name="impl-subscription-handle-eligibility-and-provision-subflow"
-	doc:id="6d366e81-537c-40ac-bbd9-ab7197a1b239">
-	<choice doc:name="ROUTE based on user eligibility status"
-		doc:id="bcbd3d62-7c2b-4d65-a101-f2fa55a86bac">
-		<when
-			expression="#[vars.spielType != null and vars.spielType != 'first-time' and vars.spielType != 'eligible' and vars.spielType != 'normal-off']">
-			<logger level="INFO" doc:name="Do nothing"
-				doc:id="41ced758-8956-4ad1-90e8-2792d3543da0"
-				message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
-		</when>
-		<otherwise>
-			<choice
-				doc:name="IS request type OPT-IN? ROUTE TO eligibility check"
-				doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb">
-				<when
-					expression="#[vars.formattedSubscriberData.keyword == 'OPT-IN']">
-					<flow-ref
-						doc:name="impl-subscription-check-eligibility-subflow"
-						doc:id="210ab367-276a-4056-a5fc-21516a672df9"
-						name="impl-subscription-check-eligibility-subflow" />
-				</when>
-				<otherwise>
-					<logger level="INFO" doc:name="Do nothing"
-						doc:id="e556118d-7f92-4063-918a-9cec2cca6d81"
-						message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
-				</otherwise>
-			</choice>
-			<choice doc:name="IS user eligible for provisioning?"
-				doc:id="5ba87f19-f47d-48c0-bb71-93110d4cb01f">
-				<when expression="#[vars.spielType != 'ineligible']">
-					<flow-ref
-						doc:name="impl-subscription-post-facebook-provision-subflow"
-						doc:id="680793fa-786c-47ed-839e-92b10afa765d"
-						name="impl-subscription-post-facebook-provision-subflow" />
-				</when>
-					<otherwise >
-						<logger level="INFO" doc:name="Do nothing" doc:id="d9460b4a-a4d5-4942-9a32-e6b08eca535b" message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
-					</otherwise>
-				</choice>
-				<choice doc:name="IS provisioning successful? ROUTE TO update cache" doc:id="6f66766b-e702-47a2-b685-91f2277ac7da" >
-					<when expression="#[vars.spielType == 'fb-unsuccess']">
-						<logger level="INFO" doc:name="Do nothing" doc:id="0aaf9af9-b61a-4771-afd0-b0da1d316482" message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
+		name="impl-subscription-handle-eligibility-and-provision-subflow"
+		doc:id="6d366e81-537c-40ac-bbd9-ab7197a1b239">
+		<choice doc:name="ROUTE based on user eligibility status"
+			doc:id="bcbd3d62-7c2b-4d65-a101-f2fa55a86bac">
+			<when
+				expression="#[vars.spielType != null and vars.spielType != 'first-time' and vars.spielType != 'eligible' and vars.spielType != 'normal-off']">
+				<logger level="INFO" doc:name="Do nothing"
+					doc:id="41ced758-8956-4ad1-90e8-2792d3543da0"
+					message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
+			</when>
+			<otherwise>
+				<choice
+					doc:name="IS request type OPT-IN? ROUTE TO eligibility check"
+					doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb">
+					<when
+						expression="#[['reactivation','eligible'] contains vars.smsSpiel.'spiel-type']">
+						<flow-ref
+							doc:name="impl-subscription-check-eligibility-subflow"
+							doc:id="210ab367-276a-4056-a5fc-21516a672df9"
+							name="impl-subscription-check-eligibility-subflow" />
 					</when>
 					<otherwise>
-						<flow-ref doc:name="impl-subscription-post-state-subflow" doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92" name="impl-subscription-post-state-subflow" />
+						<logger level="INFO" doc:name="Do nothing"
+							doc:id="e556118d-7f92-4063-918a-9cec2cca6d81"
+							message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
+					</otherwise>
+				</choice>
+				<choice doc:name="IS user eligible for provisioning?"
+					doc:id="5ba87f19-f47d-48c0-bb71-93110d4cb01f">
+					<when
+						expression="#[['reactivation', 'normal-off', 'first-time','eligible'] contains vars.smsSpiel.'spiel-type']">
+						<flow-ref
+							doc:name="impl-subscription-post-facebook-provision-subflow"
+							doc:id="680793fa-786c-47ed-839e-92b10afa765d"
+							name="impl-subscription-post-facebook-provision-subflow" />
+					</when>
+					<otherwise>
+						<logger level="INFO" doc:name="Do nothing"
+							doc:id="d9460b4a-a4d5-4942-9a32-e6b08eca535b"
+							message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
+					</otherwise>
+				</choice>
+				<choice
+					doc:name="IS provisioning successful? ROUTE TO update cache"
+					doc:id="6f66766b-e702-47a2-b685-91f2277ac7da">
+					<when
+						expression="#[['reactivation', 'normal-off', 'first-time','eligible'] contains vars.smsSpiel.'spiel-type']">
+						<flow-ref doc:name="impl-subscription-post-state-subflow"
+							doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92"
+							name="impl-subscription-post-state-subflow" />
+					</when>
+					<otherwise>
+						<logger level="INFO" doc:name="Do nothing"
+							doc:id="0aaf9af9-b61a-4771-afd0-b0da1d316482"
+							message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
 					</otherwise>
 				</choice>
 			</otherwise>
@@ -120,7 +130,8 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:id="125a6417-0c97-4601-904d-65d2e5ef1d3a"
 			message="END - Audit Logging Process - STEP 1: AUDIT LOGGING" />
 	</sub-flow>
-	<sub-flow name="impl-subscription-lookup-brand-and-state-subflow"
+	<sub-flow
+		name="impl-subscription-lookup-brand-and-state-subflow"
 		doc:id="3210188d-3331-41a5-9aa9-9efa69e808eb">
 		<logger level="INFO" doc:name="START - Brand and State Check"
 			doc:id="2dbdc422-a67d-44a2-b961-01cb84171931"
@@ -142,20 +153,33 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<choice doc:name="IS Brand Id Not found?"
 			doc:id="09655b26-1c73-4431-a941-5dab12c5d093">
 			<when expression="#[isEmpty(payload.result)]">
-				<flow-ref doc:name="sys-bridge-api-get-bridge-prefix-subflow" doc:id="8c1e7c02-b7f8-48a3-acf0-3b1c820e2622" name="sys-bridge-api-get-bridge-prefix-subflow" />
-				<ee:transform doc:name="Bridge API TO API Response" doc:id="bcf0f0d3-06da-4f24-ac74-c3c9aaeeed03">
+				<flow-ref
+					doc:name="sys-bridge-api-get-bridge-prefix-subflow"
+					doc:id="8c1e7c02-b7f8-48a3-acf0-3b1c820e2622"
+					name="sys-bridge-api-get-bridge-prefix-subflow" />
+				<ee:transform doc:name="var-bridgeResult"
+					doc:id="bcf0f0d3-06da-4f24-ac74-c3c9aaeeed03">
 					<ee:message>
-						<ee:set-payload resource="dw/payload-get-bridge-prefix-response.dwl" />
 					</ee:message>
+					<ee:variables>
+						<ee:set-variable
+							resource="dw/payload-get-bridge-prefix-response.dwl"
+							variableName="bridgeResult" />
+					</ee:variables>
 				</ee:transform>
-				<flow-ref doc:name="sys-redis-api-post-brand-prefix-subflow" doc:id="f488925a-519f-445c-963d-231f3f08cf9e" name="sys-redis-api-post-brand-prefix-subflow" />
+				<flow-ref
+					doc:name="sys-redis-api-post-brand-prefix-subflow"
+					doc:id="f488925a-519f-445c-963d-231f3f08cf9e"
+					name="sys-redis-api-post-brand-prefix-subflow" />
 			</when>
 		</choice>
-		<ee:transform doc:name="var-brand" doc:id="46f7f1c4-49ea-4138-ae61-c942ba48f325">
+		<ee:transform doc:name="var-brand"
+			doc:id="46f7f1c4-49ea-4138-ae61-c942ba48f325">
 			<ee:message>
 			</ee:message>
 			<ee:variables>
-				<ee:set-variable resource="dw/var-brand.dwl" variableName="brand" />
+				<ee:set-variable resource="dw/var-brand.dwl"
+					variableName="brand" />
 			</ee:variables>
 		</ee:transform>
 		<choice doc:name="IS Brand Id Supported?"
@@ -166,41 +190,25 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					doc:id="78189739-765a-454d-862f-ad0e3b23c700"
 					name="sys-redis-api-get-state-msisdn-subflow"
 					target="stateResponse" />
-				<choice doc:name="ROUTE request TO scenario subflow"
-					doc:id="ee430490-f0ce-4877-9e7b-53e83db9f5a2">
-					<when
-						expression='#[vars.formattedSubscriberData.keyword == "OPT-IN"]'>
-						<flow-ref
-							doc:name="impl-subscription-process-opt-in-subflow"
-							doc:id="790471b1-1492-4682-99a7-43e718cd5d2a"
-							name="impl-subscription-process-opt-in-subflow" />
-					</when>
-					<when
-						expression='#[vars.formattedSubscriberData.keyword == "OPT-OUT"]'>
-						<flow-ref
-							doc:name="impl-subscription-process-opt-out-subflow"
-							doc:id="f32dd1f9-f56d-4fa5-9484-595696c18032"
-							name="impl-subscription-process-opt-out-subflow" />
-					</when>
-					<otherwise>
-						<flow-ref
-							doc:name="impl-subscription-process-bonus-subflow"
-							doc:id="66404357-6efd-4789-8c4e-9a76b51ffb32"
-							name="impl-subscription-process-bonus-subflow" />
-					</otherwise>
-				</choice>
-			</when>
-			<otherwise>
-				<ee:transform doc:name="var-spielType(unsupported)"
-					doc:id="7d0c8316-a7b0-4c5d-99d2-8364a72be96d">
+				<ee:transform
+					doc:name="var-smsSpiel,var-auditLog(success)"
+					doc:id="707cd21e-2af2-4a54-9225-40a8f34f56a6">
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable
-							resource="dw/var-spielType-unsupported.dwl"
-							variableName="spielType" />
+						<ee:set-variable resource="dw/get-sms-spiel.dwl"
+							variableName="smsSpiel" />
+						<ee:set-variable variableName="auditLog"><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "success": 1,
+    "hasProcessorError": 0
+}]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
+			</when>
+			<otherwise>
 				<ee:transform
 					doc:name="var-smsSpiel,var-auditLog(failure)"
 					doc:id="ee0784f9-70af-47a2-871f-98f338ad2bec">
@@ -218,159 +226,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<logger level="INFO" doc:name="END- Brand and State Check"
 			doc:id="6e639040-daa6-4b99-bf1a-ace8435fe943"
 			message="END- Brand and State Check - STEP 3: REDIS LOGIC (BRAND &amp; STATE LOOKUP)" />
-	</sub-flow>
-	<sub-flow name="impl-subscription-process-bonus-subflow"
-		doc:id="7bb099ac-e3b6-485b-8194-e06a87347d08">
-		<choice doc:name="ROUTE BONUS path BASED ON state/brand"
-			doc:id="f97e8cac-5b4c-4eb8-8f7d-825b58a3b37e">
-			<when expression="#[vars.stateResponse.result.state == 1]">
-				<ee:transform doc:name="var-spielType(dual-bonus)"
-					doc:id="1811f09a-a853-4ccb-a64f-6a97aa7e8875">
-					<ee:message />
-					<ee:variables>
-						<ee:set-variable
-							resource="dw/var-spielType-dual-bonus.dwl"
-							variableName="spielType" />
-					</ee:variables>
-				</ee:transform>
-				<ee:transform
-					doc:name="var-smsSpiel, var-auditLog(success)"
-					doc:id="3b7e6ae3-0fd5-4bf4-a28c-cf667dcf2697">
-					<ee:message />
-					<ee:variables>
-						<ee:set-variable resource="dw/get-sms-spiel.dwl"
-							variableName="smsSpiel" />
-						<ee:set-variable
-							resource="dw/var-auditLog-sucess.dwl" variableName="auditLog" />
-					</ee:variables>
-				</ee:transform>
-			</when>
-			<when
-				expression="#[vars.brand.'brand-name' == &quot;Postpaid&quot;]">
-				<ee:transform doc:name="var-spielType(rejected)"
-					doc:id="2f51c368-1d85-4629-ac6b-2c2084d0f870">
-					<ee:message />
-					<ee:variables>
-						<ee:set-variable
-							resource="dw/var-spielType-rejected.dwl" variableName="spielType" />
-					</ee:variables>
-				</ee:transform>
-				<ee:transform
-					doc:name="var-smsSpiel, var-auditLog(failure)"
-					doc:id="67ff2aab-2446-4256-9764-b50e8feac3b7">
-					<ee:message />
-					<ee:variables>
-						<ee:set-variable resource="dw/get-sms-spiel.dwl"
-							variableName="smsSpiel" />
-						<ee:set-variable
-							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-					</ee:variables>
-				</ee:transform>
-			</when>
-			<otherwise>
-				<flow-ref doc:name="impl-subscription-get-bonus-subflow"
-					doc:id="faa47340-4079-4611-a588-9265c076d6ed"
-					name="impl-subscription-get-bonus-subflow" />
-				<logger level="INFO" doc:name="Proceed to Provision flow"
-					doc:id="0368ddef-6fc3-486f-aec7-4042862de51a"
-					message="Proceed - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
-			</otherwise>
-		</choice>
-	</sub-flow>
-	<sub-flow name="impl-subscription-process-opt-out-subflow"
-		doc:id="230b2f75-82af-48cc-b1d1-621ed4f8b0d5">
-		<choice doc:name="ROUTE opt-out BASED ON state"
-			doc:id="5a02223b-40b5-492d-9209-16c8c3d01d20">
-			<when expression="#[vars.stateResponse.result.state == 0]">
-				<ee:transform doc:name="var-spielType(dual off)"
-					doc:id="6cd8e65b-652a-4e59-8909-d1373bbaac69">
-					<ee:message />
-					<ee:variables>
-						<ee:set-variable
-							resource="dw/var-spielType-dual-off.dwl" variableName="spielType" />
-					</ee:variables>
-				</ee:transform>
-				<ee:transform
-					doc:name="var-smsSpiel, var-auditLog(success)"
-					doc:id="b5cdadc6-6f8e-45de-a78d-e2d0443d235c">
-					<ee:message />
-					<ee:variables>
-						<ee:set-variable resource="dw/get-sms-spiel.dwl"
-							variableName="smsSpiel" />
-						<ee:set-variable
-							resource="dw/var-auditLog-sucess.dwl" variableName="auditLog" />
-					</ee:variables>
-				</ee:transform>
-			</when>
-			<when expression="#[vars.stateResponse.result.state == 1]">
-				<ee:transform doc:name="var-spielType(normal off)"
-					doc:id="46ea4617-e5da-4bd4-bc77-2c37f8f7ab90">
-					<ee:message />
-					<ee:variables>
-						<ee:set-variable
-							resource="dw/var-spielType-normal-off.dwl"
-							variableName="spielType" />
-					</ee:variables>
-				</ee:transform>
-				<logger level="INFO" doc:name="Proceed to Deprovision flow"
-					doc:id="dac7fe85-7341-4778-a303-137ff7bb37e9"
-					message="Proceed - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
-			</when>
-			<otherwise>
-				<ee:transform doc:name="var-spielType(not registered)"
-					doc:id="5da39d96-954b-4b58-8e27-c8a9f34829e7">
-					<ee:message />
-					<ee:variables>
-						<ee:set-variable
-							resource="dw/var-spielType-not-registered.dwl"
-							variableName="spielType" />
-					</ee:variables>
-				</ee:transform>
-				<ee:transform
-					doc:name="var-smsSpiel, var-auditLog(success)"
-					doc:id="cdd3bcb1-d026-4265-80ee-38ccc9dc00cc">
-					<ee:message />
-					<ee:variables>
-						<ee:set-variable resource="dw/get-sms-spiel.dwl"
-							variableName="smsSpiel" />
-						<ee:set-variable
-							resource="dw/var-auditLog-sucess.dwl" variableName="auditLog" />
-					</ee:variables>
-				</ee:transform>
-			</otherwise>
-		</choice>
-	</sub-flow>
-	<sub-flow name="impl-subscription-process-opt-in-subflow"
-		doc:id="47a79029-c2eb-4ec0-acef-7392b4c63a77">
-		<choice doc:name="ROUTE opt-in BASED ON state"
-			doc:id="fba108f2-8612-43da-8e3f-070ea96f2781">
-			<when expression="#[vars.stateResponse.result.state == 1]">
-				<ee:transform doc:name="var-spielType(dual provision)"
-					doc:id="15ddd074-31bd-4cb0-b5be-67e9c9ba1371">
-					<ee:message />
-					<ee:variables>
-						<ee:set-variable
-							resource="dw/var-spielType-dual-provisioning.dwl"
-							variableName="spielType" />
-					</ee:variables>
-				</ee:transform>
-				<ee:transform
-					doc:name="var-smsSpiel, var-auditLog(success)"
-					doc:id="ed019e7e-480f-4de9-b4eb-5a12979a7fb5">
-					<ee:message />
-					<ee:variables>
-						<ee:set-variable resource="dw/get-sms-spiel.dwl"
-							variableName="smsSpiel" />
-						<ee:set-variable
-							resource="dw/var-auditLog-sucess.dwl" variableName="auditLog" />
-					</ee:variables>
-				</ee:transform>
-			</when>
-			<otherwise>
-				<logger level="INFO" doc:name="Proceed to Eligibility check"
-					doc:id="50ff3ded-6f2c-4f36-a012-ac2efc485a30" />
-			</otherwise>
-		</choice>
 	</sub-flow>
 	<sub-flow name="impl-subscription-post-state-subflow"
 		doc:id="353c9ba2-1171-4c3d-912a-9afb9cf95476">
@@ -449,52 +304,30 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 									variableName="expiryDetails" />
 							</ee:variables>
 						</ee:transform>
-						<choice doc:name="IS existing state = 0?"
-							doc:id="0d6262a3-64a5-4fff-8fd5-635b59f48617">
-							<when expression="vars.stateResponse.result.state == 0">
-								<ee:transform
-									doc:name="var-spielType(reactivation)"
-									doc:id="f2d11832-3b20-4b52-bcfa-ac6d17614ad2">
-									<ee:message />
-									<ee:variables>
-										<ee:set-variable
-											resource="dw/var-spielType-reactivation.dwl"
-											variableName="spielType" />
-									</ee:variables>
-								</ee:transform>
-							</when>
-							<otherwise>
-								<ee:transform doc:name="var-spielType(eligable)"
-									doc:id="a9a0297f-c19b-4fef-94f3-9d5d9767523f">
-									<ee:message />
-									<ee:variables>
-										<ee:set-variable
-											resource="dw/var-spielType-eligible.dwl"
-											variableName="spielType" />
-									</ee:variables>
-								</ee:transform>
-							</otherwise>
-						</choice>
 					</when>
 					<otherwise>
-						<ee:transform doc:name="var-spielType(ineligible)"
-							doc:id="b6e0bf84-9664-4e31-8735-e7997fb28904">
-							<ee:message />
-							<ee:variables>
-								<ee:set-variable
-									resource="dw/var-spielType-ineligible.dwl"
-									variableName="spielType" />
-							</ee:variables>
-						</ee:transform>
 						<ee:transform
 							doc:name="var-smsSpiel, var-auditLog(failure)"
 							doc:id="4ebfe5ba-59e1-4e2e-b639-f5f5f40da56b">
 							<ee:message />
 							<ee:variables>
-								<ee:set-variable resource="dw/get-sms-spiel.dwl"
-									variableName="smsSpiel" />
 								<ee:set-variable
 									resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+								<ee:set-variable variableName="smsSpiel"><![CDATA[%dw 2.0
+output application/json
+var keyword = vars.formattedSubscriberData.keyword default "ANY"
+var brandName = vars.brand.'brand-name' default "ANY"
+var spielType = "ineligible"
+---
+{
+  "spiel-type": spielType,
+  "sms-spiel": p(
+    lower(keyword)
+    ++ "." ++ brandName
+    ++ "." ++ spielType
+  ) default p("any.any.system-error")
+}
+]]></ee:set-variable>
 							</ee:variables>
 						</ee:transform>
 					</otherwise>
@@ -518,59 +351,27 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 									variableName="expiryDetails" />
 							</ee:variables>
 						</ee:transform>
-						<choice doc:name="IS existing state = 0?"
-							doc:id="ca688cc4-6283-48ad-bad6-30e68a0df589">
-							<when expression="vars.stateResponse.result.state == 0">
-								<ee:transform
-									doc:name="var-spielType(reactivation)"
-									doc:id="a416184a-af7b-4b00-b1c7-00e4a1059e90">
-									<ee:message>
-									</ee:message>
-									<ee:variables>
-										<ee:set-variable
-											resource="dw/var-spielType-reactivation.dwl"
-											variableName="spielType" />
-									</ee:variables>
-								</ee:transform>
-							</when>
-							<otherwise>
-								<ee:transform doc:name="var-spielType(eligable)"
-									doc:id="be79eada-da1d-4164-90f3-ae8927bf5929">
-									<ee:message>
-									</ee:message>
-									<ee:variables>
-										<ee:set-variable
-											resource="dw/var-spielType-eligible.dwl"
-											variableName="spielType" />
-									</ee:variables>
-								</ee:transform>
-							</otherwise>
-						</choice>
 					</when>
 					<otherwise>
-						<ee:transform doc:name="var-spielType(ineligable)"
-							doc:id="d4091dad-a5a3-4219-81e0-c57816a8a936">
-							<ee:message>
-								<ee:set-payload
-									resource="dw/var-spielType-ineligible.dwl" />
-							</ee:message>
-							<ee:variables>
-								<ee:set-variable variableName="spielType"><![CDATA[%dw 2.0
-output application/java
+						<ee:transform doc:name="var-smsSpiel, var-auditLog(failure)" doc:id="03e3ce3e-6add-4268-89a9-e584ce0f299e" >
+							<ee:message />
+							<ee:variables >
+								<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+								<ee:set-variable variableName="smsSpiel" ><![CDATA[%dw 2.0
+output application/json
+var keyword = vars.formattedSubscriberData.keyword default "ANY"
+var brandName = vars.brand.'brand-name' default "ANY"
+var spielType = "ineligible"
 ---
 {
-}]]></ee:set-variable>
-							</ee:variables>
-						</ee:transform>
-						<ee:transform
-							doc:name="var-smsSpiel, var-auditLog(failure)"
-							doc:id="5b3dc34c-65f5-4e60-8040-6486c283ea8a">
-							<ee:message />
-							<ee:variables>
-								<ee:set-variable resource="dw/get-sms-spiel.dwl"
-									variableName="smsSpiel" />
-								<ee:set-variable
-									resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+  "spiel-type": spielType,
+  "sms-spiel": p(
+    lower(keyword)
+    ++ "." ++ brandName
+    ++ "." ++ spielType
+  ) default p("any.any.system-error")
+}
+]]></ee:set-variable>
 							</ee:variables>
 						</ee:transform>
 					</otherwise>
@@ -630,25 +431,25 @@ output application/java
 				</ee:transform>
 			</when>
 			<otherwise>
-				<ee:transform doc:name="var-spielType"
-					doc:id="a6966731-71cc-407c-87d6-144ce6abeac6">
-					<ee:message>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable
-							resource="dw/var-spielType-fb-unsuccess.dwl"
-							variableName="spielType" />
-					</ee:variables>
-				</ee:transform>
-				<ee:transform
-					doc:name="var-smsSpiel, var-auditLog(failure)"
-					doc:id="cb18f1b4-2f54-4857-a324-9d73dafa259b">
+				<ee:transform doc:name="var-smsSpiel, var-auditLog(failure)" doc:id="5c20d54d-9b66-4701-b3b1-cfa6cc8110a9" >
 					<ee:message />
-					<ee:variables>
-						<ee:set-variable resource="dw/get-sms-spiel.dwl"
-							variableName="smsSpiel" />
-						<ee:set-variable
-							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+					<ee:variables >
+						<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+						<ee:set-variable variableName="smsSpiel" ><![CDATA[%dw 2.0
+output application/json
+var keyword = vars.formattedSubscriberData.keyword default "ANY"
+var brandName = vars.brand.'brand-name' default "ANY"
+var spielType = "fb-unsuccess"
+---
+{
+  "spiel-type": spielType,
+  "sms-spiel": p(
+    lower(keyword)
+    ++ "." ++ brandName
+    ++ "." ++ spielType
+  ) default p("any.any.system-error")
+}
+]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
 			</otherwise>
@@ -682,7 +483,8 @@ output application/java
 						logException="true" doc:name="On Error Propagate"
 						doc:id="24af72a3-0194-4dba-8463-dbfd6a4e9a52" type="ANY">
 						<logger level="INFO" doc:name="Proceed anyway"
-							doc:id="26dc6070-178b-4780-a439-59ad1777abe6" message='#["Failed to update audit log. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]'/>
+							doc:id="26dc6070-178b-4780-a439-59ad1777abe6"
+							message='#["Failed to update audit log. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
 					</on-error-propagate>
 				</error-handler>
 			</try>
@@ -690,7 +492,8 @@ output application/java
 				doc:id="558f5d09-4a55-4689-a3be-676c69c0fcb0">
 				<when expression="#[attributes.statusCode != 200]">
 					<logger level="INFO" doc:name="Log Failure"
-						doc:id="3da31939-4003-4372-9060-a4c4a90bd5d5" message="log failure"/>
+						doc:id="3da31939-4003-4372-9060-a4c4a90bd5d5"
+						message="log failure" />
 				</when>
 			</choice>
 		</until-successful>
@@ -703,14 +506,6 @@ output application/java
 		<logger level="INFO" doc:name="START - SMS Messaging Process"
 			doc:id="85275436-9068-49ef-8876-def884faa94a"
 			message="START - SMS Messaging Process - STEP 8: SMS MESSAGING" />
-		<ee:transform doc:name="var-smsSpiel"
-			doc:id="57302fc3-03b2-46ca-a460-a21e757a9887">
-			<ee:message />
-			<ee:variables>
-				<ee:set-variable resource="dw/get-sms-spiel.dwl"
-					variableName="smsSpiel" />
-			</ee:variables>
-		</ee:transform>
 		<ee:transform doc:name="Payload to SMS API Request"
 			doc:id="2d3a1a9b-6712-4b77-bf49-108c15b9338a">
 			<ee:message>
@@ -731,7 +526,8 @@ output application/java
 						logException="true" doc:name="On Error Propagate"
 						doc:id="03e38988-43d9-4ccd-ba88-3ba0a4ff8c26" type="ANY">
 						<logger level="INFO" doc:name="Proceed Anyway"
-							doc:id="3e471234-41e0-4af0-8984-c4cc3299ef9f" message='#["Failed to send sms. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]'/>
+							doc:id="3e471234-41e0-4af0-8984-c4cc3299ef9f"
+							message='#["Failed to send sms. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
 					</on-error-propagate>
 				</error-handler>
 			</try>
@@ -760,7 +556,7 @@ output application/java
 		<choice doc:name="IS bonus whitelist entry eligible?"
 			doc:id="d0f4c68c-1ee3-45c7-9d31-a3f6df96a0fa">
 			<when
-				expression="#[(isEmpty(payload.result) and payload.results.eligible == true)]">
+				expression="#[(isEmpty(payload.result) and payload.result.eligible == true)]">
 				<ee:transform
 					doc:name="MongoDB Respose TO API Response"
 					doc:id="813d2baa-269a-4054-9038-e9cc891a9746">
@@ -772,34 +568,27 @@ output application/java
 							variableName="expiryDetails" />
 					</ee:variables>
 				</ee:transform>
-				<ee:transform doc:name="var - spielType"
-					doc:id="85de66e5-ccba-4669-b9ae-49b44ff9161c">
-					<ee:message />
-					<ee:variables>
-						<ee:set-variable
-							resource="dw/var-spielType-first-time.dwl"
-							variableName="spielType" />
-					</ee:variables>
-				</ee:transform>
 			</when>
 			<otherwise>
-				<ee:transform doc:name="var - spielType(ineligible)"
-					doc:id="4e7fbd5d-572c-4321-8675-d3e54d03c72c">
-					<ee:message>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable resource="dw/var-spielType-ineligible.dwl" variableName="spielType" />
-					</ee:variables>
-				</ee:transform>
-				<ee:transform
-					doc:name="var-smsSpiel, var-auditLog(failure)"
-					doc:id="c3e22efb-36e5-4ffc-a1fb-72fdccb042df">
+				<ee:transform doc:name="var-smsSpiel, var-auditLog(failure)" doc:id="863b89b5-316f-4672-ad51-244c2a3ac1b2" >
 					<ee:message />
-					<ee:variables>
-						<ee:set-variable resource="dw/get-sms-spiel.dwl"
-							variableName="smsSpiel" />
-						<ee:set-variable
-							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+					<ee:variables >
+						<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+						<ee:set-variable variableName="smsSpiel" ><![CDATA[%dw 2.0
+output application/json
+var keyword = vars.formattedSubscriberData.keyword default "ANY"
+var brandName = vars.brand.'brand-name' default "ANY"
+var spielType = "fb-unsuccess"
+---
+{
+  "spiel-type": spielType,
+  "sms-spiel": p(
+    lower(keyword)
+    ++ "." ++ brandName
+    ++ "." ++ spielType
+  ) default p("any.any.system-error")
+}
+]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
 			</otherwise>
@@ -827,7 +616,8 @@ output application/java
 						logException="true" doc:name="On Error Propagate"
 						doc:id="1aa62361-68c4-4dd0-b59f-6539e21eab13" type="ANY">
 						<logger level="INFO" doc:name="Proceed Anyway"
-							doc:id="4a42ff9c-a6f2-4099-99ea-07a94b90f984" message='#["Failed to delete msisdn whitelist. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]'/>
+							doc:id="4a42ff9c-a6f2-4099-99ea-07a94b90f984"
+							message='#["Failed to delete msisdn whitelist. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
 					</on-error-propagate>
 				</error-handler>
 			</try>
@@ -835,7 +625,8 @@ output application/java
 				doc:id="21708bf7-5ef7-420f-b983-e96c3e01fc54">
 				<when expression="#[attributes.statusCode != 200]">
 					<logger level="INFO" doc:name="Log Failure"
-						doc:id="562be86f-6ab6-485e-92e2-9124d11941f1" message="Log Failure "/>
+						doc:id="562be86f-6ab6-485e-92e2-9124d11941f1"
+						message="Log Failure " />
 				</when>
 			</choice>
 		</until-successful>

@@ -8,7 +8,6 @@ payload.bundles
     now() < ($.expiry_date as LocalDateTime { format: "yyyy-MM-dd HH:mm:ss" })
   )
   reduce (item, acc = {}) -> {
-    "msisdn": payload.msisdn,
     "service-id": item.service_id,
     "expiry-date": item.expiry_date
   }
