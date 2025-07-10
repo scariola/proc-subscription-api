@@ -50,7 +50,7 @@ output application/json skipNullOn = 'everywhere'
     "result": {
         "transaction-id": vars.originalPayload.'transaction-id',
         "msisdn": vars.originalPayload.'msisdn',
-        "status": if (vars.formattedSubscriberData.keyword =='OPT-OUT') 0 else if (vars.formattedSubscriberData.keyword =='BONUS' and (vars.spielType == 'not-eligible'or vars.spielType == 'rejected')) null else if (vars.brand.'brand-name' == 'unsupported') null else if (vars.spielType == 'ineligible') null else 1,
+        "status":if (vars.provisionResponse.'x-event-msg' == "Provisioning Successful") 1 else if (vars.provisionResponse.'x-event-msg' == "Deprovisioning Successful") 0 else null,
         "expiry-date": if (vars.formattedSubscriberData.keyword =='OPT-OUT') null else vars.expiryDetails.'expiry-date' 
                       default vars.stateResponse.result.'expiry-date',
         "sms-spiel": vars.smsSpiel.'sms-spiel' default null

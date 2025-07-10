@@ -57,7 +57,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					doc:name="IS request type OPT-IN? ROUTE TO eligibility check"
 					doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb">
 					<when
-						expression="#[['reactivation','eligible'] contains vars.smsSpiel.'spiel-type']">
+						expression='#[(vars.formattedSubscriberData.keyword == "OPT-IN" and (vars.stateResponse.result.state == "1" or isEmpty(vars.stateResponse.result))) or (vars.formattedSubscriberData.keyword == "BONUS" and isEmpty(vars.stateResponse.result))]'>
 						<flow-ref
 							doc:name="impl-subscription-check-eligibility-subflow"
 							doc:id="210ab367-276a-4056-a5fc-21516a672df9"
@@ -72,11 +72,11 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				<choice doc:name="IS user eligible for provisioning?"
 					doc:id="5ba87f19-f47d-48c0-bb71-93110d4cb01f">
 					<when
-						expression="#[['reactivation', 'normal-off', 'first-time','eligible'] contains vars.smsSpiel.'spiel-type']">
+						expression="#[(vars.formattedSubscriberData.keyword == &quot;OPT-IN&quot; and (vars.stateResponse.result.state == &quot;1&quot; or isEmpty(vars.stateResponse.result))) or (vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and isEmpty(vars.stateResponse.result)) or (vars.formattedSubscriberData.keyword == 'OPT-OUT' and vars.stateResponse.result.state == '1')]">
 						<flow-ref
 							doc:name="impl-subscription-post-facebook-provision-subflow"
 							doc:id="680793fa-786c-47ed-839e-92b10afa765d"
-							name="impl-subscription-post-facebook-provision-subflow" />
+							name="impl-subscription-post-facebook-provision-subflow" target="provisionResponse"/>
 					</when>
 					<otherwise>
 						<logger level="INFO" doc:name="Do nothing"
@@ -88,7 +88,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					doc:name="IS provisioning successful? ROUTE TO update cache"
 					doc:id="6f66766b-e702-47a2-b685-91f2277ac7da">
 					<when
-						expression="#[['reactivation', 'normal-off', 'first-time','eligible'] contains vars.smsSpiel.'spiel-type']">
+						expression="#[attributes.statusCode == 200]">
 						<flow-ref doc:name="impl-subscription-post-state-subflow"
 							doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92"
 							name="impl-subscription-post-state-subflow" />
@@ -190,23 +190,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					doc:id="78189739-765a-454d-862f-ad0e3b23c700"
 					name="sys-redis-api-get-state-msisdn-subflow"
 					target="stateResponse" />
-				<ee:transform
-					doc:name="var-smsSpiel,var-auditLog(success)"
-					doc:id="707cd21e-2af2-4a54-9225-40a8f34f56a6">
-					<ee:message>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable resource="dw/get-sms-spiel.dwl"
-							variableName="smsSpiel" />
-						<ee:set-variable variableName="auditLog"><![CDATA[%dw 2.0
-output application/json
----
-{
-    "success": 1,
-    "hasProcessorError": 0
-}]]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
 			</when>
 			<otherwise>
 				<ee:transform
@@ -215,10 +198,9 @@ output application/json
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable resource="dw/get-sms-spiel.dwl"
-							variableName="smsSpiel" />
 						<ee:set-variable
 							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+						<ee:set-variable resource="dw/get-sms-spiel.dwl" variableName="smsSpiel" />
 					</ee:variables>
 				</ee:transform>
 			</otherwise>
@@ -411,15 +393,6 @@ var spielType = "ineligible"
 							name="impl-subscription-delete-bonus-subflow" />
 					</when>
 				</choice>
-				<ee:transform doc:name="var-state"
-					doc:id="3863dc15-72e6-4361-9340-c69435505a23">
-					<ee:message>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable resource="dw/var-state.dwl"
-							variableName="state" />
-					</ee:variables>
-				</ee:transform>
 				<ee:transform doc:name="var-auditLog(success)"
 					doc:id="87c1e238-6519-40b1-a881-6a8ee236022d">
 					<ee:message>
@@ -506,6 +479,13 @@ var spielType = "fb-unsuccess"
 		<logger level="INFO" doc:name="START - SMS Messaging Process"
 			doc:id="85275436-9068-49ef-8876-def884faa94a"
 			message="START - SMS Messaging Process - STEP 8: SMS MESSAGING" />
+		<ee:transform doc:name="var-smsSpiel" doc:id="93fccce1-a2b7-475c-80db-72f6a5e23cf3">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable resource="dw/get-sms-spiel.dwl" variableName="smsSpiel" />
+			</ee:variables>
+		</ee:transform>
 		<ee:transform doc:name="Payload to SMS API Request"
 			doc:id="2d3a1a9b-6712-4b77-bf49-108c15b9338a">
 			<ee:message>
