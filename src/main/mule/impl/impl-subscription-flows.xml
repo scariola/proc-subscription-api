@@ -211,37 +211,57 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:id="6e639040-daa6-4b99-bf1a-ace8435fe943"
 			message="END- Brand and State Check - STEP 3: REDIS LOGIC (BRAND &amp; STATE LOOKUP)" />
 	</sub-flow>
-	<sub-flow name="impl-subscription-check-eligibility-subflow" doc:id="badefcfd-e27d-4df8-8b80-f25111eb2cdd">
-		<logger level="INFO" doc:name="START - Check Eligibility Process" doc:id="ef643cf9-c369-40b8-8978-b139f0b781d5" message="START - Check Eligibility Process - STEP 4: ELIGIBILITY CHECK" />
-		<ee:transform doc:name="Payload TO NF API Request, Payload TO BSS API Request" doc:id="f030769d-398d-41ca-b327-8457e9b8df39">
+	<sub-flow name="impl-subscription-check-eligibility-subflow"
+		doc:id="badefcfd-e27d-4df8-8b80-f25111eb2cdd">
+		<logger level="INFO"
+			doc:name="START - Check Eligibility Process"
+			doc:id="ef643cf9-c369-40b8-8978-b139f0b781d5"
+			message="START - Check Eligibility Process - STEP 4: ELIGIBILITY CHECK" />
+		<ee:transform
+			doc:name="Payload TO NF API Request, Payload TO BSS API Request"
+			doc:id="f030769d-398d-41ca-b327-8457e9b8df39">
 			<ee:message>
-				<ee:set-payload resource="dw/payload-nf-api-request.dwl" />
+				<ee:set-payload
+					resource="dw/payload-nf-api-request.dwl" />
 			</ee:message>
 		</ee:transform>
-		<choice doc:name="IS brandId Prepaid or Postpaid?" doc:id="527bd8e4-9594-48dc-b0d5-7eb7b9054d1c">
+		<choice doc:name="IS brandId Prepaid or Postpaid?"
+			doc:id="527bd8e4-9594-48dc-b0d5-7eb7b9054d1c">
 			<when expression='#[[1, 2] contains (vars.brand."brand-id")]'>
-				<flow-ref doc:name="sys-nf-api-get-prepaid-msisdn-subflow" doc:id="4a60da90-8dc9-44ad-844b-dc47ff3e8c8d" name="sys-nf-api-get-prepaid-msisdn-subflow" />
+				<flow-ref doc:name="sys-nf-api-get-prepaid-msisdn-subflow"
+					doc:id="4a60da90-8dc9-44ad-844b-dc47ff3e8c8d"
+					name="sys-nf-api-get-prepaid-msisdn-subflow" />
 			</when>
 			<otherwise>
-				<flow-ref doc:name="sys-bss-api-get-postpiad-msisdn-flow" doc:id="be8bdb96-659f-428f-afbd-15981d5f2ff5" name="sys-bss-api-get-postpaid-msisdn-subflow" />
+				<flow-ref doc:name="sys-bss-api-get-postpiad-msisdn-flow"
+					doc:id="be8bdb96-659f-428f-afbd-15981d5f2ff5"
+					name="sys-bss-api-get-postpaid-msisdn-subflow" />
 			</otherwise>
 		</choice>
-		<choice doc:name="HAS valid NF bundles?" doc:id="b76230c2-bcda-4e9d-afb0-8675f06d6034">
-			<when expression="#[((!isEmpty(payload.bundles filter ($.service_id == vars.originalPayload.'as-service-id' and now() &lt; ($.expiry_date as LocalDateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;})))) or (!isEmpty(payload.bundles)) )]">
-				<ee:transform doc:name="var-expiryDetails" doc:id="f93609c6-8acb-49ff-ac3e-e676062ff794">
-							<ee:message>
-							</ee:message>
-							<ee:variables>
-								<ee:set-variable resource="dw/payload-nf-api-response.dwl" variableName="expiryDetails" />
-							</ee:variables>
-						</ee:transform>
-					</when>
+		<choice doc:name="HAS valid Prepaid or Postpaid bundles?"
+			doc:id="b76230c2-bcda-4e9d-afb0-8675f06d6034">
+			<when
+				expression="#[((!isEmpty(payload.bundles filter ($.service_id == vars.originalPayload.'as-service-id' and now() &lt; ($.expiry_date as LocalDateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;})))) or (!isEmpty(payload.bundles)) )]">
+				<ee:transform doc:name="var-expiryDetails"
+					doc:id="f93609c6-8acb-49ff-ac3e-e676062ff794">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable
+							resource="dw/payload-nf-api-response.dwl"
+							variableName="expiryDetails" />
+					</ee:variables>
+				</ee:transform>
+			</when>
 			<otherwise>
-				<ee:transform doc:name="var-smsSpiel, var-auditLog(failure)" doc:id="4ebfe5ba-59e1-4e2e-b639-f5f5f40da56b">
-							<ee:message />
-							<ee:variables>
-								<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-								<ee:set-variable variableName="smsSpiel"><![CDATA[%dw 2.0
+				<ee:transform
+					doc:name="var-smsSpiel, var-auditLog(failure)"
+					doc:id="4ebfe5ba-59e1-4e2e-b639-f5f5f40da56b">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable
+							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+						<ee:set-variable variableName="smsSpiel"><![CDATA[%dw 2.0
 output application/json
 var keyword = vars.formattedSubscriberData.keyword default "ANY"
 var brandName = vars.brand.'brand-name' default "ANY"
@@ -256,30 +276,47 @@ var spielType = "ineligible"
   ) default p("any.any.system-error")
 }
 ]]></ee:set-variable>
-							</ee:variables>
-						</ee:transform>
-					</otherwise>
-				</choice>
-		<logger level="INFO" doc:name="END - Check Eligibility Process" doc:id="32230055-69ae-4d91-87a3-5e0b717c5e15" message="END - Check Eligibility Process - STEP 4: ELIGIBILITY CHECK" />
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="END - Check Eligibility Process"
+			doc:id="32230055-69ae-4d91-87a3-5e0b717c5e15"
+			message="END - Check Eligibility Process - STEP 4: ELIGIBILITY CHECK" />
 	</sub-flow>
-	<sub-flow name="impl-subscription-get-bonus-subflow" doc:id="c886cbf7-afd9-4281-a813-3a7b2133adef">
-		<logger level="INFO" doc:name="START - Get msisdn Bonus" doc:id="e3a1162a-aea4-45a8-9f0a-adffe01e944e" message="END- Bonus Handling" />
-		<flow-ref doc:name="sys-mongodb-api-get-whitelist-msisdn-subflow" doc:id="0fdd0308-1b66-4eb4-99e3-c2a4d86df0b6" name="sys-mongodb-api-get-whitelist-msisdn-subflow" />
-		<choice doc:name="IS bonus whitelist entry eligible?" doc:id="d0f4c68c-1ee3-45c7-9d31-a3f6df96a0fa">
-			<when expression="#[(isEmpty(payload.result) and payload.result.eligible == true)]">
-				<ee:transform doc:name="MongoDB Respose TO API Response" doc:id="813d2baa-269a-4054-9038-e9cc891a9746">
+	<sub-flow name="impl-subscription-get-bonus-subflow"
+		doc:id="c886cbf7-afd9-4281-a813-3a7b2133adef">
+		<logger level="INFO" doc:name="START - Get msisdn Bonus"
+			doc:id="e3a1162a-aea4-45a8-9f0a-adffe01e944e"
+			message="END- Bonus Handling" />
+		<flow-ref
+			doc:name="sys-mongodb-api-get-whitelist-msisdn-subflow"
+			doc:id="0fdd0308-1b66-4eb4-99e3-c2a4d86df0b6"
+			name="sys-mongodb-api-get-whitelist-msisdn-subflow" />
+		<choice doc:name="IS bonus whitelist entry eligible?"
+			doc:id="d0f4c68c-1ee3-45c7-9d31-a3f6df96a0fa">
+			<when
+				expression="#[(isEmpty(payload.result) and payload.result.eligible == true)]">
+				<ee:transform
+					doc:name="MongoDB Respose TO API Response"
+					doc:id="813d2baa-269a-4054-9038-e9cc891a9746">
 					<ee:message>
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable resource="dw/payload-get-mongodb-api-response.dwl" variableName="expiryDetails" />
+						<ee:set-variable
+							resource="dw/payload-get-mongodb-api-response.dwl"
+							variableName="expiryDetails" />
 					</ee:variables>
 				</ee:transform>
 			</when>
 			<otherwise>
-				<ee:transform doc:name="var-smsSpiel, var-auditLog(failure)" doc:id="863b89b5-316f-4672-ad51-244c2a3ac1b2">
+				<ee:transform
+					doc:name="var-smsSpiel, var-auditLog(failure)"
+					doc:id="863b89b5-316f-4672-ad51-244c2a3ac1b2">
 					<ee:message />
 					<ee:variables>
-						<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+						<ee:set-variable
+							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
 						<ee:set-variable variableName="smsSpiel"><![CDATA[%dw 2.0
 output application/json
 var keyword = vars.formattedSubscriberData.keyword default "ANY"
@@ -299,29 +336,48 @@ var spielType = "fb-unsuccess"
 				</ee:transform>
 			</otherwise>
 		</choice>
-		<logger level="INFO" doc:name="END - Get msisdn Bonus " doc:id="8dad676f-4dbc-43c2-8e21-ef46e62d9ea3" message="END - Get msisdn Bonus " />
+		<logger level="INFO" doc:name="END - Get msisdn Bonus "
+			doc:id="8dad676f-4dbc-43c2-8e21-ef46e62d9ea3"
+			message="END - Get msisdn Bonus " />
 	</sub-flow>
-	<sub-flow name="impl-subscription-post-facebook-provision-subflow" doc:id="5e05202e-e628-4eeb-a9c0-c2ac48c2f256">
-		<logger level="INFO" doc:name="START - Provision Process" doc:id="8f6573cd-c964-4a12-af11-e2ed137ce718" message="START - Provision Process - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
-		<ee:transform doc:name="Payload TO Provision API Request" doc:id="48d5fb15-f034-4f1d-bcc2-ad0b7b90ee8e">
+	<sub-flow
+		name="impl-subscription-post-facebook-provision-subflow"
+		doc:id="5e05202e-e628-4eeb-a9c0-c2ac48c2f256">
+		<logger level="INFO" doc:name="START - Provision Process"
+			doc:id="8f6573cd-c964-4a12-af11-e2ed137ce718"
+			message="START - Provision Process - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
+		<ee:transform doc:name="Payload TO Provision API Request"
+			doc:id="48d5fb15-f034-4f1d-bcc2-ad0b7b90ee8e">
 			<ee:message>
-				<ee:set-payload resource="dw/payload-provision-api-request.dwl" />
+				<ee:set-payload
+					resource="dw/payload-provision-api-request.dwl" />
 			</ee:message>
 		</ee:transform>
-		<flow-ref doc:name="sys-facebook-api-post-provision-subflow" doc:id="b6b9e7e2-08ff-41bc-b325-8c7972a5a4fd" name="sys-facebook-api-post-provision-subflow" />
-		<choice doc:name="IS Facebook provisioning successful?" doc:id="02407f94-947c-4314-83c4-845cc68778fd">
+		<flow-ref doc:name="sys-facebook-api-post-provision-subflow"
+			doc:id="b6b9e7e2-08ff-41bc-b325-8c7972a5a4fd"
+			name="sys-facebook-api-post-provision-subflow" />
+		<choice doc:name="IS Facebook provisioning successful?"
+			doc:id="02407f94-947c-4314-83c4-845cc68778fd">
 			<when expression="#[attributes.statusCode == 201]">
-				<choice doc:name="IS Scenario BONUS?" doc:id="68f8dd6f-6912-45a2-9693-1d946be6e4fc">
-					<when expression='#[vars.formattedSubscriberData.keyword == "BONUS"]'>
-						<flow-ref doc:name="impl-subscription-delete-bonus-subflow" doc:id="13234db9-edd1-48a0-9406-1ad385720593" name="impl-subscription-delete-bonus-subflow" />
+				<choice doc:name="IS Scenario BONUS?"
+					doc:id="68f8dd6f-6912-45a2-9693-1d946be6e4fc">
+					<when
+						expression='#[vars.formattedSubscriberData.keyword == "BONUS"]'>
+						<flow-ref
+							doc:name="impl-subscription-delete-bonus-subflow"
+							doc:id="13234db9-edd1-48a0-9406-1ad385720593"
+							name="impl-subscription-delete-bonus-subflow" />
 					</when>
 				</choice>
 			</when>
 			<otherwise>
-				<ee:transform doc:name="var-smsSpiel, var-auditLog(failure)" doc:id="5c20d54d-9b66-4701-b3b1-cfa6cc8110a9">
+				<ee:transform
+					doc:name="var-smsSpiel, var-auditLog(failure)"
+					doc:id="5c20d54d-9b66-4701-b3b1-cfa6cc8110a9">
 					<ee:message />
 					<ee:variables>
-						<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+						<ee:set-variable
+							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
 						<ee:set-variable variableName="smsSpiel"><![CDATA[%dw 2.0
 output application/json
 var keyword = vars.formattedSubscriberData.keyword default "ANY"
@@ -341,7 +397,9 @@ var spielType = "fb-unsuccess"
 				</ee:transform>
 			</otherwise>
 		</choice>
-		<logger level="INFO" doc:name="END  - Provision Process " doc:id="af797a39-04d9-4b63-9049-6823ec996b34" message="END  - Provision Process - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
+		<logger level="INFO" doc:name="END  - Provision Process "
+			doc:id="af797a39-04d9-4b63-9049-6823ec996b34"
+			message="END  - Provision Process - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
 	</sub-flow>
 	<sub-flow name="impl-subscription-post-state-subflow"
 		doc:id="353c9ba2-1171-4c3d-912a-9afb9cf95476">
@@ -355,32 +413,21 @@ var spielType = "fb-unsuccess"
 					resource="dw/payload-redis-api-post-state-request.dwl" />
 			</ee:message>
 		</ee:transform>
-		<until-successful maxRetries="3"
-			doc:name="Until Successful"
-			doc:id="a403b0e0-cc43-44b7-8b47-fff85dcc87f8"
-			millisBetweenRetries="5000">
-			<try doc:name="Try" doc:id="0d34fcc0-6056-477b-897a-d7c62bf400b4">
+		<try doc:name="Try" doc:id="0d34fcc0-6056-477b-897a-d7c62bf400b4">
+			<until-successful maxRetries="3"
+				doc:name="Until Successful"
+				doc:id="a403b0e0-cc43-44b7-8b47-fff85dcc87f8"
+				millisBetweenRetries="5000">
 				<flow-ref doc:name="sys-post-state-subflow"
 					doc:id="60da4d68-de6b-4003-bcfc-97cf4844385a"
 					name="sys-redis-api-post-state-msisdn-subflow" />
-				<error-handler>
-					<on-error-continue enableNotifications="true"
-						logException="true" doc:name="On Error Continue"
-						doc:id="de0b026d-5261-4872-8ec9-70ada1bdf0ee" type="ANY">
-						<logger level="INFO" doc:name="Logger"
-							doc:id="fefe738f-c3df-4c76-81a1-4d217dc0e0b3" />
+			</until-successful>
+			<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="de0b026d-5261-4872-8ec9-70ada1bdf0ee" type="ANY">
+					<logger level="INFO" doc:name="Logger" doc:id="43095d7e-f4ca-4896-b45b-36aa0702d52d" message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;step&quot;: flow.name as String,&#10;  &quot;transactionId&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request_type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;cache_key&quot;: &quot;spectre-freefb&quot; ++ vars.formattedSubscriberData.msisdn,&#10;  &quot;cache_value&quot;: payload.requestPayload.state,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.description,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
 					</on-error-continue>
 				</error-handler>
 			</try>
-			<choice doc:name="IS Redis state caching successful?"
-				doc:id="d5af90db-947a-4ff4-af75-9ec08c352827">
-				<when expression="#[attributes.statusCode != 201]">
-					<logger level="INFO" doc:name="Logger"
-						doc:id="43095d7e-f4ca-4896-b45b-36aa0702d52d"
-						message='#[{&#10;  "step": "6 - Cache Save",&#10;  //"transactionId;" "idss",&#10;  "msisdn": "63xxxxxxxxxx",&#10;  "request_type": "Opt-In / Opt-Out / Bonus",&#10;  "cache_key": "spectre-freefb-63xxxxxxxxxx",&#10;  "cache_value": "1 or 0",&#10;  "attempt": 3,&#10;  "status": "failure",&#10;  "error": "Connection timeout / Write error / null",&#10;  "timestamp": "2025-05-30T10:30:15Z"&#10;}]' />
-				</when>
-			</choice>
-		</until-successful>
 		<logger level="INFO" doc:name="END- State Caching"
 			doc:id="eff6d585-cdd8-493f-a785-a78cc1219840"
 			message="START - State Caching - STEP 6: UPDATE REDIS STATE" />
@@ -406,23 +453,11 @@ var spielType = "fb-unsuccess"
 					doc:id="82eee915-548b-4c4d-8d86-0407536d902e"
 					name="sys-audit-api-put-audit-subflow" />
 				<error-handler>
-					<on-error-propagate enableNotifications="true"
-						logException="true" doc:name="On Error Propagate"
-						doc:id="24af72a3-0194-4dba-8463-dbfd6a4e9a52" type="ANY">
-						<logger level="INFO" doc:name="Proceed anyway"
-							doc:id="26dc6070-178b-4780-a439-59ad1777abe6"
-							message='#["Failed to update audit log. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
-					</on-error-propagate>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="ffc39210-adf0-4c58-b6d1-ef781a6e2b23" >
+						<logger level="INFO" doc:name="Proceed anyway" doc:id="26dc6070-178b-4780-a439-59ad1777abe6" message='#["Failed to update audit log. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
+					</on-error-continue>
 				</error-handler>
 			</try>
-			<choice doc:name="IS PUT audit logging successful?"
-				doc:id="558f5d09-4a55-4689-a3be-676c69c0fcb0">
-				<when expression="#[attributes.statusCode != 200]">
-					<logger level="INFO" doc:name="Log Failure"
-						doc:id="3da31939-4003-4372-9060-a4c4a90bd5d5"
-						message="log failure" />
-				</when>
-			</choice>
 		</until-successful>
 		<logger level="INFO" doc:name="END - Update Audit Logging"
 			doc:id="dd75d9e7-9a71-4d19-94f4-41c212547619"
@@ -456,23 +491,11 @@ var spielType = "fb-unsuccess"
 					doc:id="a53cccc2-654c-4066-8d5b-7284f8434493"
 					name="sys-sms-api-post-message-subflow" />
 				<error-handler>
-					<on-error-propagate enableNotifications="true"
-						logException="true" doc:name="On Error Propagate"
-						doc:id="03e38988-43d9-4ccd-ba88-3ba0a4ff8c26" type="ANY">
-						<logger level="INFO" doc:name="Proceed Anyway"
-							doc:id="3e471234-41e0-4af0-8984-c4cc3299ef9f"
-							message='#["Failed to send sms. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
-					</on-error-propagate>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="d94484a0-e34e-43b9-a5ce-cdbe9ad918ca" >
+						<logger level="INFO" doc:name="Proceed Anyway" doc:id="3e471234-41e0-4af0-8984-c4cc3299ef9f" message='#["Failed to send sms. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
+					</on-error-continue>
 				</error-handler>
 			</try>
-			<choice doc:name="IS Redis state caching successful?"
-				doc:id="969a8d8c-9365-49f4-8eba-9962286d122f">
-				<when expression="#[attributes.statusCode != 200]">
-					<logger level="INFO" doc:name="Log Failure"
-						doc:id="0a2458bb-1d78-4d63-b5a7-1b473e312c01"
-						message="log failure" />
-				</when>
-			</choice>
 		</until-successful>
 		<logger level="INFO" doc:name="END - SMS Messaging Process"
 			doc:id="d2e18799-9a72-40a5-8add-3e5dc9051b0c"
@@ -483,34 +506,16 @@ var spielType = "fb-unsuccess"
 		<logger level="INFO" doc:name="START - Mongdb Delete msisdn "
 			doc:id="2b0b2435-b927-4e7d-bac2-0a1554c8e0db"
 			message="START - Mongdb Delete msisdn " />
-		<until-successful maxRetries="3"
-			doc:name="Until Successful"
-			doc:id="41d49cf9-ca58-4736-b91a-2597490b6dc8"
-			millisBetweenRetries="5000">
-			<try doc:name="Try" doc:id="5addf2c4-ba95-4a6f-9104-f8f4a18fd380">
-				<flow-ref
-					doc:name="sys-mongodb-api-delete-whitelist-msisdn-subflow"
-					doc:id="a2d06424-5d43-41c0-b999-f0fb57c8ab52"
-					name="sys-mongodb-api-delete-whitelist-msisdn-subflow" />
-				<error-handler>
-					<on-error-propagate enableNotifications="true"
-						logException="true" doc:name="On Error Propagate"
-						doc:id="1aa62361-68c4-4dd0-b59f-6539e21eab13" type="ANY">
-						<logger level="INFO" doc:name="Proceed Anyway"
-							doc:id="4a42ff9c-a6f2-4099-99ea-07a94b90f984"
-							message='#["Failed to delete msisdn whitelist. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
+		<try doc:name="Try" doc:id="5addf2c4-ba95-4a6f-9104-f8f4a18fd380">
+				<until-successful maxRetries="3" doc:name="Until Successful" doc:id="41d49cf9-ca58-4736-b91a-2597490b6dc8" millisBetweenRetries="5000">
+			<flow-ref doc:name="sys-mongodb-api-delete-whitelist-msisdn-subflow" doc:id="a2d06424-5d43-41c0-b999-f0fb57c8ab52" name="sys-mongodb-api-delete-whitelist-msisdn-subflow" />
+		</until-successful>
+			<error-handler>
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="1aa62361-68c4-4dd0-b59f-6539e21eab13" type="ANY">
+						<logger level="INFO" doc:name="Proceed Anyway" doc:id="4a42ff9c-a6f2-4099-99ea-07a94b90f984" message='#["Failed to delete msisdn whitelist. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
 					</on-error-propagate>
 				</error-handler>
 			</try>
-			<choice doc:name="IS MongoDB delete successful?"
-				doc:id="21708bf7-5ef7-420f-b983-e96c3e01fc54">
-				<when expression="#[attributes.statusCode != 200]">
-					<logger level="INFO" doc:name="Log Failure"
-						doc:id="562be86f-6ab6-485e-92e2-9124d11941f1"
-						message="Log Failure " />
-				</when>
-			</choice>
-		</until-successful>
 		<logger level="INFO" doc:name="END - Mongdb Delete msisdn"
 			doc:id="35ae0728-de2f-4188-bbfc-ebe30b9be8d2"
 			message="END - Mongdb Delete msisdn " />
