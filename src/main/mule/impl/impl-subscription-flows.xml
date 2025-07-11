@@ -423,7 +423,7 @@ var spielType = "fb-unsuccess"
 					name="sys-redis-api-post-state-msisdn-subflow" />
 			</until-successful>
 			<error-handler>
-					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="de0b026d-5261-4872-8ec9-70ada1bdf0ee" type="ANY">
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="de0b026d-5261-4872-8ec9-70ada1bdf0ee">
 					<logger level="INFO" doc:name="Logger" doc:id="43095d7e-f4ca-4896-b45b-36aa0702d52d" message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;step&quot;: flow.name as String,&#10;  &quot;transactionId&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request_type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;cache_key&quot;: &quot;spectre-freefb&quot; ++ vars.formattedSubscriberData.msisdn,&#10;  &quot;cache_value&quot;: payload.requestPayload.state,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.description,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
 					</on-error-continue>
 				</error-handler>
@@ -444,21 +444,16 @@ var spielType = "fb-unsuccess"
 					resource="dw/payload-put-audit-request.dwl" />
 			</ee:message>
 		</ee:transform>
-		<until-successful maxRetries="3"
-			doc:name="Until Successful"
-			doc:id="9c148838-f733-40d9-ae84-69a2a581f516"
-			millisBetweenRetries="5000">
-			<try doc:name="Try" doc:id="a885e43d-9511-47a7-80b3-b898237a2752">
-				<flow-ref doc:name="sys-audit-api-put-audit-subflow"
-					doc:id="82eee915-548b-4c4d-8d86-0407536d902e"
-					name="sys-audit-api-put-audit-subflow" />
+		<try doc:name="Try" doc:id="a885e43d-9511-47a7-80b3-b898237a2752">
+				<until-successful maxRetries="3" doc:name="Until Successful" doc:id="9c148838-f733-40d9-ae84-69a2a581f516" millisBetweenRetries="5000">
+				<flow-ref doc:name="sys-audit-api-put-audit-subflow" doc:id="82eee915-548b-4c4d-8d86-0407536d902e" name="sys-audit-api-put-audit-subflow" />
+		</until-successful>
 				<error-handler>
-					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="ffc39210-adf0-4c58-b6d1-ef781a6e2b23" >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="ffc39210-adf0-4c58-b6d1-ef781a6e2b23">
 						<logger level="INFO" doc:name="Proceed anyway" doc:id="26dc6070-178b-4780-a439-59ad1777abe6" message='#["Failed to update audit log. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
 					</on-error-continue>
 				</error-handler>
 			</try>
-		</until-successful>
 		<logger level="INFO" doc:name="END - Update Audit Logging"
 			doc:id="dd75d9e7-9a71-4d19-94f4-41c212547619"
 			message="END - Update Audit Logging - STEP 7: UPDATE AUDIT LOGGING" />
@@ -482,21 +477,16 @@ var spielType = "fb-unsuccess"
 					resource="dw/payload-post-sms-api-request.dwl" />
 			</ee:message>
 		</ee:transform>
-		<until-successful maxRetries="3"
-			doc:name="Until Successful"
-			doc:id="cfc90b85-e3be-449c-b1a2-758e708b7e41"
-			millisBetweenRetries="50000">
-			<try doc:name="Try" doc:id="318708a6-c9a9-4ccf-b492-feb1c6740850">
-				<flow-ref doc:name="sys-sms-api-subflow"
-					doc:id="a53cccc2-654c-4066-8d5b-7284f8434493"
-					name="sys-sms-api-post-message-subflow" />
-				<error-handler>
-					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="d94484a0-e34e-43b9-a5ce-cdbe9ad918ca" >
+		<try doc:name="Try" doc:id="318708a6-c9a9-4ccf-b492-feb1c6740850">
+				<until-successful maxRetries="3" doc:name="Until Successful" doc:id="cfc90b85-e3be-449c-b1a2-758e708b7e41" millisBetweenRetries="5000">
+				<flow-ref doc:name="sys-sms-api-subflow" doc:id="a53cccc2-654c-4066-8d5b-7284f8434493" name="sys-sms-api-post-message-subflow" />
+		</until-successful>
+			<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="d94484a0-e34e-43b9-a5ce-cdbe9ad918ca">
 						<logger level="INFO" doc:name="Proceed Anyway" doc:id="3e471234-41e0-4af0-8984-c4cc3299ef9f" message='#["Failed to send sms. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
 					</on-error-continue>
 				</error-handler>
 			</try>
-		</until-successful>
 		<logger level="INFO" doc:name="END - SMS Messaging Process"
 			doc:id="d2e18799-9a72-40a5-8add-3e5dc9051b0c"
 			message="END - SMS Messaging Process - STEP 8: SMS MESSAGING" />
