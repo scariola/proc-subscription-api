@@ -59,30 +59,49 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
 			</otherwise>
 		</choice>
-		<choice doc:name="IS request type BONUS?" doc:id="9867ea49-786e-4396-9da7-a4d87d377002">
-					<when expression='#[(vars.formattedSubscriberData.keyword == "BONUS" and isEmpty(vars.stateResponse.result))]'>
-						<flow-ref doc:name="impl-subscription-get-bonus-subflow" doc:id="350f47e1-87e0-4f4a-bd3f-cfd83a7d686c" name="impl-subscription-get-bonus-subflow" />
-					</when>
-					<otherwise>
-						<logger level="INFO" doc:name="Skip Bonus Checking" doc:id="10e89329-9e99-46f6-a37b-4f81f9e0c0b1" message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
-					</otherwise>
-				</choice>
-		<choice doc:name="IS user eligible for provisioning?" doc:id="5ba87f19-f47d-48c0-bb71-93110d4cb01f">
-					<when expression="#[(vars.formattedSubscriberData.keyword == &quot;OPT-IN&quot; and (vars.stateResponse.result.state == &quot;1&quot; or isEmpty(vars.stateResponse.result))) or (vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and isEmpty(vars.stateResponse.result)) or (vars.formattedSubscriberData.keyword == 'OPT-OUT' and vars.stateResponse.result.state == '1')]">
-						<flow-ref doc:name="impl-subscription-post-facebook-provision-subflow" doc:id="680793fa-786c-47ed-839e-92b10afa765d" name="impl-subscription-post-facebook-provision-subflow" target="provisionResponse" />
-					</when>
-					<otherwise>
-						<logger level="INFO" doc:name="Skip FB Provisioning" doc:id="d9460b4a-a4d5-4942-9a32-e6b08eca535b" message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
-					</otherwise>
-				</choice>
-		<choice doc:name="IS provisioning successful?" doc:id="6f66766b-e702-47a2-b685-91f2277ac7da">
-					<when expression="#[attributes.statusCode == 200]">
-						<flow-ref doc:name="impl-subscription-post-state-subflow" doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92" name="impl-subscription-post-state-subflow" />
-					</when>
-					<otherwise>
-						<logger level="INFO" doc:name="Skip State Update" doc:id="0aaf9af9-b61a-4771-afd0-b0da1d316482" message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
-					</otherwise>
-				</choice>
+		<choice doc:name="IS request type BONUS?"
+			doc:id="9867ea49-786e-4396-9da7-a4d87d377002">
+			<when
+				expression='#[(vars.formattedSubscriberData.keyword == "BONUS" and isEmpty(vars.stateResponse.result))]'>
+				<flow-ref doc:name="impl-subscription-get-bonus-subflow"
+					doc:id="350f47e1-87e0-4f4a-bd3f-cfd83a7d686c"
+					name="impl-subscription-get-bonus-subflow" />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Skip Bonus Checking"
+					doc:id="10e89329-9e99-46f6-a37b-4f81f9e0c0b1"
+					message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
+			</otherwise>
+		</choice>
+		<choice doc:name="IS user eligible for provisioning?"
+			doc:id="5ba87f19-f47d-48c0-bb71-93110d4cb01f">
+			<when
+				expression="#[(vars.formattedSubscriberData.keyword == &quot;OPT-IN&quot; and (vars.stateResponse.result.state == &quot;1&quot; or isEmpty(vars.stateResponse.result))) or (vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and isEmpty(vars.stateResponse.result)) or (vars.formattedSubscriberData.keyword == 'OPT-OUT' and vars.stateResponse.result.state == '1')]">
+				<flow-ref
+					doc:name="impl-subscription-post-facebook-provision-subflow"
+					doc:id="680793fa-786c-47ed-839e-92b10afa765d"
+					name="impl-subscription-post-facebook-provision-subflow"
+					target="provisionResponse" />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Skip FB Provisioning"
+					doc:id="d9460b4a-a4d5-4942-9a32-e6b08eca535b"
+					message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
+			</otherwise>
+		</choice>
+		<choice doc:name="IS provisioning successful?"
+			doc:id="6f66766b-e702-47a2-b685-91f2277ac7da">
+			<when expression="#[attributes.statusCode == 200]">
+				<flow-ref doc:name="impl-subscription-post-state-subflow"
+					doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92"
+					name="impl-subscription-post-state-subflow" />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Skip State Update"
+					doc:id="0aaf9af9-b61a-4771-afd0-b0da1d316482"
+					message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
+			</otherwise>
+		</choice>
 	</sub-flow>
 	<sub-flow name="impl-subscription-post-audit-subflow"
 		doc:id="81ed1a62-3c83-4c4e-9846-f937046c7ffb">
@@ -192,6 +211,138 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:id="6e639040-daa6-4b99-bf1a-ace8435fe943"
 			message="END- Brand and State Check - STEP 3: REDIS LOGIC (BRAND &amp; STATE LOOKUP)" />
 	</sub-flow>
+	<sub-flow name="impl-subscription-check-eligibility-subflow" doc:id="badefcfd-e27d-4df8-8b80-f25111eb2cdd">
+		<logger level="INFO" doc:name="START - Check Eligibility Process" doc:id="ef643cf9-c369-40b8-8978-b139f0b781d5" message="START - Check Eligibility Process - STEP 4: ELIGIBILITY CHECK" />
+		<ee:transform doc:name="Payload TO NF API Request, Payload TO BSS API Request" doc:id="f030769d-398d-41ca-b327-8457e9b8df39">
+			<ee:message>
+				<ee:set-payload resource="dw/payload-nf-api-request.dwl" />
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="IS brandId Prepaid or Postpaid?" doc:id="527bd8e4-9594-48dc-b0d5-7eb7b9054d1c">
+			<when expression='#[[1, 2] contains (vars.brand."brand-id")]'>
+				<flow-ref doc:name="sys-nf-api-get-prepaid-msisdn-subflow" doc:id="4a60da90-8dc9-44ad-844b-dc47ff3e8c8d" name="sys-nf-api-get-prepaid-msisdn-subflow" />
+			</when>
+			<otherwise>
+				<flow-ref doc:name="sys-bss-api-get-postpiad-msisdn-flow" doc:id="be8bdb96-659f-428f-afbd-15981d5f2ff5" name="sys-bss-api-get-postpaid-msisdn-subflow" />
+			</otherwise>
+		</choice>
+		<choice doc:name="HAS valid NF bundles?" doc:id="b76230c2-bcda-4e9d-afb0-8675f06d6034">
+			<when expression="#[((!isEmpty(payload.bundles filter ($.service_id == vars.originalPayload.'as-service-id' and now() &lt; ($.expiry_date as LocalDateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;})))) or (!isEmpty(payload.bundles)) )]">
+				<ee:transform doc:name="var-expiryDetails" doc:id="f93609c6-8acb-49ff-ac3e-e676062ff794">
+							<ee:message>
+							</ee:message>
+							<ee:variables>
+								<ee:set-variable resource="dw/payload-nf-api-response.dwl" variableName="expiryDetails" />
+							</ee:variables>
+						</ee:transform>
+					</when>
+			<otherwise>
+				<ee:transform doc:name="var-smsSpiel, var-auditLog(failure)" doc:id="4ebfe5ba-59e1-4e2e-b639-f5f5f40da56b">
+							<ee:message />
+							<ee:variables>
+								<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+								<ee:set-variable variableName="smsSpiel"><![CDATA[%dw 2.0
+output application/json
+var keyword = vars.formattedSubscriberData.keyword default "ANY"
+var brandName = vars.brand.'brand-name' default "ANY"
+var spielType = "ineligible"
+---
+{
+  "spiel-type": spielType,
+  "sms-spiel": p(
+    lower(keyword)
+    ++ "." ++ brandName
+    ++ "." ++ spielType
+  ) default p("any.any.system-error")
+}
+]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+					</otherwise>
+				</choice>
+		<logger level="INFO" doc:name="END - Check Eligibility Process" doc:id="32230055-69ae-4d91-87a3-5e0b717c5e15" message="END - Check Eligibility Process - STEP 4: ELIGIBILITY CHECK" />
+	</sub-flow>
+	<sub-flow name="impl-subscription-get-bonus-subflow" doc:id="c886cbf7-afd9-4281-a813-3a7b2133adef">
+		<logger level="INFO" doc:name="START - Get msisdn Bonus" doc:id="e3a1162a-aea4-45a8-9f0a-adffe01e944e" message="END- Bonus Handling" />
+		<flow-ref doc:name="sys-mongodb-api-get-whitelist-msisdn-subflow" doc:id="0fdd0308-1b66-4eb4-99e3-c2a4d86df0b6" name="sys-mongodb-api-get-whitelist-msisdn-subflow" />
+		<choice doc:name="IS bonus whitelist entry eligible?" doc:id="d0f4c68c-1ee3-45c7-9d31-a3f6df96a0fa">
+			<when expression="#[(isEmpty(payload.result) and payload.result.eligible == true)]">
+				<ee:transform doc:name="MongoDB Respose TO API Response" doc:id="813d2baa-269a-4054-9038-e9cc891a9746">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable resource="dw/payload-get-mongodb-api-response.dwl" variableName="expiryDetails" />
+					</ee:variables>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="var-smsSpiel, var-auditLog(failure)" doc:id="863b89b5-316f-4672-ad51-244c2a3ac1b2">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+						<ee:set-variable variableName="smsSpiel"><![CDATA[%dw 2.0
+output application/json
+var keyword = vars.formattedSubscriberData.keyword default "ANY"
+var brandName = vars.brand.'brand-name' default "ANY"
+var spielType = "fb-unsuccess"
+---
+{
+  "spiel-type": spielType,
+  "sms-spiel": p(
+    lower(keyword)
+    ++ "." ++ brandName
+    ++ "." ++ spielType
+  ) default p("any.any.system-error")
+}
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="END - Get msisdn Bonus " doc:id="8dad676f-4dbc-43c2-8e21-ef46e62d9ea3" message="END - Get msisdn Bonus " />
+	</sub-flow>
+	<sub-flow name="impl-subscription-post-facebook-provision-subflow" doc:id="5e05202e-e628-4eeb-a9c0-c2ac48c2f256">
+		<logger level="INFO" doc:name="START - Provision Process" doc:id="8f6573cd-c964-4a12-af11-e2ed137ce718" message="START - Provision Process - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
+		<ee:transform doc:name="Payload TO Provision API Request" doc:id="48d5fb15-f034-4f1d-bcc2-ad0b7b90ee8e">
+			<ee:message>
+				<ee:set-payload resource="dw/payload-provision-api-request.dwl" />
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="sys-facebook-api-post-provision-subflow" doc:id="b6b9e7e2-08ff-41bc-b325-8c7972a5a4fd" name="sys-facebook-api-post-provision-subflow" />
+		<choice doc:name="IS Facebook provisioning successful?" doc:id="02407f94-947c-4314-83c4-845cc68778fd">
+			<when expression="#[attributes.statusCode == 201]">
+				<choice doc:name="IS Scenario BONUS?" doc:id="68f8dd6f-6912-45a2-9693-1d946be6e4fc">
+					<when expression='#[vars.formattedSubscriberData.keyword == "BONUS"]'>
+						<flow-ref doc:name="impl-subscription-delete-bonus-subflow" doc:id="13234db9-edd1-48a0-9406-1ad385720593" name="impl-subscription-delete-bonus-subflow" />
+					</when>
+				</choice>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="var-smsSpiel, var-auditLog(failure)" doc:id="5c20d54d-9b66-4701-b3b1-cfa6cc8110a9">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+						<ee:set-variable variableName="smsSpiel"><![CDATA[%dw 2.0
+output application/json
+var keyword = vars.formattedSubscriberData.keyword default "ANY"
+var brandName = vars.brand.'brand-name' default "ANY"
+var spielType = "fb-unsuccess"
+---
+{
+  "spiel-type": spielType,
+  "sms-spiel": p(
+    lower(keyword)
+    ++ "." ++ brandName
+    ++ "." ++ spielType
+  ) default p("any.any.system-error")
+}
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="END  - Provision Process " doc:id="af797a39-04d9-4b63-9049-6823ec996b34" message="END  - Provision Process - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
+	</sub-flow>
 	<sub-flow name="impl-subscription-post-state-subflow"
 		doc:id="353c9ba2-1171-4c3d-912a-9afb9cf95476">
 		<logger level="INFO" doc:name="START - State Caching"
@@ -233,216 +384,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<logger level="INFO" doc:name="END- State Caching"
 			doc:id="eff6d585-cdd8-493f-a785-a78cc1219840"
 			message="START - State Caching - STEP 6: UPDATE REDIS STATE" />
-	</sub-flow>
-	<sub-flow name="impl-subscription-check-eligibility-subflow"
-		doc:id="badefcfd-e27d-4df8-8b80-f25111eb2cdd">
-		<logger level="INFO"
-			doc:name="START - Check Eligibility Process"
-			doc:id="ef643cf9-c369-40b8-8978-b139f0b781d5"
-			message="START - Check Eligibility Process - STEP 4: ELIGIBILITY CHECK" />
-		<ee:transform
-			doc:name="Payload TO NF API Request, Payload TO BSS API Request"
-			doc:id="f030769d-398d-41ca-b327-8457e9b8df39">
-			<ee:message>
-				<ee:set-payload
-					resource="dw/payload-nf-api-request.dwl" />
-			</ee:message>
-		</ee:transform>
-		<choice doc:name="IS brandId Prepaid or Postpaid?"
-			doc:id="527bd8e4-9594-48dc-b0d5-7eb7b9054d1c">
-			<when expression='#[[1, 2] contains (vars.brand."brand-id")]'>
-				<flow-ref doc:name="sys-nf-api-get-prepaid-msisdn-subflow"
-					doc:id="4a60da90-8dc9-44ad-844b-dc47ff3e8c8d"
-					name="sys-nf-api-get-prepaid-msisdn-subflow" />
-				<choice doc:name="HAS valid NF bundles?"
-					doc:id="b76230c2-bcda-4e9d-afb0-8675f06d6034">
-					<when
-						expression="#[!isEmpty(payload.bundles filter ($.service_id == vars.originalPayload.'as-service-id' and now() &lt; ($.expiry_date as LocalDateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;})))]">
-						<ee:transform
-							doc:name="NF API Response to Payload Response"
-							doc:id="f93609c6-8acb-49ff-ac3e-e676062ff794">
-							<ee:message>
-							</ee:message>
-							<ee:variables>
-								<ee:set-variable
-									resource="dw/payload-nf-api-response.dwl"
-									variableName="expiryDetails" />
-							</ee:variables>
-						</ee:transform>
-					</when>
-					<otherwise>
-						<ee:transform
-							doc:name="var-smsSpiel, var-auditLog(failure)"
-							doc:id="4ebfe5ba-59e1-4e2e-b639-f5f5f40da56b">
-							<ee:message />
-							<ee:variables>
-								<ee:set-variable
-									resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-								<ee:set-variable variableName="smsSpiel"><![CDATA[%dw 2.0
-output application/json
-var keyword = vars.formattedSubscriberData.keyword default "ANY"
-var brandName = vars.brand.'brand-name' default "ANY"
-var spielType = "ineligible"
----
-{
-  "spiel-type": spielType,
-  "sms-spiel": p(
-    lower(keyword)
-    ++ "." ++ brandName
-    ++ "." ++ spielType
-  ) default p("any.any.system-error")
-}
-]]></ee:set-variable>
-							</ee:variables>
-						</ee:transform>
-					</otherwise>
-				</choice>
-			</when>
-			<otherwise>
-				<flow-ref doc:name="sys-bss-api-get-postpiad-msisdn-flow"
-					doc:id="be8bdb96-659f-428f-afbd-15981d5f2ff5"
-					name="sys-bss-api-get-postpaid-msisdn-subflow" />
-				<choice doc:name="HAS valid BSS bundles?"
-					doc:id="ee91fcaa-1312-4adf-a59d-f28b106e3060">
-					<when expression="#[!isEmpty(payload.bundles)]">
-						<ee:transform
-							doc:name="BSS API Response to Payload Reponse"
-							doc:id="c3cccf06-1b26-404c-94fa-f72b0e39f060">
-							<ee:message>
-							</ee:message>
-							<ee:variables>
-								<ee:set-variable
-									resource="dw/payload-bss-api-response.dwl"
-									variableName="expiryDetails" />
-							</ee:variables>
-						</ee:transform>
-					</when>
-					<otherwise>
-						<ee:transform doc:name="var-smsSpiel, var-auditLog(failure)" doc:id="03e3ce3e-6add-4268-89a9-e584ce0f299e" >
-							<ee:message />
-							<ee:variables >
-								<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-								<ee:set-variable variableName="smsSpiel" ><![CDATA[%dw 2.0
-output application/json
-var keyword = vars.formattedSubscriberData.keyword default "ANY"
-var brandName = vars.brand.'brand-name' default "ANY"
-var spielType = "ineligible"
----
-{
-  "spiel-type": spielType,
-  "sms-spiel": p(
-    lower(keyword)
-    ++ "." ++ brandName
-    ++ "." ++ spielType
-  ) default p("any.any.system-error")
-}
-]]></ee:set-variable>
-							</ee:variables>
-						</ee:transform>
-					</otherwise>
-				</choice>
-			</otherwise>
-		</choice>
-		<logger level="INFO" doc:name="END - Check Eligibility Process"
-			doc:id="32230055-69ae-4d91-87a3-5e0b717c5e15"
-			message="END - Check Eligibility Process - STEP 4: ELIGIBILITY CHECK" />
-	</sub-flow>
-	<sub-flow name="impl-subscription-get-bonus-subflow" doc:id="c886cbf7-afd9-4281-a813-3a7b2133adef">
-		<logger level="INFO" doc:name="START - Get msisdn Bonus" doc:id="e3a1162a-aea4-45a8-9f0a-adffe01e944e" message="END- Bonus Handling" />
-		<flow-ref doc:name="sys-mongodb-api-get-whitelist-msisdn-subflow" doc:id="0fdd0308-1b66-4eb4-99e3-c2a4d86df0b6" name="sys-mongodb-api-get-whitelist-msisdn-subflow" />
-		<choice doc:name="IS bonus whitelist entry eligible?" doc:id="d0f4c68c-1ee3-45c7-9d31-a3f6df96a0fa">
-			<when expression="#[(isEmpty(payload.result) and payload.result.eligible == true)]">
-				<ee:transform doc:name="MongoDB Respose TO API Response" doc:id="813d2baa-269a-4054-9038-e9cc891a9746">
-					<ee:message>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable resource="dw/payload-get-mongodb-api-response.dwl" variableName="expiryDetails" />
-					</ee:variables>
-				</ee:transform>
-			</when>
-			<otherwise>
-				<ee:transform doc:name="var-smsSpiel, var-auditLog(failure)" doc:id="863b89b5-316f-4672-ad51-244c2a3ac1b2">
-					<ee:message />
-					<ee:variables>
-						<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-						<ee:set-variable variableName="smsSpiel"><![CDATA[%dw 2.0
-output application/json
-var keyword = vars.formattedSubscriberData.keyword default "ANY"
-var brandName = vars.brand.'brand-name' default "ANY"
-var spielType = "fb-unsuccess"
----
-{
-  "spiel-type": spielType,
-  "sms-spiel": p(
-    lower(keyword)
-    ++ "." ++ brandName
-    ++ "." ++ spielType
-  ) default p("any.any.system-error")
-}
-]]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-			</otherwise>
-		</choice>
-		<logger level="INFO" doc:name="END - Get msisdn Bonus " doc:id="8dad676f-4dbc-43c2-8e21-ef46e62d9ea3" message="END - Get msisdn Bonus " />
-	</sub-flow>
-	<sub-flow
-		name="impl-subscription-post-facebook-provision-subflow"
-		doc:id="5e05202e-e628-4eeb-a9c0-c2ac48c2f256">
-		<logger level="INFO" doc:name="START - Provision Process"
-			doc:id="8f6573cd-c964-4a12-af11-e2ed137ce718"
-			message="START - Provision Process - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
-		<ee:transform doc:name="Payload TO Provision API Request"
-			doc:id="48d5fb15-f034-4f1d-bcc2-ad0b7b90ee8e">
-			<ee:message>
-				<ee:set-payload
-					resource="dw/payload-provision-api-request.dwl" />
-			</ee:message>
-		</ee:transform>
-		<flow-ref doc:name="sys-facebook-api-post-provision-subflow"
-			doc:id="b6b9e7e2-08ff-41bc-b325-8c7972a5a4fd"
-			name="sys-facebook-api-post-provision-subflow" />
-		<choice doc:name="IS Facebook provisioning successful?"
-			doc:id="02407f94-947c-4314-83c4-845cc68778fd">
-			<when expression="#[attributes.statusCode == 201]">
-				<choice doc:name="IS Scenario BONUS?"
-					doc:id="68f8dd6f-6912-45a2-9693-1d946be6e4fc">
-					<when
-						expression='#[vars.formattedSubscriberData.keyword == "BONUS"]'>
-						<flow-ref
-							doc:name="impl-subscription-delete-bonus-subflow"
-							doc:id="13234db9-edd1-48a0-9406-1ad385720593"
-							name="impl-subscription-delete-bonus-subflow" />
-					</when>
-				</choice>
-			</when>
-			<otherwise>
-				<ee:transform doc:name="var-smsSpiel, var-auditLog(failure)" doc:id="5c20d54d-9b66-4701-b3b1-cfa6cc8110a9" >
-					<ee:message />
-					<ee:variables >
-						<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-						<ee:set-variable variableName="smsSpiel" ><![CDATA[%dw 2.0
-output application/json
-var keyword = vars.formattedSubscriberData.keyword default "ANY"
-var brandName = vars.brand.'brand-name' default "ANY"
-var spielType = "fb-unsuccess"
----
-{
-  "spiel-type": spielType,
-  "sms-spiel": p(
-    lower(keyword)
-    ++ "." ++ brandName
-    ++ "." ++ spielType
-  ) default p("any.any.system-error")
-}
-]]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-			</otherwise>
-		</choice>
-		<logger level="INFO" doc:name="END  - Provision Process "
-			doc:id="af797a39-04d9-4b63-9049-6823ec996b34"
-			message="END  - Provision Process - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
 	</sub-flow>
 	<sub-flow name="impl-subscription-put-audit-subflow"
 		doc:id="0c114945-f0a3-42b1-b2a8-7ef7d1693e05">
