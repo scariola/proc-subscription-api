@@ -62,7 +62,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<choice doc:name="IS request type BONUS?"
 			doc:id="9867ea49-786e-4396-9da7-a4d87d377002">
 			<when
-				expression='#[(vars.formattedSubscriberData.keyword == "BONUS" and isEmpty(vars.stateResponse.result))]'>
+				expression='#[vars.formattedSubscriberData.keyword == "BONUS" and !([0, 1] contains vars.stateResponse.result.state)]'>
 				<flow-ref doc:name="impl-subscription-get-bonus-subflow"
 					doc:id="350f47e1-87e0-4f4a-bd3f-cfd83a7d686c"
 					name="impl-subscription-get-bonus-subflow" />
@@ -76,7 +76,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<choice doc:name="IS user eligible for provisioning?"
 			doc:id="5ba87f19-f47d-48c0-bb71-93110d4cb01f">
 			<when
-				expression="#[(vars.formattedSubscriberData.keyword == &quot;OPT-IN&quot; and (vars.stateResponse.result.state == &quot;1&quot; or isEmpty(vars.stateResponse.result))) or (vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and isEmpty(vars.stateResponse.result)) or (vars.formattedSubscriberData.keyword == 'OPT-OUT' and vars.stateResponse.result.state == '1')]">
+				expression="#[(vars.formattedSubscriberData.keyword == &quot;OPT-IN&quot; and (vars.stateResponse.result.state == 1 or isEmpty(vars.stateResponse.result))) or (vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and !isEmpty(payload.result)) or (vars.formattedSubscriberData.keyword == 'OPT-OUT' and vars.stateResponse.result.state == 1)]">
 				<flow-ref
 					doc:name="impl-subscription-post-facebook-provision-subflow"
 					doc:id="680793fa-786c-47ed-839e-92b10afa765d"
@@ -91,7 +91,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		</choice>
 		<choice doc:name="IS provisioning successful?"
 			doc:id="6f66766b-e702-47a2-b685-91f2277ac7da">
-			<when expression="#[attributes.statusCode == 200]">
+			<when expression="#[!isEmpty(vars.provisionResponse)]">
 				<flow-ref doc:name="impl-subscription-post-state-subflow"
 					doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92"
 					name="impl-subscription-post-state-subflow" />
@@ -296,7 +296,7 @@ var spielType = "ineligible"
 		<choice doc:name="IS bonus whitelist entry eligible?"
 			doc:id="d0f4c68c-1ee3-45c7-9d31-a3f6df96a0fa">
 			<when
-				expression="#[(isEmpty(payload.result) and payload.result.eligible == true)]">
+				expression="#[((!isEmpty(payload.results)) and (payload.results.eligible == true))]">
 				<ee:transform
 					doc:name="MongoDB Respose TO API Response"
 					doc:id="813d2baa-269a-4054-9038-e9cc891a9746">
