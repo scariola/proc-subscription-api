@@ -80,8 +80,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				<flow-ref
 					doc:name="impl-subscription-post-facebook-provision-subflow"
 					doc:id="680793fa-786c-47ed-839e-92b10afa765d"
-					name="impl-subscription-post-facebook-provision-subflow"
-					target="provisionResponse" />
+					name="impl-subscription-post-facebook-provision-subflow" target="provisionResponse"/>
 			</when>
 			<otherwise>
 				<logger level="INFO" doc:name="Skip FB Provisioning"
@@ -97,7 +96,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					name="impl-subscription-post-state-subflow" />
 			</when>
 			<otherwise>
-				<logger level="INFO" doc:name="Skip State Update"
+				<logger level="INFO" doc:name="Skip Post Update"
 					doc:id="0aaf9af9-b61a-4771-afd0-b0da1d316482"
 					message="Proceed to STEP 7: UPDATE AUDIT LOGGING" />
 			</otherwise>
@@ -423,11 +422,15 @@ var spielType = "fb-unsuccess"
 					name="sys-redis-api-post-state-msisdn-subflow" />
 			</until-successful>
 			<error-handler>
-					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="de0b026d-5261-4872-8ec9-70ada1bdf0ee">
-					<logger level="INFO" doc:name="Logger" doc:id="43095d7e-f4ca-4896-b45b-36aa0702d52d" message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;redis-key&quot;: &quot;spectre-freefb&quot; ++ vars.formattedSubscriberData.msisdn,&#10;  &quot;redis-state&quot;: payload.requestPayload.state,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.description,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
-					</on-error-continue>
-				</error-handler>
-			</try>
+				<on-error-continue enableNotifications="true"
+					logException="true" doc:name="On Error Continue"
+					doc:id="de0b026d-5261-4872-8ec9-70ada1bdf0ee">
+					<logger level="INFO" doc:name="Logger"
+						doc:id="43095d7e-f4ca-4896-b45b-36aa0702d52d"
+						message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;redis-key&quot;: &quot;spectre-freefb&quot; ++ vars.formattedSubscriberData.msisdn,&#10;  &quot;redis-state&quot;: payload.requestPayload.state,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.description,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
+				</on-error-continue>
+			</error-handler>
+		</try>
 		<logger level="INFO" doc:name="END- State Caching"
 			doc:id="eff6d585-cdd8-493f-a785-a78cc1219840"
 			message="START - State Caching - STEP 6: UPDATE REDIS STATE" />
@@ -445,15 +448,24 @@ var spielType = "fb-unsuccess"
 			</ee:message>
 		</ee:transform>
 		<try doc:name="Try" doc:id="a885e43d-9511-47a7-80b3-b898237a2752">
-				<until-successful maxRetries="3" doc:name="Until Successful" doc:id="9c148838-f733-40d9-ae84-69a2a581f516" millisBetweenRetries="5000">
-				<flow-ref doc:name="sys-audit-api-put-audit-subflow" doc:id="82eee915-548b-4c4d-8d86-0407536d902e" name="sys-audit-api-put-audit-subflow" />
-		</until-successful>
-				<error-handler>
-					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="ffc39210-adf0-4c58-b6d1-ef781a6e2b23">
-						<logger level="INFO" doc:name="Proceed anyway" doc:id="26dc6070-178b-4780-a439-59ad1777abe6" message='#["Failed to update audit log. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
-					</on-error-continue>
-				</error-handler>
-			</try>
+			<until-successful maxRetries="3"
+				doc:name="Until Successful"
+				doc:id="9c148838-f733-40d9-ae84-69a2a581f516"
+				millisBetweenRetries="5000">
+				<flow-ref doc:name="sys-audit-api-put-audit-subflow"
+					doc:id="82eee915-548b-4c4d-8d86-0407536d902e"
+					name="sys-audit-api-put-audit-subflow" />
+			</until-successful>
+			<error-handler>
+				<on-error-continue enableNotifications="true"
+					logException="true" doc:name="On Error Continue"
+					doc:id="ffc39210-adf0-4c58-b6d1-ef781a6e2b23">
+					<logger level="INFO" doc:name="Proceed anyway"
+						doc:id="26dc6070-178b-4780-a439-59ad1777abe6"
+						message='#["Failed to update audit log. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
+				</on-error-continue>
+			</error-handler>
+		</try>
 		<logger level="INFO" doc:name="END - Update Audit Logging"
 			doc:id="dd75d9e7-9a71-4d19-94f4-41c212547619"
 			message="END - Update Audit Logging - STEP 7: UPDATE AUDIT LOGGING" />
@@ -463,11 +475,13 @@ var spielType = "fb-unsuccess"
 		<logger level="INFO" doc:name="START - SMS Messaging Process"
 			doc:id="85275436-9068-49ef-8876-def884faa94a"
 			message="START - SMS Messaging Process - STEP 8: SMS MESSAGING" />
-		<ee:transform doc:name="var-smsSpiel" doc:id="93fccce1-a2b7-475c-80db-72f6a5e23cf3">
+		<ee:transform doc:name="var-smsSpiel"
+			doc:id="93fccce1-a2b7-475c-80db-72f6a5e23cf3">
 			<ee:message>
 			</ee:message>
 			<ee:variables>
-				<ee:set-variable resource="dw/get-sms-spiel.dwl" variableName="smsSpiel" />
+				<ee:set-variable resource="dw/get-sms-spiel.dwl"
+					variableName="smsSpiel" />
 			</ee:variables>
 		</ee:transform>
 		<ee:transform doc:name="Payload to SMS API Request"
@@ -478,15 +492,24 @@ var spielType = "fb-unsuccess"
 			</ee:message>
 		</ee:transform>
 		<try doc:name="Try" doc:id="318708a6-c9a9-4ccf-b492-feb1c6740850">
-				<until-successful maxRetries="3" doc:name="Until Successful" doc:id="cfc90b85-e3be-449c-b1a2-758e708b7e41" millisBetweenRetries="5000">
-				<flow-ref doc:name="sys-sms-api-subflow" doc:id="a53cccc2-654c-4066-8d5b-7284f8434493" name="sys-sms-api-post-message-subflow" />
-		</until-successful>
+			<until-successful maxRetries="3"
+				doc:name="Until Successful"
+				doc:id="cfc90b85-e3be-449c-b1a2-758e708b7e41"
+				millisBetweenRetries="5000">
+				<flow-ref doc:name="sys-sms-api-subflow"
+					doc:id="a53cccc2-654c-4066-8d5b-7284f8434493"
+					name="sys-sms-api-post-message-subflow" />
+			</until-successful>
 			<error-handler>
-					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="d94484a0-e34e-43b9-a5ce-cdbe9ad918ca">
-						<logger level="INFO" doc:name="Proceed Anyway" doc:id="3e471234-41e0-4af0-8984-c4cc3299ef9f" message='#["Failed to send sms. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
-					</on-error-continue>
-				</error-handler>
-			</try>
+				<on-error-continue enableNotifications="true"
+					logException="true" doc:name="On Error Continue"
+					doc:id="d94484a0-e34e-43b9-a5ce-cdbe9ad918ca">
+					<logger level="INFO" doc:name="Proceed Anyway"
+						doc:id="3e471234-41e0-4af0-8984-c4cc3299ef9f"
+						message='#["Failed to send sms. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
+				</on-error-continue>
+			</error-handler>
+		</try>
 		<logger level="INFO" doc:name="END - SMS Messaging Process"
 			doc:id="d2e18799-9a72-40a5-8add-3e5dc9051b0c"
 			message="END - SMS Messaging Process - STEP 8: SMS MESSAGING" />
@@ -497,15 +520,25 @@ var spielType = "fb-unsuccess"
 			doc:id="2b0b2435-b927-4e7d-bac2-0a1554c8e0db"
 			message="START - Mongdb Delete msisdn " />
 		<try doc:name="Try" doc:id="5addf2c4-ba95-4a6f-9104-f8f4a18fd380">
-				<until-successful maxRetries="3" doc:name="Until Successful" doc:id="41d49cf9-ca58-4736-b91a-2597490b6dc8" millisBetweenRetries="5000">
-			<flow-ref doc:name="sys-mongodb-api-delete-whitelist-msisdn-subflow" doc:id="a2d06424-5d43-41c0-b999-f0fb57c8ab52" name="sys-mongodb-api-delete-whitelist-msisdn-subflow" />
-		</until-successful>
+			<until-successful maxRetries="3"
+				doc:name="Until Successful"
+				doc:id="41d49cf9-ca58-4736-b91a-2597490b6dc8"
+				millisBetweenRetries="5000">
+				<flow-ref
+					doc:name="sys-mongodb-api-delete-whitelist-msisdn-subflow"
+					doc:id="a2d06424-5d43-41c0-b999-f0fb57c8ab52"
+					name="sys-mongodb-api-delete-whitelist-msisdn-subflow" />
+			</until-successful>
 			<error-handler>
-					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="1aa62361-68c4-4dd0-b59f-6539e21eab13" type="ANY">
-						<logger level="INFO" doc:name="Proceed Anyway" doc:id="4a42ff9c-a6f2-4099-99ea-07a94b90f984" message='#["Failed to delete msisdn whitelist. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
-					</on-error-propagate>
-				</error-handler>
-			</try>
+				<on-error-propagate enableNotifications="true"
+					logException="true" doc:name="On Error Propagate"
+					doc:id="1aa62361-68c4-4dd0-b59f-6539e21eab13" type="ANY">
+					<logger level="INFO" doc:name="Proceed Anyway"
+						doc:id="4a42ff9c-a6f2-4099-99ea-07a94b90f984"
+						message='#["Failed to delete msisdn whitelist. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
+				</on-error-propagate>
+			</error-handler>
+		</try>
 		<logger level="INFO" doc:name="END - Mongdb Delete msisdn"
 			doc:id="35ae0728-de2f-4188-bbfc-ebe30b9be8d2"
 			message="END - Mongdb Delete msisdn " />
