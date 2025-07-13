@@ -47,7 +47,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<choice doc:name="IS request type OPT-IN?"
 			doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb">
 			<when
-				expression='#[(vars.formattedSubscriberData.keyword == "OPT-IN" and (vars.stateResponse.result.state == 0 or isEmpty(vars.stateResponse.result)))]'>
+				expression="#[(vars.formattedSubscriberData.keyword == &quot;OPT-IN&quot; and (vars.stateResponse.result.state == 0 or isEmpty(vars.stateResponse.result)) and vars.brand.'brand-id' != 0)]">
 				<flow-ref
 					doc:name="impl-subscription-check-eligibility-subflow"
 					doc:id="210ab367-276a-4056-a5fc-21516a672df9"
@@ -80,7 +80,8 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				<flow-ref
 					doc:name="impl-subscription-post-facebook-provision-subflow"
 					doc:id="680793fa-786c-47ed-839e-92b10afa765d"
-					name="impl-subscription-post-facebook-provision-subflow" target="provisionResponse"/>
+					name="impl-subscription-post-facebook-provision-subflow"
+					target="provisionResponse" />
 			</when>
 			<otherwise>
 				<logger level="INFO" doc:name="Skip FB Provisioning"
@@ -192,16 +193,13 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					target="stateResponse" />
 			</when>
 			<otherwise>
-				<ee:transform
-					doc:name="var-smsSpiel,var-auditLog(failure)"
+				<ee:transform doc:name="var-auditLog(failure)"
 					doc:id="ee0784f9-70af-47a2-871f-98f338ad2bec">
 					<ee:message>
 					</ee:message>
 					<ee:variables>
 						<ee:set-variable
 							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-						<ee:set-variable resource="dw/get-sms-spiel.dwl"
-							variableName="smsSpiel" />
 					</ee:variables>
 				</ee:transform>
 			</otherwise>
@@ -237,10 +235,10 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					name="sys-bss-api-get-postpaid-msisdn-subflow" />
 			</otherwise>
 		</choice>
-		<choice doc:name="HAS valid Prepaid or Postpaid bundles?"
+		<choice doc:name="HAS valid Prepaid or Postpaid promo bundles?"
 			doc:id="b76230c2-bcda-4e9d-afb0-8675f06d6034">
 			<when
-				expression="#[((!isEmpty(payload.bundles filter ($.service_id == vars.originalPayload.'as-service-id' and now() &lt; ($.expiry_date as LocalDateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;})))) or (!isEmpty(payload.bundles)) )]">
+				expression="#[((!isEmpty(payload.bundles filter ($.service_id == vars.originalPayload.'as-service-id' and now() &lt; ($.expiry_date as LocalDateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;})))) or (!isEmpty(payload.bundles)))]">
 				<ee:transform doc:name="var-expiryDetails"
 					doc:id="f93609c6-8acb-49ff-ac3e-e676062ff794">
 					<ee:message>
@@ -254,27 +252,12 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			</when>
 			<otherwise>
 				<ee:transform
-					doc:name="var-smsSpiel, var-auditLog(failure)"
+					doc:name="var-auditLog(failure)"
 					doc:id="4ebfe5ba-59e1-4e2e-b639-f5f5f40da56b">
 					<ee:message />
 					<ee:variables>
 						<ee:set-variable
 							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-						<ee:set-variable variableName="smsSpiel"><![CDATA[%dw 2.0
-output application/json
-var keyword = vars.formattedSubscriberData.keyword default "ANY"
-var brandName = vars.brand.'brand-name' default "ANY"
-var spielType = "ineligible"
----
-{
-  "spiel-type": spielType,
-  "sms-spiel": p(
-    lower(keyword)
-    ++ "." ++ brandName
-    ++ "." ++ spielType
-  ) default p("any.any.system-error")
-}
-]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
 			</otherwise>
@@ -296,8 +279,7 @@ var spielType = "ineligible"
 			doc:id="d0f4c68c-1ee3-45c7-9d31-a3f6df96a0fa">
 			<when
 				expression="#[((!isEmpty(payload.results)) and (payload.results.eligible == true))]">
-				<ee:transform
-					doc:name="MongoDB Respose TO API Response"
+				<ee:transform doc:name="var-expiryDetails"
 					doc:id="813d2baa-269a-4054-9038-e9cc891a9746">
 					<ee:message>
 					</ee:message>
@@ -309,28 +291,10 @@ var spielType = "ineligible"
 				</ee:transform>
 			</when>
 			<otherwise>
-				<ee:transform
-					doc:name="var-smsSpiel, var-auditLog(failure)"
-					doc:id="863b89b5-316f-4672-ad51-244c2a3ac1b2">
+				<ee:transform doc:name="var-auditLog(failure)" doc:id="899adcdb-7ad3-4293-b690-b0fe75998f87" >
 					<ee:message />
-					<ee:variables>
-						<ee:set-variable
-							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-						<ee:set-variable variableName="smsSpiel"><![CDATA[%dw 2.0
-output application/json
-var keyword = vars.formattedSubscriberData.keyword default "ANY"
-var brandName = vars.brand.'brand-name' default "ANY"
-var spielType = "fb-unsuccess"
----
-{
-  "spiel-type": spielType,
-  "sms-spiel": p(
-    lower(keyword)
-    ++ "." ++ brandName
-    ++ "." ++ spielType
-  ) default p("any.any.system-error")
-}
-]]></ee:set-variable>
+					<ee:variables >
+						<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
 					</ee:variables>
 				</ee:transform>
 			</otherwise>
@@ -370,28 +334,10 @@ var spielType = "fb-unsuccess"
 				</choice>
 			</when>
 			<otherwise>
-				<ee:transform
-					doc:name="var-smsSpiel, var-auditLog(failure)"
-					doc:id="5c20d54d-9b66-4701-b3b1-cfa6cc8110a9">
+				<ee:transform doc:name="var-auditLog(failure)" doc:id="471c6dd6-1f12-4005-9105-bd89ad29d056" >
 					<ee:message />
-					<ee:variables>
-						<ee:set-variable
-							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-						<ee:set-variable variableName="smsSpiel"><![CDATA[%dw 2.0
-output application/json
-var keyword = vars.formattedSubscriberData.keyword default "ANY"
-var brandName = vars.brand.'brand-name' default "ANY"
-var spielType = "fb-unsuccess"
----
-{
-  "spiel-type": spielType,
-  "sms-spiel": p(
-    lower(keyword)
-    ++ "." ++ brandName
-    ++ "." ++ spielType
-  ) default p("any.any.system-error")
-}
-]]></ee:set-variable>
+					<ee:variables >
+						<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
 					</ee:variables>
 				</ee:transform>
 			</otherwise>
@@ -425,7 +371,8 @@ var spielType = "fb-unsuccess"
 				<on-error-continue enableNotifications="true"
 					logException="true" doc:name="On Error Continue"
 					doc:id="de0b026d-5261-4872-8ec9-70ada1bdf0ee">
-					<logger level="INFO" doc:name="Logger"
+					<logger level="INFO"
+						doc:name="Proceed anyway  - Post State Failure Log"
 						doc:id="43095d7e-f4ca-4896-b45b-36aa0702d52d"
 						message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;redis-key&quot;: &quot;spectre-freefb&quot; ++ vars.formattedSubscriberData.msisdn,&#10;  &quot;redis-state&quot;: payload.requestPayload.state,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.description,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
 				</on-error-continue>
@@ -460,7 +407,8 @@ var spielType = "fb-unsuccess"
 				<on-error-continue enableNotifications="true"
 					logException="true" doc:name="On Error Continue"
 					doc:id="ffc39210-adf0-4c58-b6d1-ef781a6e2b23">
-					<logger level="INFO" doc:name="Proceed anyway"
+					<logger level="INFO"
+						doc:name="Proceed anyway  - Put Audit Failure Log"
 						doc:id="26dc6070-178b-4780-a439-59ad1777abe6"
 						message='#["Failed to update audit log. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
 				</on-error-continue>
@@ -504,7 +452,8 @@ var spielType = "fb-unsuccess"
 				<on-error-continue enableNotifications="true"
 					logException="true" doc:name="On Error Continue"
 					doc:id="d94484a0-e34e-43b9-a5ce-cdbe9ad918ca">
-					<logger level="INFO" doc:name="Proceed Anyway"
+					<logger level="INFO"
+						doc:name="Proceed anyway  - Post SMS Failure Log"
 						doc:id="3e471234-41e0-4af0-8984-c4cc3299ef9f"
 						message='#["Failed to send sms. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
 				</on-error-continue>
@@ -533,7 +482,8 @@ var spielType = "fb-unsuccess"
 				<on-error-propagate enableNotifications="true"
 					logException="true" doc:name="On Error Propagate"
 					doc:id="1aa62361-68c4-4dd0-b59f-6539e21eab13" type="ANY">
-					<logger level="INFO" doc:name="Proceed Anyway"
+					<logger level="INFO"
+						doc:name="Proceed anyway  - Delete Bonus Failure Log"
 						doc:id="4a42ff9c-a6f2-4099-99ea-07a94b90f984"
 						message='#["Failed to delete msisdn whitelist. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
 				</on-error-propagate>

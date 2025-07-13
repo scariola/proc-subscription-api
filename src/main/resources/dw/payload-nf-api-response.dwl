@@ -9,8 +9,8 @@ payload.bundles
     now() < ($.expiry_date as LocalDateTime { format: "yyyy-MM-dd HH:mm:ss" })
   )
   reduce (item, acc = {}) -> {
-    "service-id": item.service_id default vars.originalPayload.'as-service-id',
-    "expiry-date": item.expiry_date default p('default.expiry.date')
+    "service-id": item.service_id ,
+    "expiry-date": item.expiry_date
   }
   else {
      "service-id": vars.originalPayload.'as-service-id',

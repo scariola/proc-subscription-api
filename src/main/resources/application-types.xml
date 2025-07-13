@@ -12,5 +12,7 @@
   <types:enrichment select="#ee0784f9-70af-47a2-871f-98f338ad2bec"/>
   <types:enrichment select="#3b7e6ae3-0fd5-4bf4-a28c-cf667dcf2697"/>
   <types:enrichment select="#57302fc3-03b2-46ca-a460-a21e757a9887"/>
-  <types:enrichment select="#8b20cd3e-fb86-498e-a1ab-d6894ece0053"/>
+  <types:enrichment select="#4ebfe5ba-59e1-4e2e-b639-f5f5f40da56b"/>
+  <types:enrichment select="#899adcdb-7ad3-4293-b690-b0fe75998f87"/>
+  <types:enrichment select="#471c6dd6-1f12-4005-9105-bd89ad29d056"/>
 </types:mule>
