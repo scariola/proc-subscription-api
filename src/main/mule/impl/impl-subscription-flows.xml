@@ -47,7 +47,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<choice doc:name="IS request type OPT-IN?"
 			doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb">
 			<when
-				expression='#[(vars.formattedSubscriberData.keyword == "OPT-IN" and (vars.stateResponse.result.state == "1" or isEmpty(vars.stateResponse.result)))]'>
+				expression='#[(vars.formattedSubscriberData.keyword == "OPT-IN" and (vars.stateResponse.result.state == 0 or isEmpty(vars.stateResponse.result)))]'>
 				<flow-ref
 					doc:name="impl-subscription-check-eligibility-subflow"
 					doc:id="210ab367-276a-4056-a5fc-21516a672df9"
@@ -62,7 +62,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<choice doc:name="IS request type BONUS?"
 			doc:id="9867ea49-786e-4396-9da7-a4d87d377002">
 			<when
-				expression='#[vars.formattedSubscriberData.keyword == "BONUS" and !([0, 1] contains vars.stateResponse.result.state)]'>
+				expression="#[((vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and !([0, 1] contains vars.stateResponse.result.state)) and (vars.brand.'brand-name' != &quot;Postpaid&quot;))]">
 				<flow-ref doc:name="impl-subscription-get-bonus-subflow"
 					doc:id="350f47e1-87e0-4f4a-bd3f-cfd83a7d686c"
 					name="impl-subscription-get-bonus-subflow" />
@@ -76,7 +76,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<choice doc:name="IS user eligible for provisioning?"
 			doc:id="5ba87f19-f47d-48c0-bb71-93110d4cb01f">
 			<when
-				expression="#[(vars.formattedSubscriberData.keyword == &quot;OPT-IN&quot; and (vars.stateResponse.result.state == 1 or isEmpty(vars.stateResponse.result))) or (vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and !isEmpty(payload.result)) or (vars.formattedSubscriberData.keyword == 'OPT-OUT' and vars.stateResponse.result.state == 1)]">
+				expression="#[(vars.formattedSubscriberData.keyword == &quot;OPT-IN&quot; and (vars.stateResponse.result.state == 0 or isEmpty(vars.stateResponse.result)) and (!isEmpty(payload.bundles))) or (vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and (payload.results.eligible is true)) &#10;or (vars.formattedSubscriberData.keyword == 'OPT-OUT' and vars.stateResponse.result.state == 1)]">
 				<flow-ref
 					doc:name="impl-subscription-post-facebook-provision-subflow"
 					doc:id="680793fa-786c-47ed-839e-92b10afa765d"
@@ -424,7 +424,7 @@ var spielType = "fb-unsuccess"
 			</until-successful>
 			<error-handler>
 					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="de0b026d-5261-4872-8ec9-70ada1bdf0ee">
-					<logger level="INFO" doc:name="Logger" doc:id="43095d7e-f4ca-4896-b45b-36aa0702d52d" message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;step&quot;: flow.name as String,&#10;  &quot;transactionId&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request_type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;cache_key&quot;: &quot;spectre-freefb&quot; ++ vars.formattedSubscriberData.msisdn,&#10;  &quot;cache_value&quot;: payload.requestPayload.state,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.description,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
+					<logger level="INFO" doc:name="Logger" doc:id="43095d7e-f4ca-4896-b45b-36aa0702d52d" message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;redis-key&quot;: &quot;spectre-freefb&quot; ++ vars.formattedSubscriberData.msisdn,&#10;  &quot;redis-state&quot;: payload.requestPayload.state,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.description,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
 					</on-error-continue>
 				</error-handler>
 			</try>
