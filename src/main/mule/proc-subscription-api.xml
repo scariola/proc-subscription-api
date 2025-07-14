@@ -46,7 +46,7 @@ output application/json skipNullOn = 'everywhere'
 {
     "x-event-id": correlationId,
     "x-event-code": if (isEmpty(vars.auditLog)) "1000" else "9000",
-    "x-event-msg": if (isEmpty(vars.auditLog)) "Success" else "Failure",
+    "x-event-msg": if (isEmpty(vars.auditLog)) "success" else "failure",
     "result": {
         "transaction-id": vars.originalPayload.'transaction-id',
         "msisdn": vars.originalPayload.'msisdn',
