@@ -2,6 +2,6 @@
 output application/json
 ---
 {
-    "brand-id": payload.result.'brand-id' default vars.bridgeResult.'brand-id',
-    "brand-name": payload.result.'brand-name'  default vars.bridgeResult.'brand-name'
+    "brand-id": payload.result.'brand-id' default payload.'brand-id',
+    "brand-name": payload.result.'brand-name'  default payload.'brand-name'
 }

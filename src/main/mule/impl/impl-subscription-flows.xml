@@ -6,7 +6,6 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
-
 	<flow name="impl-subscription-post-subscription-flow"
 		doc:id="11759503-62a6-46b0-8845-b3be461f145b">
 		<logger level="INFO"
@@ -159,20 +158,16 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					doc:name="sys-bridge-api-get-bridge-prefix-subflow"
 					doc:id="8c1e7c02-b7f8-48a3-acf0-3b1c820e2622"
 					name="sys-bridge-api-get-bridge-prefix-subflow" />
-				<ee:transform doc:name="var-bridgeResult"
-					doc:id="bcf0f0d3-06da-4f24-ac74-c3c9aaeeed03">
+				<ee:transform doc:name="Payload TO Redis API Request" doc:id="bcf0f0d3-06da-4f24-ac74-c3c9aaeeed03">
 					<ee:message>
+				<ee:set-payload resource="dw/payload-get-bridge-prefix-response.dwl" />
 					</ee:message>
 					<ee:variables>
-						<ee:set-variable
-							resource="dw/payload-get-bridge-prefix-response.dwl"
-							variableName="bridgeResult" />
 					</ee:variables>
 				</ee:transform>
-				<flow-ref
-					doc:name="sys-redis-api-post-brand-prefix-subflow"
-					doc:id="f488925a-519f-445c-963d-231f3f08cf9e"
-					name="sys-redis-api-post-brand-prefix-subflow" />
+				<async doc:name="Async" doc:id="c30b2e07-a0a3-4bba-a911-baa0c2eb1706">
+					<flow-ref doc:name="sys-redis-api-post-brand-prefix-subflow" doc:id="f488925a-519f-445c-963d-231f3f08cf9e" name="sys-redis-api-post-brand-prefix-subflow" />
+		</async>
 			</when>
 		</choice>
 		<ee:transform doc:name="var-brand"
