@@ -87,5 +87,6 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 		<http:request-connection host="${sms.host}" />
 	</http:request-config>
 	<configuration-properties doc:name="Configuration properties" doc:id="0036f345-1a0e-4bab-9fcd-465bf4b8485f" file="config/dev/spiels.properties" />
+	<api-gateway:autodiscovery apiId="${app.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="0b9f7245-9a97-4ce1-9dd8-d09c07088324" flowRef="proc-subscription-api-main" />
 	
 </mule>
