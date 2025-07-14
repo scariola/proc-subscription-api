@@ -91,7 +91,8 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		</choice>
 		<choice doc:name="IS provisioning successful?"
 			doc:id="6f66766b-e702-47a2-b685-91f2277ac7da">
-			<when expression="#[(attributes.statusCode == 200 and !isEmpty(vars.provisionResponse))]">
+			<when
+				expression="#[(attributes.statusCode == 200 and !isEmpty(vars.provisionResponse))]">
 				<flow-ref doc:name="impl-subscription-post-state-subflow"
 					doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92"
 					name="impl-subscription-post-state-subflow" />
@@ -193,7 +194,8 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					target="stateResponse" />
 			</when>
 			<otherwise>
-				<ee:transform doc:name="var-auditLog(failure), var-spielType"
+				<ee:transform
+					doc:name="var-auditLog(failure), var-spielType"
 					doc:id="ee0784f9-70af-47a2-871f-98f338ad2bec">
 					<ee:message>
 					</ee:message>
@@ -258,7 +260,9 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					<ee:variables>
 						<ee:set-variable
 							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-						<ee:set-variable resource="dw/var-spielType-ineligible.dwl" variableName="spielType" />
+						<ee:set-variable
+							resource="dw/var-spielType-ineligible.dwl"
+							variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 			</otherwise>
@@ -292,11 +296,16 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				</ee:transform>
 			</when>
 			<otherwise>
-				<ee:transform doc:name="var-auditLog(failure), var-spielType" doc:id="899adcdb-7ad3-4293-b690-b0fe75998f87" >
+				<ee:transform
+					doc:name="var-auditLog(failure), var-spielType"
+					doc:id="899adcdb-7ad3-4293-b690-b0fe75998f87">
 					<ee:message />
-					<ee:variables >
-						<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-						<ee:set-variable resource="dw/var-spielType-ineligible.dwl" variableName="spielType" />
+					<ee:variables>
+						<ee:set-variable
+							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+						<ee:set-variable
+							resource="dw/var-spielType-ineligible.dwl"
+							variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 			</otherwise>
@@ -394,7 +403,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					<logger level="INFO"
 						doc:name="Proceed anyway  - Put Audit Failure Log"
 						doc:id="26dc6070-178b-4780-a439-59ad1777abe6"
-						message='#["Failed to update audit log. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
+						message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;audit-id&quot;: vars.auditId.'audit-id',&#10;  &quot;audit-log&quot;: if (isEmpty(vars.auditLog)) &#10;    {&#10;        &quot;success&quot;: 1,&#10;        &quot;hasProcessorError&quot;: 0&#10;    } else vars.auditLog,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.description,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
 				</on-error-continue>
 			</error-handler>
 		</try>
@@ -439,7 +448,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					<logger level="INFO"
 						doc:name="Proceed anyway  - Post SMS Failure Log"
 						doc:id="3e471234-41e0-4af0-8984-c4cc3299ef9f"
-						message='#["Failed to send sms. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
+						message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;message&quot;: &quot;message&quot;: vars.smsSpiel.'sms-spiel',&#10;  &quot;source-address&quot;: vars.originalPayload.'sms-source-address',&#10;  &quot;attempt&quot;: 3,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.description,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;},&#10;  &quot;note&quot;: &quot;No Message was sent, but successfully provision/deprovision&quot;&#10;}]" />
 				</on-error-continue>
 			</error-handler>
 		</try>
@@ -469,7 +478,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					<logger level="INFO"
 						doc:name="Proceed anyway  - Delete Bonus Failure Log"
 						doc:id="4a42ff9c-a6f2-4099-99ea-07a94b90f984"
-						message='#["Failed to delete msisdn whitelist. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
+						message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;mongo-action&quot;: &quot;delete&quot;,&#10;  &quot;collection&quot;: &quot;whitelist&quot;,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.description,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
 				</on-error-propagate>
 			</error-handler>
 		</try>

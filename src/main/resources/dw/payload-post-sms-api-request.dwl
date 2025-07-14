@@ -2,9 +2,9 @@
 output application/json
 ---
 {
-    "fromAddress": vars.originalPayload.msisdn,
+    "fromAddress": vars.originalPayload.'sms-source-address',
     "smsMessaging": {
-        "address": vars.originalPayload.'sms-source-address',
+        "address": vars.originalPayload.msisdn,
         "message": vars.smsSpiel.'sms-spiel'
     }
 }

@@ -3,11 +3,14 @@ output application/json
 ---
 {
     "sms-spiel": 
-        if (!isEmpty(vars.spielType)) 
+        if (!isEmpty(error)) 
+        	p('any.any.system-error')
+        else if
+          (!isEmpty(vars.spielType)) 
             p(
                 lower(vars.formattedSubscriberData.keyword) 
                 ++ "." 
-                ++ "any" default lower(vars.brand.'brand-name' replace " " with "_") 
+                ++ if (!isEmpty(vars.vars.brand.'brand-name')) lower(vars.brand.'brand-name' replace " " with "_") else "any" 
                 ++ "." 
                 ++ vars.spielType
             ) 
@@ -18,7 +21,7 @@ output application/json
                 ++ lower(vars.brand.'brand-name' replace " " with "_") 
                 ++ if (isEmpty(vars.stateResponse.result)) "" else "." 
                 ++ vars.stateResponse.result.state
-            )
+            )  replace "expiryPlaceholder" with (vars.expiryDetails.'expiry-date' as LocalDateTime {format: "yyyy-MM-dd HH:mm:ss"}) as String {format: "MM/dd/yy, HH:mm"}
         default
         p('any.any.system-error')
 }
