@@ -13,13 +13,11 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:id="3540012f-b031-4564-8890-5a34e2150563"
 			message="START - Common Error  Processing " />
 		<ee:transform
-			doc:name="var-smsSpiel, var-auditLog(failure)"
+			doc:name="var-auditLog(failure)"
 			doc:id="75b66577-958c-4b63-b067-e27f3e325311">
 			<ee:message>
 			</ee:message>
 			<ee:variables>
-				<ee:set-variable resource="dw/get-sms-spiel.dwl"
-					variableName="smsSpiel" />
 				<ee:set-variable
 					resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
 			</ee:variables>

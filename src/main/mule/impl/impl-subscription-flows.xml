@@ -91,7 +91,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		</choice>
 		<choice doc:name="IS provisioning successful?"
 			doc:id="6f66766b-e702-47a2-b685-91f2277ac7da">
-			<when expression="#[!isEmpty(vars.provisionResponse)]">
+			<when expression="#[(attributes.statusCode == 200 and !isEmpty(vars.provisionResponse))]">
 				<flow-ref doc:name="impl-subscription-post-state-subflow"
 					doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92"
 					name="impl-subscription-post-state-subflow" />
@@ -193,7 +193,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					target="stateResponse" />
 			</when>
 			<otherwise>
-				<ee:transform doc:name="var-auditLog(failure)"
+				<ee:transform doc:name="var-auditLog(failure), var-spielType"
 					doc:id="ee0784f9-70af-47a2-871f-98f338ad2bec">
 					<ee:message>
 					</ee:message>
@@ -252,12 +252,13 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			</when>
 			<otherwise>
 				<ee:transform
-					doc:name="var-auditLog(failure)"
+					doc:name="var-auditLog(failure), var-spielType"
 					doc:id="4ebfe5ba-59e1-4e2e-b639-f5f5f40da56b">
 					<ee:message />
 					<ee:variables>
 						<ee:set-variable
 							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+						<ee:set-variable resource="dw/var-spielType-ineligible.dwl" variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 			</otherwise>
@@ -291,10 +292,11 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				</ee:transform>
 			</when>
 			<otherwise>
-				<ee:transform doc:name="var-auditLog(failure)" doc:id="899adcdb-7ad3-4293-b690-b0fe75998f87" >
+				<ee:transform doc:name="var-auditLog(failure), var-spielType" doc:id="899adcdb-7ad3-4293-b690-b0fe75998f87" >
 					<ee:message />
 					<ee:variables >
 						<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
+						<ee:set-variable resource="dw/var-spielType-ineligible.dwl" variableName="spielType" />
 					</ee:variables>
 				</ee:transform>
 			</otherwise>
@@ -319,29 +321,11 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<flow-ref doc:name="sys-facebook-api-post-provision-subflow"
 			doc:id="b6b9e7e2-08ff-41bc-b325-8c7972a5a4fd"
 			name="sys-facebook-api-post-provision-subflow" />
-		<choice doc:name="IS Facebook provisioning successful?"
-			doc:id="02407f94-947c-4314-83c4-845cc68778fd">
-			<when expression="#[attributes.statusCode == 201]">
-				<choice doc:name="IS Scenario BONUS?"
-					doc:id="68f8dd6f-6912-45a2-9693-1d946be6e4fc">
-					<when
-						expression='#[vars.formattedSubscriberData.keyword == "BONUS"]'>
-						<flow-ref
-							doc:name="impl-subscription-delete-bonus-subflow"
-							doc:id="13234db9-edd1-48a0-9406-1ad385720593"
-							name="impl-subscription-delete-bonus-subflow" />
+		<choice doc:name="IS Scenario BONUS?" doc:id="68f8dd6f-6912-45a2-9693-1d946be6e4fc">
+					<when expression='#[vars.formattedSubscriberData.keyword == "BONUS"]'>
+						<flow-ref doc:name="impl-subscription-delete-bonus-subflow" doc:id="13234db9-edd1-48a0-9406-1ad385720593" name="impl-subscription-delete-bonus-subflow" />
 					</when>
 				</choice>
-			</when>
-			<otherwise>
-				<ee:transform doc:name="var-auditLog(failure)" doc:id="471c6dd6-1f12-4005-9105-bd89ad29d056" >
-					<ee:message />
-					<ee:variables >
-						<ee:set-variable resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-					</ee:variables>
-				</ee:transform>
-			</otherwise>
-		</choice>
 		<logger level="INFO" doc:name="END  - Provision Process "
 			doc:id="af797a39-04d9-4b63-9049-6823ec996b34"
 			message="END  - Provision Process - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
