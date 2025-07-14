@@ -330,7 +330,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<flow-ref doc:name="sys-facebook-api-post-provision-subflow"
 			doc:id="b6b9e7e2-08ff-41bc-b325-8c7972a5a4fd"
 			name="sys-facebook-api-post-provision-subflow" />
-		<choice doc:name="IS Scenario BONUS?" doc:id="68f8dd6f-6912-45a2-9693-1d946be6e4fc">
+		<choice doc:name="IS request type BONUS?" doc:id="68f8dd6f-6912-45a2-9693-1d946be6e4fc">
 					<when expression='#[vars.formattedSubscriberData.keyword == "BONUS"]'>
 						<flow-ref doc:name="impl-subscription-delete-bonus-subflow" doc:id="13234db9-edd1-48a0-9406-1ad385720593" name="impl-subscription-delete-bonus-subflow" />
 					</when>
