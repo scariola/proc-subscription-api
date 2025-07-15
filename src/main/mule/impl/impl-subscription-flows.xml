@@ -24,7 +24,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			name="impl-subscription-brand-lookup-subflow" />
 		<flow-ref doc:name="impl-subcription-state-lookup-subflow"
 			doc:id="ea2cebf6-fe8a-41a6-be24-f1c0796c4edd"
-			name="impl-subcription-state-lookup-subflow" />
+			name="impl-subscription-state-lookup-subflow" />
 		<flow-ref
 			doc:name="impl-subscription-check-eligibility-subflow"
 			doc:id="ab7d3856-5216-414e-ae97-028fc544c626"
@@ -106,7 +106,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					name="sys-bridge-api-get-bridge-prefix-subflow" />
 				<flow-ref doc:name="impl-subcription-post-brand-subflow"
 					doc:id="689016ef-48df-4d16-9b61-cfdb48559be4"
-					name="impl-subcription-post-brand-subflow" />
+					name="impl-subscription-post-brand-subflow" />
 			</when>
 		</choice>
 		<ee:transform doc:name="var-brand"
@@ -131,7 +131,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:id="6e639040-daa6-4b99-bf1a-ace8435fe943"
 			message="START - Brand Lookup" />
 	</sub-flow>
-	<sub-flow name="impl-subcription-state-lookup-subflow"
+	<sub-flow name="impl-subscription-state-lookup-subflow"
 		doc:id="0750b17e-e72e-4459-8039-a6d15d2747ad">
 		<logger level="INFO" doc:name="START - State Lookup"
 			doc:id="02416b7a-7fd1-4567-b4d0-3680a8c88af7"
@@ -148,10 +148,10 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					variableName="state" />
 			</ee:variables>
 		</ee:transform>
-		<choice doc:name="Choice"
+		<choice doc:name="IS dual provision, dual off, dual bonus, or not registered scenario?"
 			doc:id="de8ba8e7-17a3-41ca-9af4-919e101ed9b8">
 			<when
-				expression="#[((vars.formattedSubscriberData.keyword == &quot;OPT-IN&quot; and vars.state.state == 1) or (vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and vars.state.state == 1 and vars.brand.'brand-name' == &quot;Postpaid&quot;) or (vars.formattedSubscriberData.keyword == &quot;OPT-OUT&quot; and (vars.state.state == 0 or isEmpty(vars.state.state))))]">
+				expression="#[((vars.formattedSubscriberData.keyword == &quot;OPT-IN&quot; and vars.state.state == 1) or (vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and (vars.state.state == 1 or vars.brand.'brand-name' == &quot;Postpaid&quot;)) or (vars.formattedSubscriberData.keyword == &quot;OPT-OUT&quot; and (vars.state.state == 0 or isEmpty(vars.state.state))))]">
 				<raise-error doc:name="Raise error - Request Conflict"
 					doc:id="3c72776c-ffd8-4ef7-a091-65cf18767519"
 					type="INPUT:REQUEST_CONFLICT"
@@ -162,7 +162,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:id="f0dc7604-0ad4-40ac-b69c-7de897349ccd"
 			message="END- State Lookup" />
 	</sub-flow>
-	<sub-flow name="impl-subcription-post-brand-subflow"
+	<sub-flow name="impl-subscription-post-brand-subflow"
 		doc:id="f26655a7-045d-4c0d-aea2-d46c853bd62f">
 		<logger level="INFO" doc:name="START- Post brand from bridge "
 			doc:id="44ff3ac8-74f6-4f0b-85f3-194c1e81754f"
@@ -203,14 +203,14 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<choice doc:name="ROUTE Eligibility: OPT-IN | BONUS | OPT-OUT"
 			doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb">
 			<when
-				expression='#[(vars.formattedSubscriberData.keyword == "OPT-IN" and (vars.state.state == 0 or isEmpty(vars.state.state)))]'>
+				expression='#[vars.formattedSubscriberData.keyword == "OPT-IN"]'>
 				<flow-ref
 					doc:name="impl-subscription-lookup-prepaid-postpiad-subflow"
 					doc:id="210ab367-276a-4056-a5fc-21516a672df9"
 					name="impl-subscription-lookup-prepaid-postpiad-subflow" />
 			</when>
 			<when
-				expression="#[((vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and !([0, 1] contains vars.state.state)) and (vars.brand.'brand-name' != &quot;Postpaid&quot;))]">
+				expression='#[vars.formattedSubscriberData.keyword == "BONUS"]'>
 				<flow-ref doc:name="impl-subscription-get-bonus-subflow"
 					doc:id="350f47e1-87e0-4f4a-bd3f-cfd83a7d686c"
 					name="impl-subscription-get-bonus-subflow" />
