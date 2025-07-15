@@ -3,25 +3,24 @@ output application/json
 ---
 {
   "sms-spiel": 
-    if (!isEmpty(error)) 
-      p("any.any.system-error")
-    else if (!isEmpty(vars.spielType)) 
+    if (isEmpty(error)) 
       p(
-        lower(vars.formattedSubscriberData.keyword) 
+        lower(vars.formattedSubscriberData.keyword default "any") 
         ++ "." 
-        ++ (if (!isEmpty(vars.brand.'brand-name')) lower(vars.brand.'brand-name' replace " " with "_") else "any") 
-        ++ "." 
-        ++ vars.spielType
-      )
-    else 
-      p(
-        lower(vars.formattedSubscriberData.keyword) 
-        ++ "." 
-        ++ lower(vars.brand.'brand-name' replace " " with "_") 
+        ++ lower((vars.brand.'brand-name' default "any") replace " " with "_") 
         ++ (if (isEmpty(vars.stateResponse.result)) "" else "." ++ vars.stateResponse.result.state)
-      ) 
-      replace "expiryPlaceholder" with 
+      ) replace "expiryPlaceholder" with (
         (vars.expiryDetails.'expiry-date' as LocalDateTime {format: "yyyy-MM-dd HH:mm:ss"}) 
-        as String {format: "MM/dd/yy, HH:mm"}
-    default p("any.any.system-error")
+          as String {format: "MM/dd/yy, HH:mm"}
+      )
+    else if (["ineligible", "invalid_keyword", "unsupported"] contains lower(error.errorType.identifier default ""))
+      p(
+        lower(vars.formattedSubscriberData.keyword default "any") 
+        ++ "." 
+        ++ lower((vars.brand.'brand-name' default "any") replace " " with "_") 
+        ++ "." 
+        ++ lower(error.errorType.identifier replace "_" with "-")
+      )
+    else
+      p("any.any.system-error")
 }

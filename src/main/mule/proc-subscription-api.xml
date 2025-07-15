@@ -22,42 +22,36 @@
 			</http:error-response>
 		</http:listener>
 		<apikit:router config-ref="proc-subscription-api-config" />
-		<error-handler ref="proc-subscription-api_APIKIT_Error_Handler" />
+		<error-handler
+			ref="proc-subscription-api_APIKIT_Error_Handler" />
 	</flow>
 	<flow
 		name="post:\subscription:application\json:proc-subscription-api-config">
-		<logger level="INFO" doc:name="START - POST /subscription" doc:id="8515c7b5-8fbe-4995-a255-e4dfd5d3bcbf" message="START - POST /subscription - Start processing subscription request"/>
-		<ee:transform doc:name="Store Orignal Payload" doc:id="fa72305f-bce5-4f0d-9547-555f4e9e58b0" >
-			<ee:message >
+		<logger level="INFO" doc:name="START - POST /subscription"
+			doc:id="8515c7b5-8fbe-4995-a255-e4dfd5d3bcbf"
+			message="START - POST /subscription - Start processing subscription request" />
+		<ee:transform doc:name="Store Orignal Payload"
+			doc:id="fa72305f-bce5-4f0d-9547-555f4e9e58b0">
+			<ee:message>
 			</ee:message>
-			<ee:variables >
-				<ee:set-variable variableName="originalPayload" ><![CDATA[%dw 2.0
+			<ee:variables>
+				<ee:set-variable variableName="originalPayload"><![CDATA[%dw 2.0
 output application/json
 ---
 payload]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<flow-ref doc:name="impl-subscription-post-subscription-flow" doc:id="0e1c050a-6e2e-4695-a46d-51acd0d6453d" name="impl-subscription-post-subscription-flow"/>
-		<ee:transform doc:name="Construct Subscription Result Payload" doc:id="a4700e3e-cef6-499b-a788-b00e964ea957" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
-output application/json skipNullOn = 'everywhere'
----
-{
-    "x-event-id": correlationId,
-    "x-event-code": if (isEmpty(vars.auditLog)) "1000" else "9000",
-    "x-event-msg": if (isEmpty(vars.auditLog)) "success" else "failure",
-    "result": {
-        "transaction-id": vars.originalPayload.'transaction-id',
-        "msisdn": vars.originalPayload.'msisdn',
-        "status":if (vars.provisionResponse.'x-event-msg' == "Provisioning Successful" or vars.provisionResponse.'x-event-msg' == "MSISDN successfully removed from whitelist" ) 1 else if (vars.provisionResponse.'x-event-msg' == "Deprovisioning Successful") 0 else null,
-        "expiry-date": if (vars.formattedSubscriberData.keyword =='OPT-OUT') null else vars.expiryDetails.'expiry-date' 
-                      default vars.stateResponse.result.'expiry-date',
-        "sms-spiel": vars.smsSpiel.'sms-spiel' default null
-    }
-}]]></ee:set-payload>
+		<flow-ref doc:name="impl-subscription-post-subscription-flow"
+			doc:id="0e1c050a-6e2e-4695-a46d-51acd0d6453d"
+			name="impl-subscription-post-subscription-flow" />
+		<ee:transform
+			doc:name="Construct Success Subscription Result Payload"
+			doc:id="a4700e3e-cef6-499b-a788-b00e964ea957">
+			<ee:message>
+				<ee:set-payload resource="dw/api-response-success-200.dwl" />
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="END - POST /subscription" doc:id="dd78a311-0ba8-4c35-9c61-76266e34b8eb" message="#[payload]"/>
+		<logger level="INFO" doc:name="END - POST /subscription"
+			doc:id="dd78a311-0ba8-4c35-9c61-76266e34b8eb" message="#[payload]" />
 	</flow>
 </mule>

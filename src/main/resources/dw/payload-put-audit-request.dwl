@@ -2,10 +2,9 @@
 output application/json
 ---
 {
-    "audit-id": vars.auditId."audit-id",
-    "requetPayload": if (isEmpty(vars.auditLog)) 
-	{
-        "success": 1,
-        "hasProcessorError": 0
-    } else vars.auditLog
+  "audit-id": vars.auditId."audit-id",
+  "requetPayload": {
+    "success": if (!isEmpty(error)) 0 else 1,
+    "hasProcessorError": if (!isEmpty(error)) 1 else 0
+  }
 }

@@ -24,9 +24,9 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:id="df1eddac-db79-438b-bf53-3012de73f9f2"
 			name="impl-subscription-lookup-brand-and-state-subflow" />
 		<flow-ref
-			doc:name="impl-subscription-handle-eligibility-and-provision-subflow"
+			doc:name="impl-subscription-handle-eligibility-postpaid-prepaid-bonus-subflow"
 			doc:id="ab7d3856-5216-414e-ae97-028fc544c626"
-			name="impl-subscription-handle-eligibility-and-provision-subflow" />
+			name="impl-subscription-handle-eligibility-postpaid-prepaid-bonus-subflow" />
 		<flow-ref doc:name="impl-subscription-put-audit-subflow"
 			doc:id="f99817a2-bd6b-4386-a0e0-27864ad9d94a"
 			name="impl-subscription-put-audit-subflow" />
@@ -41,12 +41,12 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			ref="proc-subscription-api-Shared_Error_Handler" />
 	</flow>
 	<sub-flow
-		name="impl-subscription-handle-eligibility-and-provision-subflow"
+		name="impl-subscription-handle-eligibility-postpaid-prepaid-bonus-subflow"
 		doc:id="6d366e81-537c-40ac-bbd9-ab7197a1b239">
 		<choice doc:name="IS request type OPT-IN?"
 			doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb">
 			<when
-				expression="#[(vars.formattedSubscriberData.keyword == &quot;OPT-IN&quot; and (vars.stateResponse.result.state == 0 or isEmpty(vars.stateResponse.result)) and vars.brand.'brand-id' != 0)]">
+				expression='#[(vars.formattedSubscriberData.keyword == "OPT-IN" and (vars.stateResponse.result.state == 0 or isEmpty(vars.stateResponse.result)))]'>
 				<flow-ref
 					doc:name="impl-subscription-check-eligibility-subflow"
 					doc:id="210ab367-276a-4056-a5fc-21516a672df9"
@@ -61,7 +61,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<choice doc:name="IS request type BONUS?"
 			doc:id="9867ea49-786e-4396-9da7-a4d87d377002">
 			<when
-				expression="#[((vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and !([0, 1] contains vars.stateResponse.result.state)) and (vars.brand.'brand-name' != &quot;Postpaid&quot;) and (vars.brand.'brand-id' != 0))]">
+				expression="#[((vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and !([0, 1] contains vars.stateResponse.result.state)) and (vars.brand.'brand-name' != &quot;Postpaid&quot;))]">
 				<flow-ref doc:name="impl-subscription-get-bonus-subflow"
 					doc:id="350f47e1-87e0-4f4a-bd3f-cfd83a7d686c"
 					name="impl-subscription-get-bonus-subflow" />
@@ -182,16 +182,9 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					target="stateResponse" />
 			</when>
 			<otherwise>
-				<ee:transform
-					doc:name="var-auditLog(failure), var-spielType"
-					doc:id="ee0784f9-70af-47a2-871f-98f338ad2bec">
-					<ee:message>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable
-							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-					</ee:variables>
-				</ee:transform>
+				<raise-error doc:name="Raise error - Unsupported Brand"
+					doc:id="4686e406-302f-4314-ac17-296c12cb3536"
+					type="INPUT:UNSUPPORTED" description="Brand Id Unsupported" />
 			</otherwise>
 		</choice>
 		<logger level="INFO" doc:name="END- Brand and State Check"
@@ -224,7 +217,8 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 						logException="true" doc:name="On Error Propagate"
 						doc:id="409d9136-dc06-4da6-932f-8dbde98c0e2f" type="ANY">
 						<logger level="INFO" doc:name="Stop Process"
-							doc:id="3addf38c-b35f-4ce7-8617-a87e8b1f3aed" message='#["Failed to POST brand prefix from Redis. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]'/>
+							doc:id="3addf38c-b35f-4ce7-8617-a87e8b1f3aed"
+							message='#["Failed to POST brand prefix from Redis. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
 					</on-error-propagate>
 				</error-handler>
 			</try>
@@ -276,18 +270,11 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				</ee:transform>
 			</when>
 			<otherwise>
-				<ee:transform
-					doc:name="var-auditLog(failure), var-spielType"
-					doc:id="4ebfe5ba-59e1-4e2e-b639-f5f5f40da56b">
-					<ee:message />
-					<ee:variables>
-						<ee:set-variable
-							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-						<ee:set-variable
-							resource="dw/var-spielType-ineligible.dwl"
-							variableName="spielType" />
-					</ee:variables>
-				</ee:transform>
+				<raise-error
+					doc:name="Raise error - Subcriber not eligible"
+					doc:id="cef58b8d-2657-436d-b5ab-8ead0516b932"
+					type="INPUT:INELIGIBLE"
+					description=" Subcriber not eligible for this promo." />
 			</otherwise>
 		</choice>
 		<logger level="INFO" doc:name="END - Check Eligibility Process"
@@ -319,18 +306,11 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				</ee:transform>
 			</when>
 			<otherwise>
-				<ee:transform
-					doc:name="var-auditLog(failure), var-spielType"
-					doc:id="899adcdb-7ad3-4293-b690-b0fe75998f87">
-					<ee:message />
-					<ee:variables>
-						<ee:set-variable
-							resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-						<ee:set-variable
-							resource="dw/var-spielType-ineligible.dwl"
-							variableName="spielType" />
-					</ee:variables>
-				</ee:transform>
+				<raise-error
+					doc:name="Raise error - Subcriber not whitelisted"
+					doc:id="ceb053bc-4b61-4c72-88b1-888583981185"
+					type="INPUT:INELIGIBLE"
+					description="Subcriber not whitelisted for bonus fb." />
 			</otherwise>
 		</choice>
 		<logger level="INFO" doc:name="END - Get msisdn Bonus "
@@ -430,7 +410,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					<logger level="INFO"
 						doc:name="Proceed anyway  - Put Audit Failure Log"
 						doc:id="26dc6070-178b-4780-a439-59ad1777abe6"
-						message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;audit-id&quot;: vars.auditId.'audit-id',&#10;  &quot;audit-log&quot;: if (isEmpty(vars.auditLog)) &#10;    {&#10;        &quot;success&quot;: 1,&#10;        &quot;hasProcessorError&quot;: 0&#10;    } else vars.auditLog,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.description,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
+						message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;audit-id&quot;: vars.auditId.'audit-id',&#10;  &quot;audit-log&quot;: {&#10;    &quot;success&quot;: if (!isEmpty(error)) 0 else 1,&#10;    &quot;hasProcessorError&quot;: if (!isEmpty(error)) 1 else 0&#10;  },&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.description,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
 				</on-error-continue>
 			</error-handler>
 		</try>
@@ -499,14 +479,14 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					name="sys-mongodb-api-delete-whitelist-msisdn-subflow" />
 			</until-successful>
 			<error-handler>
-				<on-error-propagate enableNotifications="true"
-					logException="true" doc:name="On Error Propagate"
-					doc:id="1aa62361-68c4-4dd0-b59f-6539e21eab13" type="ANY">
+				<on-error-continue enableNotifications="true"
+					logException="true" doc:name="On Error Continue"
+					doc:id="2df78b1e-98ce-4fc9-9aff-d696c27279d7">
 					<logger level="INFO"
 						doc:name="Proceed anyway  - Delete Bonus Failure Log"
 						doc:id="4a42ff9c-a6f2-4099-99ea-07a94b90f984"
 						message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;mongo-action&quot;: &quot;delete&quot;,&#10;  &quot;collection&quot;: &quot;whitelist&quot;,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.description,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
-				</on-error-propagate>
+				</on-error-continue>
 			</error-handler>
 		</try>
 		<logger level="INFO" doc:name="END - Mongdb Delete msisdn"

@@ -12,16 +12,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:name="START - Common Error  Processing"
 			doc:id="3540012f-b031-4564-8890-5a34e2150563"
 			message="START - Common Error  Processing " />
-		<ee:transform
-			doc:name="var-auditLog(failure)"
-			doc:id="75b66577-958c-4b63-b067-e27f3e325311">
-			<ee:message>
-			</ee:message>
-			<ee:variables>
-				<ee:set-variable
-					resource="dw/var-auditLog-failure.dwl" variableName="auditLog" />
-			</ee:variables>
-		</ee:transform>
 		<flow-ref doc:name="impl-subscription-put-audit-subflow"
 			doc:id="03f00fdd-d99b-46c7-adf1-9dd7659d22a3"
 			name="impl-subscription-put-audit-subflow" />
@@ -35,28 +25,38 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	<error-handler
 		name="proc-subscription-api-Shared_Error_Handler"
 		doc:id="ce502ca3-fef7-49aa-b16a-0eafa6daa05f">
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8300b75d-3a63-4da3-b29d-3c189866a6b7" type="INPUT:INELIGIBLE">
+			<flow-ref doc:name="common-error-processing-subflow" doc:id="1884284e-678f-48a9-82b9-cb97dd2fa726" name="common-error-processing-subflow" />
+			<ee:transform doc:name="Construct failure Subscription Result Payload , var-httpStatus" doc:id="b8edee11-aab1-499e-be89-5c1c7d17de6e">
+				<ee:message>
+					<ee:set-payload resource="dw/api-response-failure-200.dwl" />
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable resource="dw/var-httpStatus-200.dwl" variableName="httpStatus" />
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="18bb70e4-7b76-476d-8352-e4fca8adf8ee" type="INPUT:UNSUPPORTED">
+			<flow-ref doc:name="common-error-processing-subflow" doc:id="0b3634df-898d-40eb-b3c9-8709a47e518e" name="common-error-processing-subflow" />
+			<ee:transform doc:name="Construct failure Subscription Result Payload , var-httpStatus" doc:id="3cadf184-2899-4313-81f9-93f634e52eb8">
+				<ee:message>
+					<ee:set-payload resource="dw/api-response-failure-200.dwl" />
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable resource="dw/var-httpStatus-200.dwl" variableName="httpStatus" />
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
 		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="323826ea-36f5-4407-89c2-30ae799912d7" type="INPUT:INVALID_KEYWORD">
 				<flow-ref doc:name="common-error-processing-subflow" doc:id="e206025d-03f7-4628-a4af-42bc57a3379e" name="common-error-processing-subflow" />
-				<ee:transform doc:name="Set Payload - Validation Error, var-httpStatus" doc:id="4911f308-2786-4efc-99b7-8a8fb87a013b">
-					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  "x-event-code": correlationId,	
-  "x-event-code": 9209,
-  "x-event-msg": error.detailedDescription,
-  "result": {
-    "error-type": error.errorType.namespace ++ ":" ++ error.errorType.identifier,
-    "error-description": error.detailedDescription
-  }
-}
-]]></ee:set-payload>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable resource="dw/var-httpStatus-400.dwl" variableName="httpStatus" />
-					</ee:variables>
-				</ee:transform>
+			<ee:transform doc:name="Construct failure Subscription Result Payload , var-httpStatus" doc:id="539bb880-d841-487b-b352-fc5d3569a503" >
+				<ee:message >
+					<ee:set-payload resource="dw/api-response-failure-200.dwl" />
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable resource="dw/var-httpStatus-400.dwl" variableName="httpStatus" />
+				</ee:variables>
+			</ee:transform>
 			</on-error-propagate>
 		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="31c28ae5-0b29-4149-816e-adb539aea003" type="HTTP:BAD_REQUEST">
 			<flow-ref doc:name="common-error-processing-subflow" doc:id="0b8631e6-fdb7-4275-910d-93ebbf5a271d" name="common-error-processing-subflow" />

@@ -17,13 +17,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		</ee:transform>
 		<choice doc:name="CONTAINS Invalid Keword?" doc:id="83d9946e-322c-4828-9225-80dbb4fa660b">
 			<when expression="#[vars.formattedSubscriberData.keyword == 'INVALID']">
-				<ee:transform doc:name="var-spielType" doc:id="148163e3-1147-4ee9-a42f-99ca41134159">
-					<ee:message>
-					</ee:message>
-					<ee:variables >
-						<ee:set-variable resource="dw/var-spielType-invalid-keyword.dwl" variableName="spielType" />
-					</ee:variables>
-				</ee:transform>
 				<raise-error doc:name="Raise Error - Invalid Keyword" doc:id="9908a27a-539c-4bda-a8dc-fc787cf0449b" type="INPUT:INVALID_KEYWORD" description="Invalid SMS keyword provided" />
 			</when>
 			<otherwise>
