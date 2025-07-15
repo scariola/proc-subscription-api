@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tracing="http://www.mulesoft.org/schema/mule/tracing"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/tracing http://www.mulesoft.org/schema/mule/tracing/current/mule-tracing.xsd">
+	<munit:config name="proc-subscription-api-test-suite.xml" />
+	<munit:test name="post:\subscription:application\json:proc-subscription-api-config-opt-in-sucess-test" doc:id="8d720337-4da0-43ee-8f44-dba5ca7a2399" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock impl-subscription-post-subscription-flow" doc:id="ed78f476-e3ce-40df-9401-0c90b914faac" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="0e1c050a-6e2e-4695-a46d-51acd0d6453d" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://postsubscriptionapplicationjsonprocsubscriptionapiconfigoptinsucesstest/mock_payload.dwl')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value="#[readUrl('classpath://postsubscriptionapplicationjsonprocsubscriptionapiconfigoptinsucesstest/mock_attributes.dwl')]" />
+					<munit-tools:variables >
+						<munit-tools:variable key="formattedSubscriberData" value="#[output application/json --- readUrl('classpath://postsubscriptionapplicationjsonprocsubscriptionapiconfigoptinsucesstest/mock_variable_.dwl')]" mediaType="application/json" encoding="UTF-8" />
+						<munit-tools:variable key="outboundHeaders" value="#[readUrl('classpath://postsubscriptionapplicationjsonprocsubscriptionapiconfigoptinsucesstest/mock_variable_1.dwl')]" />
+						<munit-tools:variable key="auditId" value="#[output application/json --- readUrl('classpath://postsubscriptionapplicationjsonprocsubscriptionapiconfigoptinsucesstest/mock_variable_2.dwl')]" mediaType="application/json" encoding="UTF-8" />
+						<munit-tools:variable key="expiryDetails" value="#[output application/json --- readUrl('classpath://postsubscriptionapplicationjsonprocsubscriptionapiconfigoptinsucesstest/mock_variable_3.dwl')]" mediaType="application/json" encoding="UTF-8" />
+						<munit-tools:variable key="originalPayload" value="#[output application/json --- readUrl('classpath://postsubscriptionapplicationjsonprocsubscriptionapiconfigoptinsucesstest/mock_variable_4.dwl')]" mediaType="application/json" encoding="UTF-8" />
+						<munit-tools:variable key="provisionResponse" value="#[output application/json --- readUrl('classpath://postsubscriptionapplicationjsonprocsubscriptionapiconfigoptinsucesstest/mock_variable_5.dwl')]" mediaType="application/json" encoding="UTF-8" />
+						<munit-tools:variable key="smsSpiel" value="#[output application/json --- readUrl('classpath://postsubscriptionapplicationjsonprocsubscriptionapiconfigoptinsucesstest/mock_variable_6.dwl')]" mediaType="application/json" encoding="UTF-8" />
+						<munit-tools:variable key="state" value="#[output application/json --- readUrl('classpath://postsubscriptionapplicationjsonprocsubscriptionapiconfigoptinsucesstest/mock_variable_7.dwl')]" mediaType="application/json" encoding="UTF-8" />
+						<munit-tools:variable key="brand" value="#[output application/json --- readUrl('classpath://postsubscriptionapplicationjsonprocsubscriptionapiconfigoptinsucesstest/mock_variable_8.dwl')]" mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Input" doc:id="58c5c199-1a8d-49af-af46-cf198a1b947f">
+				<munit:payload value="#[output application/json --- readUrl('classpath://postsubscriptionapplicationjsonprocsubscriptionapiconfigoptinsucesstest/set-event_payload.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://postsubscriptionapplicationjsonprocsubscriptionapiconfigoptinsucesstest/set-event_attributes.dwl')]" />
+				<munit:variables>
+					<munit:variable key="outboundHeaders" value="#[readUrl('classpath://postsubscriptionapplicationjsonprocsubscriptionapiconfigoptinsucesstest/set-event_variable_.dwl')]" />
+				</munit:variables>
+			</munit:set-event>
+			<tracing:with-correlation-id doc:name="With CorrelationID" doc:id="fe84d645-5633-41f1-8fec-611fcd15f0c4" correlationId="#[123]">
+				<flow-ref doc:name="Flow-ref to post:\subscription:application\json:proc-subscription-api-config" doc:id="5f59bf21-1c45-4949-b5ee-7c271a4307e9" name="post:\subscription:application\json:proc-subscription-api-config" />
+			</tracing:with-correlation-id>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="b94fc108-ee89-4b5f-9963-f8208943627c" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import * from dw::test::Asserts
+---
+payload must equalTo({
+  "x-event-id": "123",
+  "x-event-code": 1000,
+  "x-event-msg": "success",
+  "result": {
+    "transaction-id": "20200224-004-003",
+    "msisdn": "9177939217",
+    "status": 1,
+    "expiry-date": "2025-12-31 23:59:59",
+    "sms-spiel": "You now have access to Free FB. To begin, go to m.facebook.com or use the official FB Android/iOS app. Free FB is valid until 12/31/25."
+  }
+})]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:verify-call doc:name="Verify END - POST /subscription" doc:id="4467c181-f82d-4218-a03d-6b8485b782f3" processor="logger" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="dd78a311-0ba8-4c35-9c61-76266e34b8eb" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+
+</mule>
