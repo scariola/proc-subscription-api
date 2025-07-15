@@ -126,7 +126,7 @@ output application/json
 		<on-error-propagate
 			type="APIKIT:METHOD_NOT_ALLOWED">
 			<ee:transform
-				doc:name="Set Payload - Method Not Allowed">
+				doc:name="Set Payload - Method Not Allowed, var-httpStatus">
 				<ee:message>
 					<ee:set-payload
 						resource="dw/api-method-not-allowed.dwl" />
@@ -153,7 +153,7 @@ output application/json
 		<on-error-propagate
 			type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
 			<ee:transform
-				doc:name="Set Payload - Unsupported Media Type">
+				doc:name="Set Payload - Unsupported Media Type, var-httpStatus">
 				<ee:message>
 					<ee:set-payload
 						resource="dw/api-unsupported-media-type.dwl" />
@@ -166,7 +166,7 @@ output application/json
 		</on-error-propagate>
 
 		<on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
-			<ee:transform doc:name="Set Payload - Not Implemented">
+			<ee:transform doc:name="Set Payload - Not Implemented, var-httpStatus">
 				<ee:message>
 					<ee:set-payload
 						resource="dw/api-not-implemented.dwl" />

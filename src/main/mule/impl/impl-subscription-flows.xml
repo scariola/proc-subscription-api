@@ -61,7 +61,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<choice doc:name="IS request type BONUS?"
 			doc:id="9867ea49-786e-4396-9da7-a4d87d377002">
 			<when
-				expression="#[((vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and !([0, 1] contains vars.stateResponse.result.state)) and (vars.brand.'brand-name' != &quot;Postpaid&quot;))]">
+				expression="#[((vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and !([0, 1] contains vars.stateResponse.result.state)) and (vars.brand.'brand-name' != &quot;Postpaid&quot;) and (vars.brand.'brand-id' != 0))]">
 				<flow-ref doc:name="impl-subscription-get-bonus-subflow"
 					doc:id="350f47e1-87e0-4f4a-bd3f-cfd83a7d686c"
 					name="impl-subscription-get-bonus-subflow" />
@@ -158,16 +158,9 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					doc:name="sys-bridge-api-get-bridge-prefix-subflow"
 					doc:id="8c1e7c02-b7f8-48a3-acf0-3b1c820e2622"
 					name="sys-bridge-api-get-bridge-prefix-subflow" />
-				<ee:transform doc:name="Payload TO Redis API Request" doc:id="bcf0f0d3-06da-4f24-ac74-c3c9aaeeed03">
-					<ee:message>
-				<ee:set-payload resource="dw/payload-get-bridge-prefix-response.dwl" />
-					</ee:message>
-					<ee:variables>
-					</ee:variables>
-				</ee:transform>
-				<async doc:name="Async" doc:id="c30b2e07-a0a3-4bba-a911-baa0c2eb1706">
-					<flow-ref doc:name="sys-redis-api-post-brand-prefix-subflow" doc:id="f488925a-519f-445c-963d-231f3f08cf9e" name="sys-redis-api-post-brand-prefix-subflow" />
-		</async>
+				<flow-ref doc:name="impl-subcription-post-brand-subflow"
+					doc:id="689016ef-48df-4d16-9b61-cfdb48559be4"
+					name="impl-subcription-post-brand-subflow" />
 			</when>
 		</choice>
 		<ee:transform doc:name="var-brand"
@@ -204,6 +197,41 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<logger level="INFO" doc:name="END- Brand and State Check"
 			doc:id="6e639040-daa6-4b99-bf1a-ace8435fe943"
 			message="END- Brand and State Check - STEP 3: REDIS LOGIC (BRAND &amp; STATE LOOKUP)" />
+	</sub-flow>
+	<sub-flow name="impl-subcription-post-brand-subflow"
+		doc:id="f26655a7-045d-4c0d-aea2-d46c853bd62f">
+		<logger level="INFO" doc:name="START- Post brand from bridge "
+			doc:id="44ff3ac8-74f6-4f0b-85f3-194c1e81754f"
+			message="START-  - Post brand from bridge " />
+		<ee:transform doc:name="Payload TO Redis API Request"
+			doc:id="bcf0f0d3-06da-4f24-ac74-c3c9aaeeed03">
+			<ee:message>
+				<ee:set-payload
+					resource="dw/payload-get-bridge-prefix-response.dwl" />
+			</ee:message>
+			<ee:variables>
+			</ee:variables>
+		</ee:transform>
+		<async doc:name="Async"
+			doc:id="c30b2e07-a0a3-4bba-a911-baa0c2eb1706">
+			<try doc:name="Try" doc:id="3a8146b9-368c-4c15-aa1d-7113564405d0">
+				<flow-ref
+					doc:name="sys-redis-api-post-brand-prefix-subflow"
+					doc:id="f488925a-519f-445c-963d-231f3f08cf9e"
+					name="sys-redis-api-post-brand-prefix-subflow" />
+				<error-handler>
+					<on-error-propagate enableNotifications="true"
+						logException="true" doc:name="On Error Propagate"
+						doc:id="409d9136-dc06-4da6-932f-8dbde98c0e2f" type="ANY">
+						<logger level="INFO" doc:name="Stop Process"
+							doc:id="3addf38c-b35f-4ce7-8617-a87e8b1f3aed" message='#["Failed to POST brand prefix from Redis. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]'/>
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</async>
+		<logger level="INFO" doc:name="END- Post brand from bridge "
+			doc:id="b42473d3-a1d1-4ede-af61-624e3ba04796"
+			message="END- Post brand from bridge " />
 	</sub-flow>
 	<sub-flow name="impl-subscription-check-eligibility-subflow"
 		doc:id="badefcfd-e27d-4df8-8b80-f25111eb2cdd">
@@ -325,11 +353,15 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<flow-ref doc:name="sys-facebook-api-post-provision-subflow"
 			doc:id="b6b9e7e2-08ff-41bc-b325-8c7972a5a4fd"
 			name="sys-facebook-api-post-provision-subflow" />
-		<choice doc:name="IS request type BONUS?" doc:id="68f8dd6f-6912-45a2-9693-1d946be6e4fc">
-					<when expression='#[vars.formattedSubscriberData.keyword == "BONUS"]'>
-						<flow-ref doc:name="impl-subscription-delete-bonus-subflow" doc:id="13234db9-edd1-48a0-9406-1ad385720593" name="impl-subscription-delete-bonus-subflow" />
-					</when>
-				</choice>
+		<choice doc:name="IS request type BONUS?"
+			doc:id="68f8dd6f-6912-45a2-9693-1d946be6e4fc">
+			<when
+				expression='#[vars.formattedSubscriberData.keyword == "BONUS"]'>
+				<flow-ref doc:name="impl-subscription-delete-bonus-subflow"
+					doc:id="13234db9-edd1-48a0-9406-1ad385720593"
+					name="impl-subscription-delete-bonus-subflow" />
+			</when>
+		</choice>
 		<logger level="INFO" doc:name="END  - Provision Process "
 			doc:id="af797a39-04d9-4b63-9049-6823ec996b34"
 			message="END  - Provision Process - STEP 5: FACEBOOK PROVISIONING/DEPROVISIONING" />
