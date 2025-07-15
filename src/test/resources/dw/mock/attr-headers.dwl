@@ -1,30 +1,11 @@
 {
   "headers": {
-    "x-correlation-id": "123",
-    "content-type": "application/json",
-    "user-agent": "PostmanRuntime/7.44.1",
-    "accept": "*/*",
-    "cache-control": "no-cache",
-    "postman-token": "c551cb1c-780f-46fa-8b83-99baee622692",
-    "host": "localhost:8081",
-    "accept-encoding": "gzip, deflate, br",
-    "connection": "keep-alive",
-    "content-length": "215"
+    "content-type": "application/json; charset=UTF-8",
+    "date": "Tue, 15 Jul 2025 12:23:45 GMT",
+    "server": "nginx",
+    "content-length": "110",
+    "connection": "keep-alive"
   },
-  "clientCertificate": null,
-  "method": "POST",
-  "scheme": "http",
-  "queryParams": {},
-  "requestUri": "/api/subscription",
-  "queryString": "",
-  "version": "HTTP/1.1",
-  "maskedRequestPath": "/subscription",
-  "listenerPath": "/api/*",
-  "relativePath": "/api/subscription",
-  "localAddress": "/127.0.0.1:8081",
-  "uriParams": {},
-  "rawRequestUri": "/api/subscription",
-  "rawRequestPath": "/api/subscription",
-  "remoteAddress": "/127.0.0.1:62052",
-  "requestPath": "/api/subscription"
+  "reasonPhrase": "OK",
+  "statusCode": 200
 }

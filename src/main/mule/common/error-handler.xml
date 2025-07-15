@@ -29,7 +29,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<flow-ref doc:name="common-error-processing-subflow" doc:id="1884284e-678f-48a9-82b9-cb97dd2fa726" name="common-error-processing-subflow" />
 			<ee:transform doc:name="Construct failure Subscription Result Payload , var-httpStatus" doc:id="b8edee11-aab1-499e-be89-5c1c7d17de6e">
 				<ee:message>
-					<ee:set-payload resource="dw/api-response-failure-200.dwl" />
+					<ee:set-payload resource="dw/api-response-success-200.dwl" />
 				</ee:message>
 				<ee:variables>
 					<ee:set-variable resource="dw/var-httpStatus-200.dwl" variableName="httpStatus" />

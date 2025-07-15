@@ -93,7 +93,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					doc:id="20b2ac8e-14bd-47ed-945d-421182a01360">
 					<logger level="INFO" doc:name="Proceed Anyway"
 						doc:id="bbe9a74d-ea57-4ea9-b6cd-d831988d3e11"
-						message='#["Failed to get brand prefix from Redis. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
+						message='Failed to get brand prefix from Redis.' />
 				</on-error-continue>
 			</error-handler>
 		</try>
@@ -189,7 +189,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 						doc:id="409d9136-dc06-4da6-932f-8dbde98c0e2f" type="ANY">
 						<logger level="INFO" doc:name="Stop Process"
 							doc:id="3addf38c-b35f-4ce7-8617-a87e8b1f3aed"
-							message='#["Failed to POST brand prefix from Redis. Error: " ++ error.errorType ++ " - " ++ error.errorMessage]' />
+							message='Failed to POST brand prefix from Redis.' />
 					</on-error-propagate>
 				</error-handler>
 			</try>
@@ -229,7 +229,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<logger level="INFO"
 			doc:name="START - Check Eligibility Process"
 			doc:id="ef643cf9-c369-40b8-8978-b139f0b781d5"
-			message="START - Check Eligibility Process - STEP 4: ELIGIBILITY CHECK" />
+			message="START - Prepaid Postpaid Lookup" />
 		<ee:transform
 			doc:name="Payload TO NF API Request, Payload TO BSS API Request"
 			doc:id="f030769d-398d-41ca-b327-8457e9b8df39">
@@ -274,9 +274,9 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					description=" Subcriber not eligible for this promo." />
 			</otherwise>
 		</choice>
-		<logger level="INFO" doc:name="END - Check Eligibility Process"
+		<logger level="INFO" doc:name="END - Prepaid Postpaid Lookup"
 			doc:id="32230055-69ae-4d91-87a3-5e0b717c5e15"
-			message="END - Check Eligibility Process - STEP 4: ELIGIBILITY CHECK" />
+			message="END - Prepaid Postpaid Lookup" />
 	</sub-flow>
 	<sub-flow name="impl-subscription-get-bonus-subflow"
 		doc:id="c886cbf7-afd9-4281-a813-3a7b2133adef">
