@@ -25,6 +25,17 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	<error-handler
 		name="proc-subscription-api-Shared_Error_Handler"
 		doc:id="ce502ca3-fef7-49aa-b16a-0eafa6daa05f">
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8300b75d-3a63-4da3-b29d-3c189866a6b7" type="INPUT:INELIGIBLE">
+			<flow-ref doc:name="common-error-processing-subflow" doc:id="1884284e-678f-48a9-82b9-cb97dd2fa726" name="common-error-processing-subflow" />
+			<ee:transform doc:name="Construct failure Subscription Result Payload , var-httpStatus" doc:id="b8edee11-aab1-499e-be89-5c1c7d17de6e">
+				<ee:message>
+					<ee:set-payload resource="dw/api-response-failure-200.dwl" />
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable resource="dw/var-httpStatus-200.dwl" variableName="httpStatus" />
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
 		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="cd91cd77-93e7-45e1-811f-a9ef071e7ffa" type="INPUT:REQUEST_CONFLICT">
 			<flow-ref doc:name="common-error-processing-subflow" doc:id="a4f3cb81-17b8-4f11-abba-c5a040915c05" name="common-error-processing-subflow" />
 			<ee:transform doc:name="Construct failure Subscription Result Payload , var-httpStatus" doc:id="c08db1e2-049e-484b-911c-a6d6902c8ec4">
@@ -88,17 +99,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				</ee:message>
 				<ee:variables>
 					<ee:set-variable resource="dw/var-httpStatus-500.dwl" variableName="httpStatus" />
-				</ee:variables>
-			</ee:transform>
-		</on-error-propagate>
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8300b75d-3a63-4da3-b29d-3c189866a6b7" type="INPUT:INELIGIBLE">
-			<flow-ref doc:name="common-error-processing-subflow" doc:id="1884284e-678f-48a9-82b9-cb97dd2fa726" name="common-error-processing-subflow" />
-			<ee:transform doc:name="Construct failure Subscription Result Payload , var-httpStatus" doc:id="b8edee11-aab1-499e-be89-5c1c7d17de6e">
-				<ee:message>
-					<ee:set-payload resource="dw/api-response-failure-200.dwl" />
-				</ee:message>
-				<ee:variables>
-					<ee:set-variable resource="dw/var-httpStatus-200.dwl" variableName="httpStatus" />
 				</ee:variables>
 			</ee:transform>
 		</on-error-propagate>

@@ -4,7 +4,7 @@ output application/json skipNullOn = "everywhere"
 {
 	"msisdn": vars.formattedSubscriberData.msisdn,
 	"requestPayload":{
-		"state": if (vars.formattedSubscriberData.keyword == "OPT-IN" or vars.formattedSubscriberData.keyword == "BONUS") 1 else 0,
+		"state": if (["OPT-IN", "BONUS"] contains vars.formattedSubscriberData.keyword ) 1 else 0,
 		"expiry-date": vars.expiryDetails.'expiry-date'
 	}
 	
