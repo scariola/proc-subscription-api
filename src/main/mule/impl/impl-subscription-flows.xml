@@ -19,17 +19,24 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:name="common-validate-subscription-request-subflow"
 			doc:id="d4826b9f-7be8-41b0-8915-02076282c04c"
 			name="common-validate-subscription-request-subflow" />
-		<flow-ref
-			doc:name="impl-subscription-brand-lookup-subflow"
+		<flow-ref doc:name="impl-subscription-brand-lookup-subflow"
 			doc:id="df1eddac-db79-438b-bf53-3012de73f9f2"
 			name="impl-subscription-brand-lookup-subflow" />
-		<flow-ref doc:name="impl-subcription-state-lookup-subflow" doc:id="ea2cebf6-fe8a-41a6-be24-f1c0796c4edd" name="impl-subcription-state-lookup-subflow"/>
+		<flow-ref doc:name="impl-subcription-state-lookup-subflow"
+			doc:id="ea2cebf6-fe8a-41a6-be24-f1c0796c4edd"
+			name="impl-subcription-state-lookup-subflow" />
 		<flow-ref
 			doc:name="impl-subscription-check-eligibility-subflow"
 			doc:id="ab7d3856-5216-414e-ae97-028fc544c626"
 			name="impl-subscription-check-eligibility-subflow" />
-		<flow-ref doc:name="impl-subscription-post-facebook-provision-subflow" doc:id="680793fa-786c-47ed-839e-92b10afa765d" name="impl-subscription-post-facebook-provision-subflow" target="provisionResponse" />
-		<flow-ref doc:name="impl-subscription-post-state-subflow" doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92" name="impl-subscription-post-state-subflow" />
+		<flow-ref
+			doc:name="impl-subscription-post-facebook-provision-subflow"
+			doc:id="680793fa-786c-47ed-839e-92b10afa765d"
+			name="impl-subscription-post-facebook-provision-subflow"
+			target="provisionResponse" />
+		<flow-ref doc:name="impl-subscription-post-state-subflow"
+			doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92"
+			name="impl-subscription-post-state-subflow" />
 		<flow-ref doc:name="impl-subscription-put-audit-subflow"
 			doc:id="f99817a2-bd6b-4386-a0e0-27864ad9d94a"
 			name="impl-subscription-put-audit-subflow" />
@@ -71,8 +78,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:id="125a6417-0c97-4601-904d-65d2e5ef1d3a"
 			message="END - Audit Logging Process - STEP 1: AUDIT LOGGING" />
 	</sub-flow>
-	<sub-flow
-		name="impl-subscription-brand-lookup-subflow"
+	<sub-flow name="impl-subscription-brand-lookup-subflow"
 		doc:id="3210188d-3331-41a5-9aa9-9efa69e808eb">
 		<logger level="INFO" doc:name="START - Brand Lookup"
 			doc:id="2dbdc422-a67d-44a2-b961-01cb84171931"
@@ -114,30 +120,47 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		</ee:transform>
 		<choice doc:name="IS Brand Id Supported?"
 			doc:id="28376ce8-baf5-49f5-8ea0-d0474c5eade9">
-			<when expression='#[(!([1, 2, 3] contains (vars.brand."brand-id")))]'>
-				<raise-error doc:name="Raise error - Unsupported Brand" doc:id="4686e406-302f-4314-ac17-296c12cb3536" type="INPUT:UNSUPPORTED" description="Brand Id Unsupported" />
+			<when
+				expression='#[(!([1, 2, 3] contains (vars.brand."brand-id")))]'>
+				<raise-error doc:name="Raise error - Unsupported Brand"
+					doc:id="4686e406-302f-4314-ac17-296c12cb3536"
+					type="INPUT:UNSUPPORTED" description="Brand Id Unsupported" />
 			</when>
 		</choice>
 		<logger level="INFO" doc:name="END - Brand Lookup"
 			doc:id="6e639040-daa6-4b99-bf1a-ace8435fe943"
 			message="START - Brand Lookup" />
 	</sub-flow>
-	<sub-flow name="impl-subcription-state-lookup-subflow" doc:id="0750b17e-e72e-4459-8039-a6d15d2747ad">
-		<logger level="INFO" doc:name="START - State Lookup" doc:id="02416b7a-7fd1-4567-b4d0-3680a8c88af7" message="START - State Lookup" />
-		<flow-ref doc:name="sys-redis-api-get-state-msisdn-subflow" doc:id="78189739-765a-454d-862f-ad0e3b23c700" name="sys-redis-api-get-state-msisdn-subflow"/>
-		<ee:transform doc:name="var-state" doc:id="96b7004f-5f9c-4830-b3c5-6531407c12f3" >
-			<ee:message >
+	<sub-flow name="impl-subcription-state-lookup-subflow"
+		doc:id="0750b17e-e72e-4459-8039-a6d15d2747ad">
+		<logger level="INFO" doc:name="START - State Lookup"
+			doc:id="02416b7a-7fd1-4567-b4d0-3680a8c88af7"
+			message="START - State Lookup" />
+		<flow-ref doc:name="sys-redis-api-get-state-msisdn-subflow"
+			doc:id="78189739-765a-454d-862f-ad0e3b23c700"
+			name="sys-redis-api-get-state-msisdn-subflow" />
+		<ee:transform doc:name="var-state"
+			doc:id="96b7004f-5f9c-4830-b3c5-6531407c12f3">
+			<ee:message>
 			</ee:message>
-			<ee:variables >
-				<ee:set-variable resource="dw/var-state.dwl" variableName="state" />
+			<ee:variables>
+				<ee:set-variable resource="dw/var-state.dwl"
+					variableName="state" />
 			</ee:variables>
 		</ee:transform>
-		<choice doc:name="Choice" doc:id="de8ba8e7-17a3-41ca-9af4-919e101ed9b8" >
-			<when expression="#[((vars.formattedSubscriberData.keyword == &quot;OPT-IN&quot; and vars.state.state == 1) or (vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and vars.state.state == 1 and vars.brand.'brand-name' == &quot;Postpaid&quot;) or (vars.formattedSubscriberData.keyword == &quot;OPT-OUT&quot; and (vars.state.state == 0 or isEmpty(vars.state.state))))]">
-				<raise-error doc:name="Raise error - Request Conflict" doc:id="3c72776c-ffd8-4ef7-a091-65cf18767519" type="INPUT:REQUEST_CONFLICT" description="Request is a dual provision, dual off, dual bonus, or not registered scenario."/>
+		<choice doc:name="Choice"
+			doc:id="de8ba8e7-17a3-41ca-9af4-919e101ed9b8">
+			<when
+				expression="#[((vars.formattedSubscriberData.keyword == &quot;OPT-IN&quot; and vars.state.state == 1) or (vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and vars.state.state == 1 and vars.brand.'brand-name' == &quot;Postpaid&quot;) or (vars.formattedSubscriberData.keyword == &quot;OPT-OUT&quot; and (vars.state.state == 0 or isEmpty(vars.state.state))))]">
+				<raise-error doc:name="Raise error - Request Conflict"
+					doc:id="3c72776c-ffd8-4ef7-a091-65cf18767519"
+					type="INPUT:REQUEST_CONFLICT"
+					description="Request is a dual provision, dual off, dual bonus, or not registered scenario." />
 			</when>
 		</choice>
-		<logger level="INFO" doc:name="END- State Lookup" doc:id="f0dc7604-0ad4-40ac-b69c-7de897349ccd" message="END- State Lookup"/>
+		<logger level="INFO" doc:name="END- State Lookup"
+			doc:id="f0dc7604-0ad4-40ac-b69c-7de897349ccd"
+			message="END- State Lookup" />
 	</sub-flow>
 	<sub-flow name="impl-subcription-post-brand-subflow"
 		doc:id="f26655a7-045d-4c0d-aea2-d46c853bd62f">
@@ -175,21 +198,33 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:id="b42473d3-a1d1-4ede-af61-624e3ba04796"
 			message="END- Post brand from bridge " />
 	</sub-flow>
-	<sub-flow name="impl-subscription-check-eligibility-subflow" doc:id="6d366e81-537c-40ac-bbd9-ab7197a1b239">
-		<choice doc:name="IS request type OPT-IN?" doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb">
+	<sub-flow name="impl-subscription-check-eligibility-subflow"
+		doc:id="6d366e81-537c-40ac-bbd9-ab7197a1b239">
+		<choice doc:name="ROUTE Eligibility: OPT-IN | BONUS | OPT-OUT"
+			doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb">
 			<when
-	expression='#[(vars.formattedSubscriberData.keyword == "OPT-IN" and (vars.state.state == 0 or isEmpty(vars.state.state)))]'>
-				<flow-ref doc:name="impl-subscription-lookup-prepaid-postpiad-subflow" doc:id="210ab367-276a-4056-a5fc-21516a672df9" name="impl-subscription-lookup-prepaid-postpiad-subflow" />
+				expression='#[(vars.formattedSubscriberData.keyword == "OPT-IN" and (vars.state.state == 0 or isEmpty(vars.state.state)))]'>
+				<flow-ref
+					doc:name="impl-subscription-lookup-prepaid-postpiad-subflow"
+					doc:id="210ab367-276a-4056-a5fc-21516a672df9"
+					name="impl-subscription-lookup-prepaid-postpiad-subflow" />
 			</when>
-			<when expression="#[((vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and !([0, 1] contains vars.state.state)) and (vars.brand.'brand-name' != &quot;Postpaid&quot;))]">
-				<flow-ref doc:name="impl-subscription-get-bonus-subflow" doc:id="350f47e1-87e0-4f4a-bd3f-cfd83a7d686c" name="impl-subscription-get-bonus-subflow" />
+			<when
+				expression="#[((vars.formattedSubscriberData.keyword == &quot;BONUS&quot; and !([0, 1] contains vars.state.state)) and (vars.brand.'brand-name' != &quot;Postpaid&quot;))]">
+				<flow-ref doc:name="impl-subscription-get-bonus-subflow"
+					doc:id="350f47e1-87e0-4f4a-bd3f-cfd83a7d686c"
+					name="impl-subscription-get-bonus-subflow" />
 			</when>
 			<otherwise>
-				<logger level="INFO" doc:name="Skip Eligibility Checking -OPT OUT Proceed to Provisioning" doc:id="e556118d-7f92-4063-918a-9cec2cca6d81" message="Skip Eligibility Checking -Proceed to Provisioning" />
+				<logger level="INFO"
+					doc:name="Skip Eligibility Checking -OPT OUT Proceed to Provisioning"
+					doc:id="e556118d-7f92-4063-918a-9cec2cca6d81"
+					message="Skip Eligibility Checking -Proceed to Provisioning" />
 			</otherwise>
 		</choice>
 	</sub-flow>
-	<sub-flow name="impl-subscription-lookup-prepaid-postpiad-subflow"
+	<sub-flow
+		name="impl-subscription-lookup-prepaid-postpiad-subflow"
 		doc:id="badefcfd-e27d-4df8-8b80-f25111eb2cdd">
 		<logger level="INFO"
 			doc:name="START - Check Eligibility Process"
