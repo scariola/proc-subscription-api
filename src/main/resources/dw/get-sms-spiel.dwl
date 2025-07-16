@@ -3,7 +3,7 @@ output application/json
 ---
 {
   "sms-spiel": 
-    if (isEmpty(error) or (lower(error.errorType.identifier) == "request_conflict")) 
+    if (isEmpty(error)) 
       p(
         lower(vars.formattedSubscriberData.keyword default "any") 
         ++ "." 

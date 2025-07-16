@@ -25,14 +25,15 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<flow-ref doc:name="impl-subcription-state-lookup-subflow"
 			doc:id="ea2cebf6-fe8a-41a6-be24-f1c0796c4edd"
 			name="impl-subscription-state-lookup-subflow" />
-		<choice doc:name="IS for provision?" doc:id="73052fe2-3cc0-4e12-a87e-65d2a44c980b" >
-			<when >
+		<choice doc:name="IS for Provision?" doc:id="73052fe2-3cc0-4e12-a87e-65d2a44c980b" >
+			<when expression="#[vars.formattedSubscriberData.keyword == 'OPT-IN' and (vars.state.state == 0 or isEmpty(vars.state.state)) or vars.formattedSubscriberData.keyword == 'BONUS' and  ( vars.brand.'brand-name' != 'Postpaid' or isEmpty(vars.state.state))]">
 				<flow-ref doc:name="impl-subscription-check-eligibility-subflow" doc:id="ab7d3856-5216-414e-ae97-028fc544c626" name="impl-subscription-check-eligibility-subflow" />
 				<flow-ref doc:name="impl-subscription-post-facebook-provision-subflow" doc:id="680793fa-786c-47ed-839e-92b10afa765d" name="impl-subscription-post-facebook-provision-subflow" target="provisionResponse" />
 				<flow-ref doc:name="impl-subscription-post-state-subflow" doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92" name="impl-subscription-post-state-subflow" />
 			</when>
-			<when >
+			<when expression='#[vars.formattedSubscriberData.keyword == "OPT-OUT" and vars.state.state == 1]'>
 				<flow-ref doc:name="impl-subscription-post-facebook-provision-subflow" doc:id="cbdce464-c6f2-4dd3-aaf7-9ddfe7d5ea92" name="impl-subscription-post-facebook-provision-subflow" target="provisionResponse" />
+				<flow-ref doc:name="impl-subscription-post-state-subflow" doc:id="2a33333e-307b-4fc7-9e08-f9e01bebfb2c" name="impl-subscription-post-state-subflow" />
 			</when>
 		</choice>
 		<flow-ref doc:name="impl-subscription-put-audit-subflow"
@@ -188,26 +189,17 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	</sub-flow>
 	<sub-flow name="impl-subscription-check-eligibility-subflow"
 		doc:id="6d366e81-537c-40ac-bbd9-ab7197a1b239">
-		<choice doc:name="ROUTE Eligibility: OPT-IN | BONUS | OPT-OUT"
+		<choice doc:name="ROUTE Eligibility: OPT-IN or  BONUS"
 			doc:id="2398692e-14e2-48e1-9b0c-4648d5b0c0eb">
 			<when
 				expression='#[vars.formattedSubscriberData.keyword == "OPT-IN"]'>
 				<flow-ref
-					doc:name="impl-subscription-lookup-prepaid-postpiad-subflow"
+					doc:name="impl-subscription-check-eligibility-prepaid-postpiad-subflow"
 					doc:id="210ab367-276a-4056-a5fc-21516a672df9"
 					name="impl-subscription-check-eligibility-prepaid-postpiad-subflow" />
 			</when>
-			<when
-				expression='#[vars.formattedSubscriberData.keyword == "BONUS"]'>
-				<flow-ref doc:name="impl-subscription-get-bonus-subflow"
-					doc:id="350f47e1-87e0-4f4a-bd3f-cfd83a7d686c"
-					name="impl-subscription-check-eligibility-bonus-subflow" />
-			</when>
 			<otherwise>
-				<logger level="INFO"
-					doc:name="Skip Eligibility Checking -OPT OUT Proceed to Provisioning"
-					doc:id="e556118d-7f92-4063-918a-9cec2cca6d81"
-					message="Skip Eligibility Checking -Proceed to Provisioning" />
+				<flow-ref doc:name="impl-subscription-check-eligibility-bonus-subflow" doc:id="350f47e1-87e0-4f4a-bd3f-cfd83a7d686c" name="impl-subscription-check-eligibility-bonus-subflow" />
 			</otherwise>
 		</choice>
 	</sub-flow>
