@@ -26,7 +26,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:id="ea2cebf6-fe8a-41a6-be24-f1c0796c4edd"
 			name="impl-subscription-state-lookup-subflow" />
 		<choice doc:name="IS for Provision?" doc:id="73052fe2-3cc0-4e12-a87e-65d2a44c980b" >
-			<when expression="#[vars.formattedSubscriberData.keyword == 'OPT-IN' and (vars.state.state == 0 or isEmpty(vars.state.state)) or vars.formattedSubscriberData.keyword == 'BONUS' and  ( vars.brand.'brand-name' != 'Postpaid' or isEmpty(vars.state.state))]">
+			<when expression="#[(vars.formattedSubscriberData.keyword == 'OPT-IN' and (vars.state.state == 0 or isEmpty(vars.state.state)) or vars.formattedSubscriberData.keyword == 'BONUS' and isEmpty(vars.state.state) and (vars.brand.'brand-name' != 'Postpaid'))]">
 				<flow-ref doc:name="impl-subscription-check-eligibility-subflow" doc:id="ab7d3856-5216-414e-ae97-028fc544c626" name="impl-subscription-check-eligibility-subflow" />
 				<flow-ref doc:name="impl-subscription-post-facebook-provision-subflow" doc:id="680793fa-786c-47ed-839e-92b10afa765d" name="impl-subscription-post-facebook-provision-subflow" target="provisionResponse" />
 				<flow-ref doc:name="impl-subscription-post-state-subflow" doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92" name="impl-subscription-post-state-subflow" />
