@@ -323,6 +323,43 @@ payload must equalTo({
 			</munit-tools:verify-call>
 		</munit:validation>
 	</munit:test>
+	<!-- [STUDIO:"impl-subscription-post-audit-subflow-proc-subscription-api-Shared_Error_Handler-test"]<munit:test name="impl-subscription-post-audit-subflow-proc-subscription-api-Shared_Error_Handler-test" doc:id="c494ffdc-6621-4379-937e-c351c4f47f43">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock sys-audit-api-post-audit-subflow" doc:id="ab0aad3d-2240-4126-823e-dd5d0e3c5e7e" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="47620c83-ad7e-497d-8d42-ce73446ecbcf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:BAD_REQUEST" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Input" doc:id="64cbeb9a-5138-46d9-b393-7cfa6ffae96f" >
+				<munit:payload value="#[output application/json &#45;&#45;- readUrl('classpath://dw/events/payload-subscription-fb-on-request.dwl')&#93;" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://dw/events/attr-post-subcription.dwl')&#93;" />
+				<munit:variables >
+					<munit:variable key="originalPayload" value="#[output application/json &#45;&#45;- readUrl('classpath://dw/mock/var-originalPayload.dwl')&#93;" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to impl-subscription-post-audit-subflow" doc:id="e6b7e95b-1053-4523-a2d1-c19a543473d3" name="impl-subscription-post-audit-subflow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="17482d52-34f4-41e7-802d-146ed8da83b0" message="The payload does not match" >
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import * from dw::test::Asserts
+&#45;&#45;-
+payload must equalTo({
+  "id": "68767a5ab749f938d4c11b4a"
+})&#93;&#93;&#93;></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:verify-call doc:name="Verify END  - Audit Logging Process" doc:id="8fc3c4b1-c179-4919-9cd6-54180a5e5407" processor="logger" times="1" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="125a6417-0c97-4601-904d-65d2e5ef1d3a" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test> [STUDIO] -->
 	<munit:test
 		name="impl-subscription-brand-lookup-subflow-get-brand-from-redis-success-test"
 		doc:id="4b43129f-f734-4f62-b7cd-64dc3c970488">

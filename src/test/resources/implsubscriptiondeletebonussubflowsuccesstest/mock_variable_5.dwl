@@ -1,4 +1,0 @@
-{
-  "state": "",
-  "expiry-date": null
-}

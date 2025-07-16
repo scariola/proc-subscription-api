@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="sys-bridge-api-flows-test-suite.xml" />
+	<munit:test name="sys-bridge-api-get-bridge-prefix-subflow-success-test" doc:id="ab518399-d57a-4664-bdd8-448eb0b9c647" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock GET /brigde/{prefix}" doc:id="3a91f640-ce77-409e-8950-7a5321cf12a4" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="f5faa08b-14c1-49ee-b875-d57ed6b2dee8" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://dw/mock/payload-get-bridge-response.dwl')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="14390272-8e15-4354-9761-e0921414ba9f" >
+				<munit:variables >
+					<munit:variable key="formattedSubscriberData" value="#[output application/json --- readUrl('classpath://dw/mock/var-formattedSubscriberData-opt-in.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to sys-bridge-api-get-bridge-prefix-subflow" doc:id="1630e62f-80d7-4f01-ab90-50f2293e3799" name="sys-bridge-api-get-bridge-prefix-subflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="515f2813-f6de-4a0e-9595-1f80770e505d" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import * from dw::test::Asserts
+---
+payload must equalTo({
+  "result": [
+    {
+      "brand": "Postpaid",
+      "brand_flag": 3,
+      "id": 1,
+      "msisdn_prefix": "91779"
+    }
+  ]
+})]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:verify-call doc:name="Verify START - GET /brigde/{prefix}" doc:id="bc5ba036-e0aa-4459-a2a2-48f33caf94bd" processor="logger" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="4369d722-80a0-4a05-883d-f7746c24cae3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

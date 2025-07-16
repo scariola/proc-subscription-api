@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="sys-audit-api-flows-test-suite.xml" />
+	<munit:test name="sys-audit-api-post-audit-subflow-success-test" doc:id="f5c3bdf4-9a3b-4938-86f5-2ebf84f6496b">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock POST /sys-audit-api" doc:id="96d8b873-cbb2-44f3-bf61-b6234e5108c9" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ece12aea-15e9-4574-9ed3-e66ac4f1ac26" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://dw/mock/payload-audit-response.dwl')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Input" doc:id="f8cb3cec-ae0c-4ae9-ad06-f002ac8826cd">
+				<munit:payload value="#[output application/json --- readUrl('classpath://dw/events/payload-post-audit-request.dwl')]" encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to sys-audit-api-post-audit-subflow" doc:id="31fd6624-cd2e-4cbf-8ad7-bcb3d9ae5971" name="sys-audit-api-post-audit-subflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="e1018714-e22a-4670-9019-4f47d9708524" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import * from dw::test::Asserts
+---
+payload must equalTo({
+  "id": "68767a5ab749f938d4c11b4a"
+})]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:verify-call doc:name="Verify END - POST /audit" doc:id="034bef12-4334-43e3-847f-98045a415fb7" processor="logger" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="7baecd04-cace-4d70-a5a3-b0e546d9b4e8" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="sys-audit-api-put-audit-subflow-success-test" doc:id="efbcbb35-76cf-40f1-a1fc-80106038d2e0">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock POST /sys-audit-api" doc:id="0f4ef594-f51b-4e3c-bcc8-713fca8c67c2" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="e1a9802b-8505-4f2f-9cd3-2c56fbb1771c" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://dw/mock/payload-audit-response.dwl')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Input" doc:id="b82455df-2810-4a5b-9261-3cea95727ea2" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://dw/events/payload-post-audit-request.dwl')]" encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to sys-audit-api-put-audit-subflow" doc:id="93cc2fb3-7e94-4698-9b71-feca040a0107" name="sys-audit-api-put-audit-subflow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="efade432-8de6-49ce-9b6d-5b398f70308d" message="The payload does not match" >
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import * from dw::test::Asserts
+---
+payload must equalTo({
+  "id": "68767a5ab749f938d4c11b4a"
+})]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:verify-call doc:name="Verify END - PUT /audit" doc:id="c5bd14cc-ad98-46f3-8143-1b067dada194" processor="logger" times="1" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c355e6ff-5a70-4f90-98fb-445a6eccafe9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>
