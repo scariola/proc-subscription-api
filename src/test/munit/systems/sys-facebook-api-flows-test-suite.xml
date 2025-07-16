@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="sys-facebook-api-flows-test-suite.xml" />
+	<munit:test name="sys-facebook-api-post-provision-subflow-provision-success-test" doc:id="81a9ed6b-6b31-45ca-a688-e2483c923ad4" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock POST /provision" doc:id="acbc62bd-6af2-4bf9-b7e8-7313cd9d0ed5" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="260e9e01-35bd-4c63-b986-e054642d7946" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://dw/mock/payload-provision-response.dwl')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Input" doc:id="4c1e808e-c739-4699-a567-1dd351bc875b">
+				<munit:payload value='#[output application/json --- {&#10;  "msisdn": "639177939217",&#10;  "provision": {&#10;    "fb-product-id": "2536",&#10;    "expiry-date": "2025-12-31 23:59:59"&#10;  }&#10;}]' encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to sys-facebook-api-post-provision-subflow" doc:id="ff2ba0b4-3030-4c17-b260-622871420784" name="sys-facebook-api-post-provision-subflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="4168dcd9-2370-40c2-8d91-d1d85bd20d89" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import * from dw::test::Asserts
+---
+payload must equalTo({
+  "x-event-id": "123",
+  "x-event-code": 1005,
+  "x-event-msg": "Provisioning Successful"
+})]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:verify-call doc:name="Verify END - POST /provision" doc:id="ae2cfbd2-9f2d-43c7-a873-a145b9d58784" processor="logger" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="e9481843-4cd3-4414-ae90-399574a096f3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="sys-facebook-api-post-provision-subflow-provision-deprovision-test" doc:id="ffb8eae4-9844-4a9d-8b13-6f4a8a20a18a" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock POST /provision" doc:id="806de628-2707-4268-92fb-905161caeb8a" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="260e9e01-35bd-4c63-b986-e054642d7946" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://dw/mock/payload-deprovision-response.dwl')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Input" doc:id="330ecd4f-5c5f-4aea-99c6-bdf0f6d25613" >
+				<munit:payload value='#[output application/json --- {&#10;  "msisdn": "639177939217",&#10;  "provision": {&#10;    "fb-product-id": "2536",&#10;    "expiry-date": "1"&#10;  }&#10;}]' encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to sys-facebook-api-post-provision-subflow" doc:id="148e5ffb-7965-400c-a3a0-35bcf44b2f13" name="sys-facebook-api-post-provision-subflow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="4ab4e4cf-f3ef-4491-85ff-b1a27daff192" message="The payload does not match" >
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import * from dw::test::Asserts
+---
+payload must equalTo({
+  "x-event-id": "123",
+  "x-event-code": 1005,
+  "x-event-msg": "Deprovisioning Successful"
+})]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:verify-call doc:name="Verify END - POST /provision" doc:id="14c0fc21-e225-4d04-9a32-8e341c4a2937" processor="logger" times="1" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="e9481843-4cd3-4414-ae90-399574a096f3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

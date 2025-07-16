@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="sys-nf-api-flows-test-suite.xml" />
+	<munit:test name="sys-nf-api-get-prepaid-msisdn-subflow-success-test" doc:id="ad22fb4f-a22b-43e0-b2e9-bcc37c694236" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock GET /prepaid/{msisdn}" doc:id="7c4a2263-3883-40c2-918b-cdd5795d565d" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c540448d-d5a4-42e7-a121-708bdc4a3bc1" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://dw/mock/payload-nf-prepaid-response.dwl')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="2d99978d-9d3b-49e1-8f7f-ce5e69037480" >
+				<munit:payload value='#[output application/json ---{&#10;	"msisdn":"9271234567"&#10;}]' encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to sys-nf-api-get-prepaid-msisdn-subflow" doc:id="a927994a-c504-4e55-97fe-6cdb906412df" name="sys-nf-api-get-prepaid-msisdn-subflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="0031d72e-40c0-4604-a579-63c39132832e" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import * from dw::test::Asserts
+---
+payload must equalTo({
+  "bundles": [
+    {
+      "service_id": "2536",
+      "expiry_date": "2025-12-31 23:59:59"
+    },
+    {
+      "service_id": "2536",
+      "expiry_date": "2025-12-31 23:59:59"
+    }
+  ],
+  "msisdn": "9271234567"
+})]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:verify-call doc:name="Verify END- GET /prepaid/{msisdn}" doc:id="6bf97855-3270-4924-8cfd-50527197e3df" processor="logger" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="66a59d7e-397a-4992-baf5-128080787fc5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

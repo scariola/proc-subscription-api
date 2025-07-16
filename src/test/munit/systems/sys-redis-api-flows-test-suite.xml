@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="sys-redis-api-flows-test-suite.xml" />
+	<munit:test name="sys-redis-api-get-brand-prefix-subflow-success-test" doc:id="17f60906-042d-441e-8362-0bcfe7ac4fa6" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock GET/ brand/{prefix}" doc:id="e990dc34-a8f8-4a27-950a-565f3cee87af" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="2690daef-6de1-4d5d-8c09-c25c37922b3a" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://dw/mock/payload-get-redis-response.dwl')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="dd0fb55a-46b8-4bc6-a254-37e348767b50" >
+				<munit:variables >
+					<munit:variable key="formattedSubscriberData" value="#[output application/json --- readUrl('classpath://dw/mock/var-formattedSubscriberData-opt-in.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to sys-redis-api-get-brand-prefix-subflow" doc:id="5acfa65f-1bb5-44ba-a8df-94ad94a44324" name="sys-redis-api-get-brand-prefix-subflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="5d865251-4631-42ce-aedc-b8e9b1f997b7" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import * from dw::test::Asserts
+---
+payload must equalTo({
+  "x-event-id": "123",
+  "x-event-code": 1005,
+  "x-event-msg": "Success",
+  "result": {
+    "prefix": "91779",
+    "brand-id": 3,
+    "brand-name": "Postpaid"
+  }
+})]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:verify-call doc:name="Verify END - GET/ brand/{prefix}" doc:id="ef7fef5a-8696-49f3-bcfc-d7329246a059" processor="logger" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="830541b1-d665-4bf3-a25e-4511b5cfcf67" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="sys-redis-api-post-brand-prefix-subflow-success-test" doc:id="66afc343-3029-44ef-8370-f2eabe72f286" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock POST /brand" doc:id="3643dd14-45e2-4774-a903-4e2a413a3b27" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="9d8b5ef6-a263-4ab2-b747-94ec6acfefcd" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[output application/json --- {&#10;  "x-event-id": "123",&#10;  "x-event-code": 1002,&#10;  "x-event-msg": "Cache Bridge Successful!"&#10;}]' mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Input" doc:id="6b107e1e-f6ec-4d2f-a27a-806039aeee00">
+				<munit:payload value='#[output application/json --- {&#10;  "prefix": "91779",&#10;  "brand-id": 3,&#10;  "brand-name": "Postpaid"&#10;}]' encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to sys-redis-api-post-brand-prefix-subflow" doc:id="6b3684e5-50a9-48eb-b2ba-d381715bc158" name="sys-redis-api-post-brand-prefix-subflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="5168902f-1e72-4127-8109-55ecd3403780" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import * from dw::test::Asserts
+---
+payload must equalTo({
+  "x-event-id": "123",
+  "x-event-code": 1002,
+  "x-event-msg": "Cache Bridge Successful!"
+})]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:verify-call doc:name="Verify END - POST /brand" doc:id="ea935f26-ab40-49ff-81da-dbbbc8336be3" processor="logger" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="371d23f1-3109-45ac-8bea-f8a27700c8e7" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="sys-redis-api-post-state-msisdn-subflow-success-test" doc:id="2537789f-e8b6-4c41-99dd-b24ccfdb5e92" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock POST /state/{msisdn}" doc:id="999322cb-b2a1-4dd9-85b1-2bee948fe497" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="e3295e12-6460-4f91-994f-9ccd8e6d1b67" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[output application/json --- {&#10;  "x-event-id": "123",&#10;  "x-event-code": 1002,&#10;  "x-event-msg": "Cache State Successful!"&#10;}]' mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Input" doc:id="9937d646-458c-4ef9-90db-5bc8f40cb386">
+				<munit:payload value='#[output application/json --- {&#10;  "msisdn": "639177939217",&#10;  "requestPayload": {&#10;    "state": 1,&#10;    "expiry-date": "2025-12-31 23:59:59"&#10;  }&#10;}]' encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to sys-redis-api-post-state-msisdn-subflow" doc:id="66beebf1-33c9-488f-bf04-857d711f3e03" name="sys-redis-api-post-state-msisdn-subflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="b3ee1715-95e5-4c9d-b9e1-1f1f76ab9b84" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import * from dw::test::Asserts
+---
+payload must equalTo({
+  "x-event-id": "123",
+  "x-event-code": 1002,
+  "x-event-msg": "Cache State Successful!"
+})]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:verify-call doc:name="Verify END- POST /state/{msisdn}" doc:id="cf34962d-cd11-498a-b466-530dddb73dc4" processor="logger" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="e201383f-e3f1-4676-88ae-61fe8d5519bb" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="sys-redis-api-get-state-msisdn-subflow-success-test" doc:id="150a7fe2-f079-4514-bc8b-c1fff150a0bc" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock GET /state/{msisdn}" doc:id="bb757c06-094b-4a1d-9199-a00313a0c67b" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="2b7ffe22-bbfd-4486-84de-0a29cb060d7a" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[output application/json --- {&#10;  "x-event-id": "123",&#10;  "x-event-code": 1005,&#10;  "x-event-msg": "Success",&#10;  "result": {&#10;    "msisdn": "639177939217",&#10;    "state": 1,&#10;    "expiry-date": "2025-12-31 23:59:59"&#10;  }&#10;}]' mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="cffb6085-e3c8-4aa3-906b-eabc95912f7c" >
+				<munit:variables >
+					<munit:variable key="formattedSubscriberData" value="#[output application/json --- readUrl('classpath://dw/mock/var-formattedSubscriberData-opt-in.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to sys-redis-api-get-state-msisdn-subflow" doc:id="9e938018-029f-4548-88c6-f293756a8e20" name="sys-redis-api-get-state-msisdn-subflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="6563f48a-6e2c-4d61-afea-1b71263efb68" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import * from dw::test::Asserts
+---
+payload must equalTo({
+  "x-event-id": "123",
+  "x-event-code": 1005,
+  "x-event-msg": "Success",
+  "result": {
+    "msisdn": "639177939217",
+    "state": 1,
+    "expiry-date": "2025-12-31 23:59:59"
+  }
+})]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:verify-call doc:name="Verify END - GET /state/{msisdn}" doc:id="53236728-e750-48c9-ad7a-2270b6ced9db" processor="logger" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d2f8015e-83c7-4258-a8a0-602c5dbea3e1" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>
