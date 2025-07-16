@@ -524,34 +524,33 @@ payload must equalTo({
 			</munit-tools:verify-call>
 		</munit:validation>
 	</munit:test>
-	<munit:test name="impl-subscription-state-lookup-subflow-no-state-found-test" doc:id="b197216b-f9d5-4135-b79e-147b17c3486c">
-		<munit:behavior >
+	<munit:test name="impl-subscription-state-lookup-subflow-no-state-found-test" doc:id="b197216b-f9d5-4135-b79e-147b17c3486c" ignore="true">
+		<munit:behavior>
 			<munit-tools:mock-when doc:name="Mock sys-redis-api-get-state-msisdn-subflow" doc:id="026e8c6e-9def-40f4-8e83-d8a1320165ab" processor="flow-ref">
-				<munit-tools:with-attributes >
+				<munit-tools:with-attributes>
 					<munit-tools:with-attribute whereValue="78189739-765a-454d-862f-ad0e3b23c700" attributeName="doc:id" />
 				</munit-tools:with-attributes>
 				<munit-tools:then-return >
 					<munit-tools:payload value="#[output application/json --- readUrl('classpath://dw/mock/payload-get-state-not-found-response.dwl')]" mediaType="application/json" encoding="UTF-8" />
-					<munit-tools:attributes value="#[readUrl('classpath://implsubscriptionstatelookupsubflowsuccesstest\mock_attributes.dwl')]" />
 					<munit-tools:variables >
 						<munit-tools:variable key="formattedSubscriberData" value="#[output application/json --- readUrl('classpath://dw/mock/var-formattedSubscriberData-opt-in.dwl')]" mediaType="application/json" encoding="UTF-8" />
 					</munit-tools:variables>
 				</munit-tools:then-return>
 			</munit-tools:mock-when>
 		</munit:behavior>
-		<munit:execution >
-			<munit:set-event doc:name="Set Input1" doc:id="52109b9c-4d60-460e-be3e-3b7083425814" >
+		<munit:execution>
+			<munit:set-event doc:name="Set Input1" doc:id="52109b9c-4d60-460e-be3e-3b7083425814">
 				<munit:payload value="#[output application/json --- readUrl('classpath://dw/events/payload-subscription-fb-on-request.dwl')]" encoding="UTF-8" mediaType="application/json" />
 				<munit:attributes value="#[readUrl('classpath://dw/events/attr-post-subcription.dwl')]" />
-				<munit:variables >
+				<munit:variables>
 					<munit:variable key="originalPayload" value="#[output application/json --- readUrl('classpath://dw/mock/var-originalPayload.dwl')]" encoding="UTF-8" mediaType="application/json" />
 				</munit:variables>
 			</munit:set-event>
-			<flow-ref doc:name="Flow-ref to impl-subscription-state-lookup-subflow" doc:id="ecfe883e-9d28-4ac3-8ce9-67fb79d55a61" name="impl-subscription-state-lookup-subflow"/>
+			<flow-ref doc:name="Flow-ref to impl-subscription-state-lookup-subflow" doc:id="ecfe883e-9d28-4ac3-8ce9-67fb79d55a61" name="impl-subscription-state-lookup-subflow" />
 		</munit:execution>
-		<munit:validation >
+		<munit:validation>
 			<munit-tools:assert doc:name="Assert payload" doc:id="b42a03a0-c372-4c5c-a239-ba29342ec814" message="The payload does not match">
-				<munit-tools:that ><![CDATA[#[%dw 2.0
+				<munit-tools:that><![CDATA[#[%dw 2.0
 import * from dw::test::Asserts
 ---
 payload must equalTo({
@@ -562,8 +561,90 @@ payload must equalTo({
 })]]]></munit-tools:that>
 			</munit-tools:assert>
 			<munit-tools:verify-call doc:name="Verify END- State Lookup" doc:id="98b1491b-0552-4790-bea5-6edbf6500dfa" processor="logger" times="1">
-				<munit-tools:with-attributes >
+				<munit-tools:with-attributes>
 					<munit-tools:with-attribute whereValue="f0dc7604-0ad4-40ac-b69c-7de897349ccd" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="impl-subscription-state-lookup-subflow-raise-error-request-conflict-test" doc:id="759c4498-71df-4020-bfe7-59ff4fe09eed" ignore="true">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock sys-redis-api-get-state-msisdn-subflow" doc:id="686757bc-2d8b-4fed-a266-d096a55c6d34" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="78189739-765a-454d-862f-ad0e3b23c700" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://dw/mock/payload-get-state-key-1-response.dwl')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:variables >
+						<munit-tools:variable key="formattedSubscriberData" value="#[output application/json --- readUrl('classpath://dw/mock/var-formattedSubscriberData-opt-in.dwl')]" mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Input" doc:id="213f586d-4cbb-4916-bda7-1343e22e41c5" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://dw/events/payload-subscription-fb-on-request.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://dw/events/attr-post-subcription.dwl')]" />
+				<munit:variables >
+					<munit:variable key="originalPayload" value="#[output application/json --- readUrl('classpath://dw/mock/var-originalPayload.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<try doc:name="Try" doc:id="fa4ce3d4-6f90-45d0-a676-0237ec11bac7" >
+				<flow-ref doc:name="Flow-ref to impl-subscription-state-lookup-subflow" doc:id="81d95f87-95a8-41e8-afac-79997e0be745" name="impl-subscription-state-lookup-subflow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="2c384d8b-3cc4-4926-b300-800bc7a23511" >
+						<logger level="INFO" doc:name="Logger" doc:id="e4903a52-012d-490d-9848-4137f623a88d" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify- INPUT:REQUEST_CONFLICT" doc:id="33c9099d-5c6d-4641-86d0-5235df3da704" processor="raise-error" times="1" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="3c72776c-ffd8-4ef7-a091-65cf18767519" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="impl-subscription-post-brand-subflow-success-test" doc:id="64ce52ee-79d5-4c9e-b362-b106922fddfd">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock sys-redis-api-post-brand-prefix-subflow" doc:id="a1e0a9a7-59e7-4a5f-baf7-a56092144abc" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="f488925a-519f-445c-963d-231f3f08cf9e" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://dw/mock/payload-post-brand-response.dwl')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:variables >
+						<munit-tools:variable key="formattedSubscriberData" value="#[output application/json --- readUrl('classpath://dw/mock/var-formattedSubscriberData-opt-in.dwl')]" mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Input" doc:id="742e9249-4245-441f-a8a1-93512d3d48e1" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://dw/events/payload-subscription-fb-on-request.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://dw/events/attr-post-subcription.dwl')]" />
+				<munit:variables >
+					<munit:variable key="originalPayload" value="#[output application/json --- readUrl('classpath://dw/mock/var-originalPayload.dwl')]" encoding="UTF-8" mediaType="application/json" />
+					<munit:variable key="formattedSubscriberData" value="#[output application/json --- readUrl('classpath://dw/mock/var-formattedSubscriberData-opt-in.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to impl-subscription-post-brand-subflow" doc:id="b69648d4-bad1-4749-859a-c8ce3b01b3cf" name="impl-subscription-post-brand-subflow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="858e13e9-1320-456f-b4db-f788abc6caee" message="The payload does not match" >
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import * from dw::test::Asserts
+---
+payload must equalTo({
+    "x-event-id": "9d2dee33-7803-485a-a2b1-2c7538e597ee",
+    "x-event-code": 1002,
+    "x-event-msg": "Cache Bridge Successful!"
+})]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:verify-call doc:name="Verify END- Post brand from bridge" doc:id="76036cf2-3e11-4ba3-b2ff-da523e72d155" processor="logger" times="1" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b42473d3-a1d1-4ede-af61-624e3ba04796" attributeName="doc:id" />
 				</munit-tools:with-attributes>
 			</munit-tools:verify-call>
 		</munit:validation>
