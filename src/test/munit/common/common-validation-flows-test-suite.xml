@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="common-validation-flows-test-suite.xml" />
+	<munit:test name="common-validate-subscription-request-subflow-valid-keyword-success-test" doc:id="ed502d9d-c844-49f9-9654-5fbf9a65575c" >
+		<munit:behavior >
+			<munit:set-event doc:name="Set Event" doc:id="8f2292ee-3b69-4eaa-874f-9c2b565ec645" >
+				<munit:variables >
+					<munit:variable key="originalPayload" value="#[output application/json --- readUrl('classpath://dw/events/payload-subscription-fb-on-request.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to common-validate-subscription-request-subflow" doc:id="52d4719f-046b-4c1b-964f-d57a42e3f4a4" name="common-validate-subscription-request-subflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="05f84d91-cf7f-402c-83a2-ce460284bb04" expected='#[output application/json --- {&#10;  "msisdn": "639177939217",&#10;  "prefix": "91779",&#10;  "keyword": "OPT-IN"&#10;}]' actual="#[output application/json --- readUrl('classpath://dw/mock/var-formattedSubscriberData-opt-in.dwl')]"/>
+			<munit-tools:verify-call doc:name="Verify END - Validation Process" doc:id="abdb79fe-7095-44fc-aff2-2d121e5e9245" processor="logger" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="cd21b076-f794-4035-bee8-2a22bbfd3b51" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="common-validate-subscription-request-subflow-proc-subscription-api-Shared_Error_Handler-invalid-keyword-test" doc:id="95ab6cac-989c-4404-bab4-06d02a97ba18" >
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock INPUT:INVALID_KEYWORD" doc:id="c3e66a0a-5c51-4fd1-883b-4ebccc251038" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d4826b9f-7be8-41b0-8915-02076282c04c" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="INPUT:INVALID_KEYWORD" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="6bc567be-736f-4c65-96a2-c8b1317487f8">
+				<munit:payload value="#[output application/json --- readUrl('classpath://dw/events/payload-subscription-fb-on-request.dwl')]" />
+				<munit:variables >
+					<munit:variable key="originalPayload" value="#[output application/json --- readUrl('classpath://dw/events/payload-subscription-fb-on-request.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<try doc:name="Try" doc:id="ab7349ba-1494-47cc-b665-16c0d0b8b552" >
+				<flow-ref doc:name="Flow-ref to common-validate-subscription-request-subflow" doc:id="ad829b3b-0f4e-45d0-884c-480a8406b718" name="common-validate-subscription-request-subflow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="43ef1e78-aa74-4ec8-b02c-fb0462f3ff0e" >
+						<logger level="INFO" doc:name="Logger" doc:id="0ea609e8-1eb8-4072-9aaf-9750e32c425d" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="521bf873-0881-4e31-8694-64f43d71cd78" actual="#[output application/json --- readUrl('classpath://dw/mock/var-formattedSubscriberData-opt-in.dwl')]" expected='#[output application/json --- {&#10;  "msisdn": "639177939217",&#10;  "prefix": "91779",&#10;  "keyword": "OPT-IN"&#10;}]' />
+			<munit-tools:verify-call doc:name="Verify END - Validation Process" doc:id="912b4e32-60d2-462a-b541-5eb64fb9f0ce" processor="logger" times="1" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="cd21b076-f794-4035-bee8-2a22bbfd3b51" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="common-validate-subscription-request-subflow-invalid-keyword-failure" doc:id="6a3960b0-b3d8-4f4e-bdb4-869eed229606" >
+		<munit:behavior >
+			<munit:set-event doc:name="Set Event - Invalid Keyword" doc:id="d15d66d9-0d15-4cc8-86b5-a16143395ce1" >
+				<munit:variables >
+					<munit:variable key="originalPayload" value="#[output application/json --- readUrl('classpath://dw/mock/var-originalPayload-invalid-keyword.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<try doc:name="Try" doc:id="cc6c5943-8319-46b3-9546-42b1d8be2142" >
+				<flow-ref doc:name="Flow-ref to common-validate-subscription-request-subflow" doc:id="63650db7-df1f-4aa7-b0af-f24ff57db610" name="common-validate-subscription-request-subflow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="f16fabb2-5b2a-42e8-a070-a7169b4c9fcc" >
+						<logger level="INFO" doc:name="Logger" doc:id="b473b0cb-02c3-4d0f-9828-976ffbf164df" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify Raise Error- Invalid Keyword" doc:id="384bb3f5-dfec-4685-9b93-ae484f22f50e" processor="raise-error" times="1" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="9908a27a-539c-4bda-a8dc-fc787cf0449b" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+
+</mule>

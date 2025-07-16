@@ -173,5 +173,10 @@ payload must equalTo({
 			</munit-tools:verify-call>
 		</munit:validation>
 	</munit:test>
+	<munit:test name="proc-subscription-api-test-suite-proc-subscription-api-mainTest" doc:id="dbf09791-8b49-430d-9d9f-b7d72000d97f" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to proc-subscription-api-main" doc:id="e45c9058-3a7c-4716-b7f0-4441613ec381" name="proc-subscription-api-main"/>
+		</munit:execution>
+	</munit:test>
 
 </mule>

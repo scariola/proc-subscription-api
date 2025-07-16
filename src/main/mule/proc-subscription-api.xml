@@ -7,7 +7,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
 
-	<flow name="proc-subscription-api-main">
+	<flow name="proc-subscription-api-main" doc:id="07297704-2141-4577-86d3-b4a9307cfb9c">
 		<http:listener
 			config-ref="HTTP_Listener_Config_proc_subscriptions_api"
 			path="${app.path.basepath}">
@@ -26,7 +26,7 @@
 			ref="proc-subscription-api_APIKIT_Error_Handler" />
 	</flow>
 	<flow
-		name="post:\subscription:application\json:proc-subscription-api-config">
+		name="post:\subscription:application\json:proc-subscription-api-config" doc:id="dadc1c06-bc06-4479-ae77-d30f9954eeeb">
 		<logger level="INFO" doc:name="START - POST /subscription"
 			doc:id="8515c7b5-8fbe-4995-a255-e4dfd5d3bcbf"
 			message="START - POST /subscription - Start processing subscription request" />

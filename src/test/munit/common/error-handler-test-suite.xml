@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="error-handler-test-suite.xml" />
+	<munit:test name="proc-subscription-api_APIKIT_Error_Handler-bad-request-test" doc:id="4843fb8f-325b-4c13-ba58-ff03e5c458b9" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock proc-subscription-api-main" doc:id="b9e06d65-ba4d-4f28-aefe-73cc4d2bac6e" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="proc-subscription-api-config" attributeName="config-ref" />
+					<munit-tools:with-attribute whereValue="proc-subscription-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:BAD_REQUEST" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="0a26b1e7-51ac-4ef6-9ca6-30f3cbafa2ac" />
+			<try doc:name="Try" doc:id="03a6ef81-ad2a-4a88-bb66-0b0a4317a846" >
+				<flow-ref doc:name="proc-subscription-api-main" doc:id="28476f76-f836-4324-9750-8914972761b4" name="proc-subscription-api-main" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="3dbbb44d-fef5-447d-98d1-f78b63426c36" >
+						<logger level="INFO" doc:name="Logger" doc:id="fd899496-a8a2-4c89-8bff-feb0c0f6a85c" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert APIKIT:BAD_REQUEST" doc:id="cc13c565-f5a9-4e1f-94eb-52af85de1f13" is="#[MunitTools::equalTo('APIKIT:BAD_REQUEST')]" expression="#[payload.result.'error-type']"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="proc-subscription-api_APIKIT_Error_Handler-not-found-test" doc:id="211c6786-ca52-4f17-86e4-9edd36e822f5">
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock proc-subscription-api-main" doc:id="428a7c43-0443-4724-8b90-ef460e4e85f0" processor="apikit:router">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute whereValue="proc-subscription-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:error typeId="APIKIT:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<munit:set-event doc:name="Set Event" doc:id="7e9e592c-93f3-495e-893f-ccd438098bd0" />
+			<try doc:name="Try" doc:id="326a72ff-8fb9-4b47-b202-618329385545">
+				<flow-ref doc:name="proc-subscription-api-main" doc:id="4040a7dc-7ee0-4123-a6e5-dde023610e8f" name="proc-subscription-api-main" />
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="9b58df99-a17a-4a03-b74d-fd5de035087d">
+						<logger level="INFO" doc:name="Logger" doc:id="163b39bc-437a-4962-9b25-6b25a1ab2d19" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert APIKIT:NOT_FOUND" doc:id="f1bef2f5-a843-4bce-a9d7-215802dc8486" expression="#[payload.result.'error-type']" is="#[MunitTools::equalTo('APIKIT:NOT_FOUND')]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="proc-subscription-api_APIKIT_Error_Handler-method-not-allowed-test" doc:id="31f0bf71-f680-4821-a41c-bc95d712e4de" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock proc-subscription-api-main" doc:id="5dd0cc1f-e513-46ef-b315-0e738bf7f57f" processor="apikit:router" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="proc-subscription-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:METHOD_NOT_ALLOWED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="a1441c96-dac3-407f-914b-2efe74077ea9" />
+			<try doc:name="Try" doc:id="18cf62d9-f023-45db-a8a7-3893b7485933" >
+				<flow-ref doc:name="proc-subscription-api-main" doc:id="12ae0d38-7aad-46ea-96b8-a3b5393d6c64" name="proc-subscription-api-main" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="0e687d37-fe71-4956-a616-cef9219fbc7e" >
+						<logger level="INFO" doc:name="Logger" doc:id="7c0d9745-a2a7-4f48-be76-b063749b141f" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert APIKIT:METHOD_NOT_ALLOWED" doc:id="7b91b926-14c3-4cca-870d-5a73cd19f144" expression="#[payload.result.'error-type']" is="#[MunitTools::equalTo('APIKIT:METHOD_NOT_ALLOWED')]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="proc-subscription-api_APIKIT_Error_Handler-unsupported-media-type-test" doc:id="57968cf5-5b13-4312-a3fb-e082f279feee" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock proc-subscription-api-main" doc:id="58519ab8-1f40-4cd3-a5f2-872536f63ba5" processor="apikit:router" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="proc-subscription-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:UNSUPPORTED_MEDIA_TYPE" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="f52a7339-a6f2-4d7c-992c-5d67a21fceec" />
+			<try doc:name="Try" doc:id="3187f468-dd74-4430-89dd-32b5223df68c" >
+				<flow-ref doc:name="proc-subscription-api-main" doc:id="41bf1799-0ca3-4444-a63a-1320218766d8" name="proc-subscription-api-main" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="f79ae155-24ba-4bca-9b03-3fa92798e830" >
+						<logger level="INFO" doc:name="Logger" doc:id="7b94decb-9d72-415d-8706-0243e48be6d7" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert APIKIT:UNSUPPORTED_MEDIA_TYPE" doc:id="d5e36e51-a5a5-4f1f-8189-509a7ae8a15e" expression="#[payload.result.'error-type']" is="#[MunitTools::equalTo('APIKIT:UNSUPPORTED_MEDIA_TYPE')]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="proc-subscription-api_APIKIT_Error_Handler-not-acceptable-test" doc:id="af5934b8-ea83-485e-9c97-6f9dcf4f51d8" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock proc-subscription-api-main" doc:id="c1550c39-714d-48cc-9419-56ccf77d0d05" processor="apikit:router" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="proc-subscription-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:NOT_ACCEPTABLE" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="d8b146e7-f16e-4e69-8933-f272975ae151" />
+			<try doc:name="Try" doc:id="83c4ea27-86d7-42c7-a883-a37044a85687" >
+				<flow-ref doc:name="proc-subscription-api-main" doc:id="4221b369-c0db-47a6-9139-dc2ce25713db" name="proc-subscription-api-main" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="7905b149-8d78-4625-be76-b3c36cab325f" >
+						<logger level="INFO" doc:name="Logger" doc:id="be145da9-3807-4ca6-b19e-c2e1a567a057" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert APIKIT:NOT_ACCEPTABLE" doc:id="837b6380-e9f4-4e76-9451-7e3a7fa8acb9" expression="#[payload.result.'error-type']" is="#[MunitTools::equalTo('APIKIT:NOT_ACCEPTABLE')]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="proc-subscription-api_APIKIT_Error_Handler-not-implemente-test" doc:id="4aa350dd-f986-4cdc-9614-858834a04817" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock proc-subscription-api-main" doc:id="90d63aa6-657b-44f5-a28c-60d2f802dab7" processor="apikit:router" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="proc-subscription-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:NOT_IMPLEMENTED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="8da1e440-3c1f-4629-a65c-b366da7dfbcf" />
+			<try doc:name="Try" doc:id="0b1ab416-6ab2-4a50-9f2b-6a5ebf4d659c" >
+				<flow-ref doc:name="proc-subscription-api-main" doc:id="da360e67-47be-4d69-934d-5bf4d552e1ce" name="proc-subscription-api-main" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="4e7f5c69-2566-4739-ac6e-3b9c3ab24d2a" >
+						<logger level="INFO" doc:name="Logger" doc:id="521c0672-7bc1-4184-9173-a1e04248eb07" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert APIKIT:NOT_IMPLEMENTED" doc:id="79b1aebc-3d29-44a7-b01f-42d7c776924f" expression="#[payload.result.'error-type']" is="#[MunitTools::equalTo('APIKIT:NOT_IMPLEMENTED')]" />
+		</munit:validation>
+	</munit:test>
+
+</mule>

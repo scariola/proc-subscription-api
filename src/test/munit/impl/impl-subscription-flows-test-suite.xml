@@ -323,43 +323,7 @@ payload must equalTo({
 			</munit-tools:verify-call>
 		</munit:validation>
 	</munit:test>
-	<!-- [STUDIO:"impl-subscription-post-audit-subflow-proc-subscription-api-Shared_Error_Handler-test"]<munit:test name="impl-subscription-post-audit-subflow-proc-subscription-api-Shared_Error_Handler-test" doc:id="c494ffdc-6621-4379-937e-c351c4f47f43">
-		<munit:behavior >
-			<munit-tools:mock-when doc:name="Mock sys-audit-api-post-audit-subflow" doc:id="ab0aad3d-2240-4126-823e-dd5d0e3c5e7e" processor="flow-ref" >
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="47620c83-ad7e-497d-8d42-ce73446ecbcf" attributeName="doc:id" />
-				</munit-tools:with-attributes>
-				<munit-tools:then-return >
-					<munit-tools:error typeId="HTTP:BAD_REQUEST" />
-				</munit-tools:then-return>
-			</munit-tools:mock-when>
-		</munit:behavior>
-		<munit:execution >
-			<munit:set-event doc:name="Set Input" doc:id="64cbeb9a-5138-46d9-b393-7cfa6ffae96f" >
-				<munit:payload value="#[output application/json &#45;&#45;- readUrl('classpath://dw/events/payload-subscription-fb-on-request.dwl')&#93;" encoding="UTF-8" mediaType="application/json" />
-				<munit:attributes value="#[readUrl('classpath://dw/events/attr-post-subcription.dwl')&#93;" />
-				<munit:variables >
-					<munit:variable key="originalPayload" value="#[output application/json &#45;&#45;- readUrl('classpath://dw/mock/var-originalPayload.dwl')&#93;" encoding="UTF-8" mediaType="application/json" />
-				</munit:variables>
-			</munit:set-event>
-			<flow-ref doc:name="Flow-ref to impl-subscription-post-audit-subflow" doc:id="e6b7e95b-1053-4523-a2d1-c19a543473d3" name="impl-subscription-post-audit-subflow" />
-		</munit:execution>
-		<munit:validation >
-			<munit-tools:assert doc:name="Assert payload" doc:id="17482d52-34f4-41e7-802d-146ed8da83b0" message="The payload does not match" >
-				<munit-tools:that ><![CDATA[#[%dw 2.0
-import * from dw::test::Asserts
-&#45;&#45;-
-payload must equalTo({
-  "id": "68767a5ab749f938d4c11b4a"
-})&#93;&#93;&#93;></munit-tools:that>
-			</munit-tools:assert>
-			<munit-tools:verify-call doc:name="Verify END  - Audit Logging Process" doc:id="8fc3c4b1-c179-4919-9cd6-54180a5e5407" processor="logger" times="1" >
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="125a6417-0c97-4601-904d-65d2e5ef1d3a" attributeName="doc:id" />
-				</munit-tools:with-attributes>
-			</munit-tools:verify-call>
-		</munit:validation>
-	</munit:test> [STUDIO] -->
+	
 	<munit:test
 		name="impl-subscription-brand-lookup-subflow-get-brand-from-redis-success-test"
 		doc:id="4b43129f-f734-4f62-b7cd-64dc3c970488">
@@ -1478,6 +1442,276 @@ payload must equalTo({
 			</munit-tools:verify-call>
 		</munit:validation>
 	</munit:test>
-
+<munit:test name="impl-subscription-post-subscription-flow-proc-subscription-api-Shared_Error_Handler-http-bad-request-test" doc:id="a172737f-234a-4c61-856a-923cd288d32f">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock HTTP BAD REQUEST" doc:id="3753cb04-d909-4115-a9c5-5a6d9d14c439" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="df1eddac-db79-438b-bf53-3012de73f9f2" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="df1eddac-db79-438b-bf53-3012de73f9f2" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:BAD_REQUEST" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="mock impl-subscription-put-audit-subflow" doc:id="618855e0-684a-40ca-9eaa-f0f19468f070" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="03f00fdd-d99b-46c7-adf1-9dd7659d22a3" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="03f00fdd-d99b-46c7-adf1-9dd7659d22a3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[output application/json --- {&#10;    "id": "6856bfbcb749f938d4c11177"&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock impl-subscription-post-sms-subflow" doc:id="2e30e2bd-8064-4821-9e17-9f57d3bbefa5" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a9d3eb95-0d1c-433b-8361-eb02b2b68eac" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://dw/mock/payload-post-sms-response.dwl')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Input" doc:id="0cf63884-5a66-45bc-8447-b60abe9256c5" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://dw/events/payload-subscription-fb-on-request.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://dw/events/attr-post-subcription.dwl')]" />
+				<munit:variables >
+					<munit:variable key="originalPayload" value="#[output application/json --- readUrl('classpath://dw/mock/var-originalPayload.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<try doc:name="Try" doc:id="2505efbb-0642-47c9-9936-549fa781cfbc" >
+				<flow-ref doc:name="impl-subscription-post-subscription-flow" doc:id="4911ce7c-9715-4505-8fe8-536cd8849256" name="impl-subscription-post-subscription-flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="36d72883-4342-4c2f-9dd3-efb754f5e55b" >
+						<logger level="INFO" doc:name="Logger" doc:id="aa16fcd9-e5f0-457a-9752-66acf62b35ab" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert " doc:id="c5119f72-4fa2-4fad-b8e2-36d85037b257" is="#[MunitTools::equalTo('HTTP:BAD_REQUEST')]" expression="#[payload.result.'error-type']"/>
+			<munit-tools:verify-call doc:name="Verify Logger" doc:id="d74e48b7-6492-4ebe-a821-37af6ae2eae1" processor="logger" times="1" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="75a9cf47-b2e5-4353-8e74-c674e73f8c8b" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="impl-subscription-post-subscription-flow-proc-subscription-api-Shared_Error_Handler-http-connectivity-test" doc:id="7827a4b1-bd63-41c6-af3a-0d4c83746f67">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock HTTP:CONNECTIVITY" doc:id="5eaf83b5-52ab-4465-9620-e32dcf92e261" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="df1eddac-db79-438b-bf53-3012de73f9f2" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:CONNECTIVITY" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="mock impl-subscription-put-audit-subflow" doc:id="4404b812-19d2-44a5-bbd0-9bcbe120ed3a" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="03f00fdd-d99b-46c7-adf1-9dd7659d22a3" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="03f00fdd-d99b-46c7-adf1-9dd7659d22a3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[output application/json --- {&#10;    "id": "6856bfbcb749f938d4c11177"&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock impl-subscription-post-sms-subflow" doc:id="1173cd0a-d1c5-499e-b8cd-28bc4dda8a24" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a9d3eb95-0d1c-433b-8361-eb02b2b68eac" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://dw/mock/payload-post-sms-response.dwl')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Input" doc:id="2d880310-801d-4042-b438-8ed8e1d67dc0" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://dw/events/payload-subscription-fb-on-request.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://dw/events/attr-post-subcription.dwl')]" />
+				<munit:variables >
+					<munit:variable key="originalPayload" value="#[output application/json --- readUrl('classpath://dw/mock/var-originalPayload.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<try doc:name="Try" doc:id="2d16200f-de48-4a59-aa52-71b8b4c96bbb" >
+				<flow-ref doc:name="impl-subscription-post-subscription-flow" doc:id="8bad7a84-c797-416a-a952-cb74f4b8a6c4" name="impl-subscription-post-subscription-flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="6639e2df-7442-4682-8715-62296eb0e1ce" >
+						<logger level="INFO" doc:name="Logger" doc:id="1e05f705-7cba-4db4-876c-7d5b9398950a" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert " doc:id="dadcb844-4e19-415b-9ed0-fc649efa005e" is="#[MunitTools::equalTo('HTTP:CONNECTIVITY')]" expression="#[payload.result.'error-type']" />
+			<munit-tools:verify-call doc:name="Verify Logger" doc:id="bf3088a9-09c2-4eee-b704-959b7f5366c7" processor="logger" times="1" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="75a9cf47-b2e5-4353-8e74-c674e73f8c8b" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="impl-subscription-post-subscription-flow-proc-subscription-api-Shared_Error_Handler-any-test" doc:id="9279ea51-3af7-483a-bd29-dbcbf6c4d8b1">
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock MULE:ANY" doc:id="ea1710ba-3c17-491b-9d23-7f916da2be86" processor="flow-ref">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute whereValue="df1eddac-db79-438b-bf53-3012de73f9f2" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:error typeId="ANY" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="mock impl-subscription-put-audit-subflow" doc:id="6495b425-b006-4386-ad2e-57d5f7fee868" processor="flow-ref">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute whereValue="03f00fdd-d99b-46c7-adf1-9dd7659d22a3" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="03f00fdd-d99b-46c7-adf1-9dd7659d22a3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:payload value='#[output application/json --- {&#10;    "id": "6856bfbcb749f938d4c11177"&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock impl-subscription-post-sms-subflow" doc:id="99b8b7cd-02ef-468c-a4f8-a21c3e114fbf" processor="flow-ref">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute whereValue="a9d3eb95-0d1c-433b-8361-eb02b2b68eac" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://dw/mock/payload-post-sms-response.dwl')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<munit:set-event doc:name="Set Input" doc:id="76177e98-e6ce-48bd-b212-1047a85f2e53">
+				<munit:payload value="#[output application/json --- readUrl('classpath://dw/events/payload-subscription-fb-on-request.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://dw/events/attr-post-subcription.dwl')]" />
+				<munit:variables>
+					<munit:variable key="originalPayload" value="#[output application/json --- readUrl('classpath://dw/mock/var-originalPayload.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<try doc:name="Try" doc:id="9073fbb7-2dba-4be8-98c0-cb0523a0eb5c">
+				<flow-ref doc:name="impl-subscription-post-subscription-flow" doc:id="09fbe7ba-1750-4596-896d-f17f201b60e0" name="impl-subscription-post-subscription-flow" />
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e8ef1264-d0de-4f65-b5ae-503d3fed411a">
+						<logger level="INFO" doc:name="Logger" doc:id="df7e603d-81da-43b1-ac36-41cb39190099" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert " doc:id="70177488-745a-4bce-be48-b5b938c348ec" expression="#[payload.result.'error-type']" is="#[MunitTools::equalTo('MULE:ANY')]" />
+			<munit-tools:verify-call doc:name="Verify Logger" doc:id="de19ddbc-0002-4a17-9f19-ad8e191208a2" processor="logger" times="1">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute whereValue="75a9cf47-b2e5-4353-8e74-c674e73f8c8b" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="impl-subscription-post-subscription-flow-proc-subscription-api-Shared_Error_Handler-unsupported-test" doc:id="fd186e4e-2ef1-4ab2-b3a2-64f56679551f">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock INPUT:UNSUPPORTED" doc:id="0203886c-96be-4871-8045-b379ad3cf01b" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="df1eddac-db79-438b-bf53-3012de73f9f2" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="INPUT:UNSUPPORTED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="mock impl-subscription-put-audit-subflow" doc:id="8e3969fb-0966-41c6-b10c-78cec1fc18e4" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="03f00fdd-d99b-46c7-adf1-9dd7659d22a3" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="03f00fdd-d99b-46c7-adf1-9dd7659d22a3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[output application/json --- {&#10;    "id": "6856bfbcb749f938d4c11177"&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock impl-subscription-post-sms-subflow" doc:id="1845be18-3ebe-4cac-be98-df439bfedd34" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a9d3eb95-0d1c-433b-8361-eb02b2b68eac" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://dw/mock/payload-post-sms-response.dwl')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Input" doc:id="8abb31b4-c306-4e08-9fb2-9d1ec50f6304" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://dw/events/payload-subscription-fb-on-request.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://dw/events/attr-post-subcription.dwl')]" />
+				<munit:variables >
+					<munit:variable key="originalPayload" value="#[output application/json --- readUrl('classpath://dw/mock/var-originalPayload.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<try doc:name="Try" doc:id="80a08e5b-a504-401f-9d5c-824324aa3146" >
+				<flow-ref doc:name="impl-subscription-post-subscription-flow" doc:id="2c85845f-f939-409d-8a5c-9a8e96e8a5fe" name="impl-subscription-post-subscription-flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="eea9595b-ea2f-4fcc-9b43-53f8129c4c38" >
+						<logger level="INFO" doc:name="Logger" doc:id="bad5c1d9-c68d-47c8-b4b2-c0f54b631868" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert " doc:id="3df1c298-33c4-42f0-bccb-85f627ec411b" expression="#[payload.'x-event-msg']" is="#[MunitTools::equalTo('failure')]" />
+			<munit-tools:verify-call doc:name="Verify Logger" doc:id="9e165160-9ab1-4bab-abb8-50c414bf9b96" processor="logger" times="1" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="75a9cf47-b2e5-4353-8e74-c674e73f8c8b" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="impl-subscription-post-subscription-flow-proc-subscription-api-Shared_Error_Handler-ineligible-test" doc:id="ba9a2002-8adc-462d-aed1-5984cc3ce31e" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock INPUT:UNSUPPORTED" doc:id="84ba85c8-b98a-473b-ab6b-65aeb84bfd29" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="df1eddac-db79-438b-bf53-3012de73f9f2" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="INPUT:INELIGIBLE" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="mock impl-subscription-put-audit-subflow" doc:id="b64aeb21-3cc2-4538-b11d-108c87159dbd" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="03f00fdd-d99b-46c7-adf1-9dd7659d22a3" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="03f00fdd-d99b-46c7-adf1-9dd7659d22a3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[output application/json --- {&#10;    "id": "6856bfbcb749f938d4c11177"&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock impl-subscription-post-sms-subflow" doc:id="fc6be1ef-ad5a-4b7a-962a-07aac6102c09" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a9d3eb95-0d1c-433b-8361-eb02b2b68eac" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://dw/mock/payload-post-sms-response.dwl')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Input" doc:id="2f58be5b-1a31-46d4-b841-5adb69db6fdf" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://dw/events/payload-subscription-fb-on-request.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://dw/events/attr-post-subcription.dwl')]" />
+				<munit:variables >
+					<munit:variable key="originalPayload" value="#[output application/json --- readUrl('classpath://dw/mock/var-originalPayload.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<try doc:name="Try" doc:id="4724a3af-6aa5-45b4-83f7-7f7c3c915cf5" >
+				<flow-ref doc:name="impl-subscription-post-subscription-flow" doc:id="e181f350-61bc-40a1-9172-0563e293a475" name="impl-subscription-post-subscription-flow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="6252851a-3fcd-48ab-932e-85e81373e174" >
+						<logger level="INFO" doc:name="Logger" doc:id="602aac3e-449f-4932-8ca6-ce65c439d3d4" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert " doc:id="abe68d4d-9027-456d-9c8b-5ca68cbfed21" expression="#[payload.'x-event-msg']" is="#[MunitTools::equalTo('failure')]" />
+			<munit-tools:verify-call doc:name="Verify Logger" doc:id="6efa80c9-b1c9-451d-817f-d5b95558a69c" processor="logger" times="1" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="75a9cf47-b2e5-4353-8e74-c674e73f8c8b" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
 
 </mule>
