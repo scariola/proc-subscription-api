@@ -255,7 +255,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<choice doc:name="HAS valid Prepaid or Postpaid promo bundles?"
 			doc:id="b76230c2-bcda-4e9d-afb0-8675f06d6034">
 			<when
-				expression="#[((!isEmpty(payload.bundles filter ($.service_id == vars.originalPayload.'as-service-id' and now() &lt; ($.expiry_date as LocalDateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;})))) or (!isEmpty(payload.bundles)))]">
+				expression="#[((!isEmpty(payload.bundles filter ($.service_id == vars.originalPayload.'as-service-id' and now() &lt; ($.expiry_date as LocalDateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;})))) or (!isEmpty(payload.bundles.promo_name)))]">
 				<ee:transform doc:name="var-expiryDetails"
 					doc:id="f93609c6-8acb-49ff-ac3e-e676062ff794">
 					<ee:message>
