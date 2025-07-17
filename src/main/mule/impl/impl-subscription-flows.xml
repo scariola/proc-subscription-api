@@ -351,7 +351,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					<logger level="INFO"
 						doc:name="Proceed anyway  - Post State Failure Log"
 						doc:id="43095d7e-f4ca-4896-b45b-36aa0702d52d"
-						message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;redis-key&quot;: &quot;spectre-freefb&quot; ++ vars.formattedSubscriberData.msisdn,&#10;  &quot;redis-state&quot;: payload.requestPayload.state,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.description,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
+						message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;redis-key&quot;: &quot;spectre-freefb&quot; ++ &quot;-&quot; ++ vars.formattedSubscriberData.msisdn,&#10;  &quot;redis-state&quot;: payload.requestPayload.state,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.detailedDescription,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
 				</on-error-continue>
 			</error-handler>
 		</try>
@@ -387,7 +387,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					<logger level="INFO"
 						doc:name="Proceed anyway  - Put Audit Failure Log"
 						doc:id="26dc6070-178b-4780-a439-59ad1777abe6"
-						message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;audit-id&quot;: vars.auditId.'audit-id',&#10;  &quot;audit-log&quot;: {&#10;    &quot;success&quot;: if (!isEmpty(error)) 0 else 1,&#10;    &quot;hasProcessorError&quot;: if (!isEmpty(error)) 1 else 0&#10;  },&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.description,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
+						message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;audit-id&quot;: vars.auditId.'audit-id',&#10;  &quot;audit-log&quot;: {&#10;    &quot;success&quot;: if (!isEmpty(error)) 0 else 1,&#10;    &quot;hasProcessorError&quot;: if (!isEmpty(error)) 1 else 0&#10;  },&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.detailedDescription,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
 				</on-error-continue>
 			</error-handler>
 		</try>
@@ -432,7 +432,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					<logger level="INFO"
 						doc:name="Proceed anyway  - Post SMS Failure Log"
 						doc:id="3e471234-41e0-4af0-8984-c4cc3299ef9f"
-						message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;message&quot;: &quot;message&quot;: vars.smsSpiel.'sms-spiel',&#10;  &quot;source-address&quot;: vars.originalPayload.'sms-source-address',&#10;  &quot;attempt&quot;: 3,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.description,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;},&#10;  &quot;note&quot;: &quot;No Message was sent, but successfully provision/deprovision&quot;&#10;}]" />
+						message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;message&quot;: vars.smsSpiel.'sms-spiel',&#10;  &quot;source-address&quot;: vars.originalPayload.'sms-source-address',&#10;  &quot;attempt&quot;: 3,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.detailedDescription,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;},&#10;  &quot;note&quot;: &quot;No Message was sent, but successfully provision/deprovision&quot;&#10;}]" />
 				</on-error-continue>
 			</error-handler>
 		</try>
@@ -462,7 +462,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					<logger level="INFO"
 						doc:name="Proceed anyway  - Delete Bonus Failure Log"
 						doc:id="4a42ff9c-a6f2-4099-99ea-07a94b90f984"
-						message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;mongo-action&quot;: &quot;delete&quot;,&#10;  &quot;collection&quot;: &quot;whitelist&quot;,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.description,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
+						message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  &quot;flow-name&quot;: flow.name as String,&#10;  &quot;transaction-id&quot;: vars.originalPayload.'transaction-id',&#10;  &quot;msisdn&quot;: vars.formattedSubscriberData.msisdn,&#10;  &quot;request-type&quot;: vars.formattedSubscriberData.keyword,&#10;  &quot;mongo-action&quot;: &quot;delete&quot;,&#10;  &quot;collection&quot;: &quot;whitelist&quot;,&#10;  &quot;attempt&quot;: 3,&#10;  &quot;status&quot;: &quot;failure&quot;,&#10;  &quot;error&quot;: error.detailedDescription,&#10;  &quot;timestamp&quot;: now() as DateTime {format: &quot;yyyy-MM-dd HH:mm:ss&quot;}&#10;}]" />
 				</on-error-continue>
 			</error-handler>
 		</try>
