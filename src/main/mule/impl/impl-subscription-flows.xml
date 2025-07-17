@@ -25,15 +25,33 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<flow-ref doc:name="impl-subcription-state-lookup-subflow"
 			doc:id="ea2cebf6-fe8a-41a6-be24-f1c0796c4edd"
 			name="impl-subscription-state-lookup-subflow" />
-		<choice doc:name="IS for Provision?" doc:id="73052fe2-3cc0-4e12-a87e-65d2a44c980b" >
-			<when expression="#[(vars.formattedSubscriberData.keyword == 'OPT-IN' and (vars.state.state == 0 or isEmpty(vars.state.state)) or vars.formattedSubscriberData.keyword == 'BONUS' and isEmpty(vars.state.state) and (vars.brand.'brand-name' != 'Postpaid'))]">
-				<flow-ref doc:name="impl-subscription-check-eligibility-subflow" doc:id="ab7d3856-5216-414e-ae97-028fc544c626" name="impl-subscription-check-eligibility-subflow" />
-				<flow-ref doc:name="impl-subscription-post-facebook-provision-subflow" doc:id="680793fa-786c-47ed-839e-92b10afa765d" name="impl-subscription-post-facebook-provision-subflow" target="provisionResponse" />
-				<flow-ref doc:name="impl-subscription-post-state-subflow" doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92" name="impl-subscription-post-state-subflow" />
+		<choice doc:name="IS for Provision?"
+			doc:id="73052fe2-3cc0-4e12-a87e-65d2a44c980b">
+			<when
+				expression="#[(vars.formattedSubscriberData.keyword == 'OPT-IN' and (vars.state.state == 0 or isEmpty(vars.state.state)) or vars.formattedSubscriberData.keyword == 'BONUS' and isEmpty(vars.state.state) and (vars.brand.'brand-name' != 'Postpaid'))]">
+				<flow-ref
+					doc:name="impl-subscription-check-eligibility-subflow"
+					doc:id="ab7d3856-5216-414e-ae97-028fc544c626"
+					name="impl-subscription-check-eligibility-subflow" />
+				<flow-ref
+					doc:name="impl-subscription-post-facebook-provision-subflow"
+					doc:id="680793fa-786c-47ed-839e-92b10afa765d"
+					name="impl-subscription-post-facebook-provision-subflow"
+					target="provisionResponse" />
+				<flow-ref doc:name="impl-subscription-post-state-subflow"
+					doc:id="5e096604-0e76-4a76-bca5-870f7d8c1b92"
+					name="impl-subscription-post-state-subflow" />
 			</when>
-			<when expression='#[vars.formattedSubscriberData.keyword == "OPT-OUT" and vars.state.state == 1]'>
-				<flow-ref doc:name="impl-subscription-post-facebook-provision-subflow" doc:id="cbdce464-c6f2-4dd3-aaf7-9ddfe7d5ea92" name="impl-subscription-post-facebook-provision-subflow" target="provisionResponse" />
-				<flow-ref doc:name="impl-subscription-post-state-subflow" doc:id="2a33333e-307b-4fc7-9e08-f9e01bebfb2c" name="impl-subscription-post-state-subflow" />
+			<when
+				expression='#[vars.formattedSubscriberData.keyword == "OPT-OUT" and vars.state.state == 1]'>
+				<flow-ref
+					doc:name="impl-subscription-post-facebook-provision-subflow"
+					doc:id="cbdce464-c6f2-4dd3-aaf7-9ddfe7d5ea92"
+					name="impl-subscription-post-facebook-provision-subflow"
+					target="provisionResponse" />
+				<flow-ref doc:name="impl-subscription-post-state-subflow"
+					doc:id="2a33333e-307b-4fc7-9e08-f9e01bebfb2c"
+					name="impl-subscription-post-state-subflow" />
 			</when>
 		</choice>
 		<flow-ref doc:name="impl-subscription-put-audit-subflow"
@@ -199,7 +217,10 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					name="impl-subscription-check-eligibility-prepaid-postpiad-subflow" />
 			</when>
 			<otherwise>
-				<flow-ref doc:name="impl-subscription-check-eligibility-bonus-subflow" doc:id="350f47e1-87e0-4f4a-bd3f-cfd83a7d686c" name="impl-subscription-check-eligibility-bonus-subflow" />
+				<flow-ref
+					doc:name="impl-subscription-check-eligibility-bonus-subflow"
+					doc:id="350f47e1-87e0-4f4a-bd3f-cfd83a7d686c"
+					name="impl-subscription-check-eligibility-bonus-subflow" />
 			</otherwise>
 		</choice>
 	</sub-flow>
@@ -258,7 +279,8 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:id="32230055-69ae-4d91-87a3-5e0b717c5e15"
 			message="END - Prepaid Postpaid Lookup" />
 	</sub-flow>
-	<sub-flow name="impl-subscription-check-eligibility-bonus-subflow"
+	<sub-flow
+		name="impl-subscription-check-eligibility-bonus-subflow"
 		doc:id="c886cbf7-afd9-4281-a813-3a7b2133adef">
 		<logger level="INFO" doc:name="START - Get msisdn Bonus"
 			doc:id="e3a1162a-aea4-45a8-9f0a-adffe01e944e"

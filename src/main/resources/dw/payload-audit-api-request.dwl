@@ -1,5 +1,5 @@
 %dw 2.0
-output application/json
+output application/json skipNullOn = "everywhere"
 ---
 {
   "csp_txid": payload.'transaction-id',
