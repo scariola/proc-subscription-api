@@ -54,7 +54,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					<ee:set-payload resource="dw/api-response-failure-200.dwl" />
 				</ee:message>
 				<ee:variables >
-					<ee:set-variable resource="dw/var-httpStatus-400.dwl" variableName="httpStatus" />
+					<ee:set-variable resource="dw/var-httpStatus-200.dwl" variableName="httpStatus" />
 				</ee:variables>
 			</ee:transform>
 			</on-error-propagate>

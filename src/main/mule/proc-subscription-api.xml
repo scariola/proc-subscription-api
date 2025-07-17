@@ -50,6 +50,9 @@ payload]]></ee:set-variable>
 			<ee:message>
 				<ee:set-payload resource="dw/api-response-success-200.dwl" />
 			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
 		<logger level="INFO" doc:name="END - POST /subscription"
 			doc:id="dd78a311-0ba8-4c35-9c61-76266e34b8eb" message="#[payload]" />
