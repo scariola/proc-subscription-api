@@ -7,7 +7,7 @@ output application/json skipNullOn = "everywhere"
   "sub_mobtel": payload.msisdn,
   "sms_source_address": payload.'sms-source-address',
   "sub_device_details":payload.'sub-device',
-   "hplmn": payload.hplmn,
+   "hplmn": payload.hlprm,
   "as_service_id": payload.'as-service-id'
 }
 
