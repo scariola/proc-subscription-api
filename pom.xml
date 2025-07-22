@@ -5,8 +5,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>871a7b19-9f3e-4dbd-8ef4-09253a8ba1dc</groupId>
-	<artifactId>proc-subscription-api-111x</artifactId>
-	<version>1.0.4</version>
+	<artifactId>proc-subscription-api-11121111</artifactId>
+	<version>1.0.1</version>
 	<packaging>mule-application</packaging>
 
 	<name>proc-subscription-api</name>
@@ -16,7 +16,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
 		<app.runtime>4.9.0</app.runtime>
-		<mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
+		<mule.maven.plugin.version>4.4.0</mule.maven.plugin.version>
 		<environment>dev</environment>
 		<targetName>Cloudhub-US-East-2</targetName>
 		<muleVersion>4.9.6</muleVersion>
@@ -47,7 +47,7 @@
 						<connectedAppClientSecret>${connectedAppClientSecret}</connectedAppClientSecret>
 						<connectedAppGrantType>client_credentials</connectedAppGrantType>
 						<deploymentTimeout>1200000</deploymentTimeout>
-						<applicationName>proc-subscription-api-1</applicationName>
+						<applicationName>proc-subscription-api-11</applicationName>
 						<replicas>1</replicas>
 						<vCores>0.1</vCores>
 						<properties>
@@ -60,32 +60,15 @@
 							<secure.key>${secure.key}</secure.key>
 						</secureProperties>
 						<integrations>
-						<services>
-							<objectStoreV2>
-								<enabled>true</enabled>
-							</objectStoreV2>
-						</services>
-					</integrations>
+							<services>
+								<objectStoreV2>
+									<enabled>true</enabled>
+								</objectStoreV2>
+							</services>
+						</integrations>
 					</cloudhub2Deployment>
 					<classifier>mule-application</classifier>
 				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>org.eclipse.aether</groupId>
-						<artifactId>aether-connector-basic</artifactId>
-						<version>1.1.0</version>
-					</dependency>
-					<dependency>
-						<groupId>org.eclipse.aether</groupId>
-						<artifactId>aether-transport-file</artifactId>
-						<version>1.1.0</version>
-					</dependency>
-					<dependency>
-						<groupId>org.eclipse.aether</groupId>
-						<artifactId>aether-transport-http</artifactId>
-						<version>1.1.0</version>
-					</dependency>
-				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>org.mule.tools.maven</groupId>
