@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
 	xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
 	<flow name="impl-subscription-post-subscription-flow"
 		doc:id="11759503-62a6-46b0-8845-b3be461f145b">
 		<logger level="INFO"
@@ -101,29 +102,51 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:id="2dbdc422-a67d-44a2-b961-01cb84171931"
 			message="START - Brand Lookup" />
 		<try doc:name="Try" doc:id="935c55d8-8b21-48f4-99cb-9ebc76d8577c">
-			<flow-ref doc:name="sys-redis-api-get-brand-prefix-subflow"
-				doc:id="73ba302b-54fd-4be9-bf3e-3a80bef4031a"
-				name="sys-redis-api-get-brand-prefix-subflow" />
+			<os:retrieve doc:name="Retrieve Bridge Brand" doc:id="f0508aee-fac2-4908-81a9-6ceed8e7f4bb" key="#['bridge' ++ vars.formattedSubscriberData.prefix]" objectStore="Object_bridge"/>
 			<error-handler>
 				<on-error-continue enableNotifications="true"
 					logException="true" doc:name="On Error Continue"
 					doc:id="20b2ac8e-14bd-47ed-945d-421182a01360">
-					<logger level="INFO" doc:name="Proceed Anyway"
-						doc:id="bbe9a74d-ea57-4ea9-b6cd-d831988d3e11"
-						message='Failed to get brand prefix from Redis.' />
+					<ee:transform doc:name="Set Payload Empty" doc:id="461915ad-240e-459a-a20c-bd9399fd14b5" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[]]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
 				</on-error-continue>
 			</error-handler>
 		</try>
 		<choice doc:name="IS Brand Id Not found?"
 			doc:id="09655b26-1c73-4431-a941-5dab12c5d093">
-			<when expression="#[isEmpty(payload.result)]">
+			<when expression="#[isEmpty(payload)]">
 				<flow-ref
 					doc:name="sys-bridge-api-get-bridge-prefix-subflow"
 					doc:id="8c1e7c02-b7f8-48a3-acf0-3b1c820e2622"
 					name="sys-bridge-api-get-bridge-prefix-subflow" />
-				<flow-ref doc:name="impl-subcription-post-brand-subflow"
-					doc:id="689016ef-48df-4d16-9b61-cfdb48559be4"
-					name="impl-subscription-post-brand-subflow" />
+				<ee:transform doc:name="Payload TO Object Store" doc:id="accf72cb-99c9-46a1-83bb-afc04312d5de">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (!isEmpty(payload.result)) 
+  {
+    'prefix': payload.result[0].msisdn_prefix,
+    'brand-id': (if (payload.result[0].brand_flag == 4) 1 else payload.result[0].brand_flag) as Number,
+    'brand-name': (if (payload.result[0].brand_flag == 4) "GHP Prepaid" else payload.result[0].brand)
+  }
+else 
+  {
+    'prefix': vars.formattedSubscriberData.prefix, 
+    'brand-id': 0,
+    'brand-name': "unsupported"
+  }]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<async doc:name="Async" doc:id="051a82b4-2e0c-48df-9082-f86f199c35de" >
+					<os:store doc:name="Store Bridge Brand" doc:id="3b7b8b1d-4f15-47d5-b0ee-104484b6e29a" key="#['bridge' ++ vars.formattedSubscriberData.prefix]" objectStore="Object_state"/>
+				</async>
 			</when>
 		</choice>
 		<ee:transform doc:name="var-brand"
@@ -153,9 +176,17 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<logger level="INFO" doc:name="START - State Lookup"
 			doc:id="02416b7a-7fd1-4567-b4d0-3680a8c88af7"
 			message="START - State Lookup" />
-		<flow-ref doc:name="sys-redis-api-get-state-msisdn-subflow"
+		<!-- [STUDIO:"sys-redis-api-get-state-msisdn-subflow"]<flow-ref doc:name="sys-redis-api-get-state-msisdn-subflow"
 			doc:id="78189739-765a-454d-862f-ad0e3b23c700"
-			name="sys-redis-api-get-state-msisdn-subflow" />
+			name="sys-redis-api-get-state-msisdn-subflow" /> [STUDIO] -->
+		<try doc:name="Try" doc:id="ec97dcfa-2f4d-4c6c-9aa0-1be1529893cb" >
+			<os:retrieve doc:name="Retrieve State Value" doc:id="4938fd8a-9d93-4656-bfac-a876ed5408a6" key="#['spectre-freefb-' ++ vars.formattedSubscriberData.msisdn]" objectStore="Object_state"/>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="8b64793b-80eb-41e7-b593-a00fab3c1fe8" >
+					<logger level="INFO" doc:name="Logger" doc:id="21ece409-0cb6-4ec4-8b19-7ade3f722aae" message="No State value found!"/>
+				</on-error-continue>
+			</error-handler>
+		</try>
 		<ee:transform doc:name="var-state"
 			doc:id="96b7004f-5f9c-4830-b3c5-6531407c12f3">
 			<ee:message>
@@ -169,7 +200,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			doc:id="f0dc7604-0ad4-40ac-b69c-7de897349ccd"
 			message="END- State Lookup" />
 	</sub-flow>
-	<sub-flow name="impl-subscription-post-brand-subflow"
+	<!-- [STUDIO:"impl-subscription-post-brand-subflow"]<sub-flow name="impl-subscription-post-brand-subflow"
 		doc:id="f26655a7-045d-4c0d-aea2-d46c853bd62f">
 		<logger level="INFO" doc:name="START- Post brand from bridge "
 			doc:id="44ff3ac8-74f6-4f0b-85f3-194c1e81754f"
@@ -204,7 +235,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<logger level="INFO" doc:name="END- Post brand from bridge "
 			doc:id="b42473d3-a1d1-4ede-af61-624e3ba04796"
 			message="END- Post brand from bridge " />
-	</sub-flow>
+	</sub-flow> [STUDIO] -->
 	<sub-flow name="impl-subscription-check-eligibility-subflow"
 		doc:id="6d366e81-537c-40ac-bbd9-ab7197a1b239">
 		<choice doc:name="ROUTE Eligibility: OPT-IN or  BONUS"
@@ -362,9 +393,10 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 				doc:name="Until Successful"
 				doc:id="a403b0e0-cc43-44b7-8b47-fff85dcc87f8"
 				millisBetweenRetries="5000">
-				<flow-ref doc:name="sys-post-state-subflow"
+				<os:store doc:name="Store State Value" doc:id="1022d2fb-529b-465b-89c7-3f7d18a914de" key="#['spectre-freefb-' ++ vars.formattedSubscriberData.msisdn]" objectStore="Object_state"/>
+				<!-- [STUDIO:"sys-post-state-subflow"]<flow-ref doc:name="sys-post-state-subflow"
 					doc:id="60da4d68-de6b-4003-bcfc-97cf4844385a"
-					name="sys-redis-api-post-state-msisdn-subflow" />
+					name="sys-redis-api-post-state-msisdn-subflow" /> [STUDIO] -->
 			</until-successful>
 			<error-handler>
 				<on-error-continue enableNotifications="true"

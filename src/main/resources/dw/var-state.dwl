@@ -2,6 +2,6 @@
 output application/json
 ---
 {
-	'state': payload.result.state default "",
-	'expiry-date': payload.result.'expiry-date'
+	'state': payload.state default "",
+	'expiry-date': payload.'expiry-date'
 }

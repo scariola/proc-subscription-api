@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>871a7b19-9f3e-4dbd-8ef4-09253a8ba1dc</groupId>
-	<artifactId>proc-subscription-api-b</artifactId>
-	<version>1.0.3</version>
+	<artifactId>proc-subscription-api-111x</artifactId>
+	<version>1.0.4</version>
 	<packaging>mule-application</packaging>
 
 	<name>proc-subscription-api</name>
@@ -41,9 +43,11 @@
 						<environment>${environment}</environment>
 						<target>${targetName}</target>
 						<muleVersion>${muleVersion}</muleVersion>
-						<server>deployer-spectre</server>
+						<connectedAppClientId>${connectedAppClientId}</connectedAppClientId>
+						<connectedAppClientSecret>${connectedAppClientSecret}</connectedAppClientSecret>
+						<connectedAppGrantType>client_credentials</connectedAppGrantType>
 						<deploymentTimeout>1200000</deploymentTimeout>
-						<applicationName>proc-subscription-api-t</applicationName>
+						<applicationName>proc-subscription-api-1</applicationName>
 						<replicas>1</replicas>
 						<vCores>0.1</vCores>
 						<properties>
@@ -55,6 +59,13 @@
 							<env>${env}</env>
 							<secure.key>${secure.key}</secure.key>
 						</secureProperties>
+						<integrations>
+						<services>
+							<objectStoreV2>
+								<enabled>true</enabled>
+							</objectStoreV2>
+						</services>
+					</integrations>
 					</cloudhub2Deployment>
 					<classifier>mule-application</classifier>
 				</configuration>
@@ -181,6 +192,12 @@
 			<groupId>org.mule.modules</groupId>
 			<artifactId>mule-tracing-module</artifactId>
 			<version>1.2.0</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.connectors</groupId>
+			<artifactId>mule-objectstore-connector</artifactId>
+			<version>1.2.2</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 	</dependencies>
