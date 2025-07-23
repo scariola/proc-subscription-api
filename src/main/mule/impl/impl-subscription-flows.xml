@@ -145,7 +145,7 @@ else
 					</ee:message>
 				</ee:transform>
 				<async doc:name="Async" doc:id="051a82b4-2e0c-48df-9082-f86f199c35de" >
-					<os:store doc:name="Store Bridge Brand" doc:id="3b7b8b1d-4f15-47d5-b0ee-104484b6e29a" key="#['bridge' ++ vars.formattedSubscriberData.prefix]" objectStore="Object_state"/>
+					<os:store doc:name="Store Bridge Brand" doc:id="3b7b8b1d-4f15-47d5-b0ee-104484b6e29a" key="#['bridge' ++ vars.formattedSubscriberData.prefix]" objectStore="Object_bridge"/>
 				</async>
 			</when>
 		</choice>
