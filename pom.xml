@@ -5,8 +5,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>871a7b19-9f3e-4dbd-8ef4-09253a8ba1dc</groupId>
-	<artifactId>proc-subscription-api-111x</artifactId>
-	<version>1.0.4</version>
+	<artifactId>proc-subcriptions-api</artifactId>
+	<version>1.1.15</version>
 	<packaging>mule-application</packaging>
 
 	<name>proc-subscription-api</name>
@@ -14,14 +14,11 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
-		<app.runtime>4.9.0</app.runtime>
 		<mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
-		<environment>dev</environment>
 		<targetName>Cloudhub-US-East-2</targetName>
 		<muleVersion>4.9.6</muleVersion>
-
 		<munit.version>3.4.0</munit.version>
+		<appName>proc-subscription-api-test</appName>
 	</properties>
 
 	<build>
@@ -40,19 +37,16 @@
 					<cloudhub2Deployment>
 						<uri>https://anypoint.mulesoft.com</uri>
 						<provider>MC</provider>
-						<environment>${environment}</environment>
+						<environment>${env}</environment>
 						<target>${targetName}</target>
 						<muleVersion>${muleVersion}</muleVersion>
 						<connectedAppClientId>${connectedAppClientId}</connectedAppClientId>
 						<connectedAppClientSecret>${connectedAppClientSecret}</connectedAppClientSecret>
 						<connectedAppGrantType>client_credentials</connectedAppGrantType>
 						<deploymentTimeout>1200000</deploymentTimeout>
-						<applicationName>proc-subscription-api-1</applicationName>
+						<applicationName>${appName}</applicationName>
 						<replicas>1</replicas>
 						<vCores>0.1</vCores>
-						<properties>
-							<http.port>8081</http.port>
-						</properties>
 						<secureProperties>
 							<anypoint.platform.client_id>${anypoint.platform.client_id}</anypoint.platform.client_id>
 							<anypoint.platform.client_secret>${anypoint.platform.client_secret}</anypoint.platform.client_secret>
@@ -60,39 +54,13 @@
 							<secure.key>${secure.key}</secure.key>
 						</secureProperties>
 						<integrations>
-						<services>
-							<objectStoreV2>
-								<enabled>true</enabled>
-							</objectStoreV2>
-						</services>
-					</integrations>
+							<services>
+								<objectStoreV2>
+									<enabled>true</enabled>
+								</objectStoreV2>
+							</services>
+						</integrations>
 					</cloudhub2Deployment>
-					<classifier>mule-application</classifier>
-				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>org.eclipse.aether</groupId>
-						<artifactId>aether-connector-basic</artifactId>
-						<version>1.1.0</version>
-					</dependency>
-					<dependency>
-						<groupId>org.eclipse.aether</groupId>
-						<artifactId>aether-transport-file</artifactId>
-						<version>1.1.0</version>
-					</dependency>
-					<dependency>
-						<groupId>org.eclipse.aether</groupId>
-						<artifactId>aether-transport-http</artifactId>
-						<version>1.1.0</version>
-					</dependency>
-				</dependencies>
-			</plugin>
-			<plugin>
-				<groupId>org.mule.tools.maven</groupId>
-				<artifactId>mule-maven-plugin</artifactId>
-				<version>${mule.maven.plugin.version}</version>
-				<extensions>true</extensions>
-				<configuration>
 					<classifier>mule-application</classifier>
 				</configuration>
 			</plugin>
@@ -128,7 +96,6 @@
 			<url>https://maven.anypoint.mulesoft.com/api/v3/organizations/${project.groupId}/maven</url>
 			<layout>default</layout>
 		</repository>
-
 	</distributionManagement>
 	<dependencies>
 		<dependency>
@@ -215,12 +182,6 @@
 			<url>https://repository.mulesoft.org/releases/</url>
 			<layout>default</layout>
 		</repository>
-		<repository>
-			<id>anypoint-exchange-v3</id>
-			<name>Anypoint Exchange V3</name>
-			<url>https://maven.anypoint.mulesoft.com/api/v3/maven</url>
-			<layout>default</layout>
-		</repository>
 	</repositories>
 
 	<pluginRepositories>
@@ -234,5 +195,4 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
-
 </project>
