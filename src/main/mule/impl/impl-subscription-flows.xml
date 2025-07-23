@@ -102,7 +102,7 @@ http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/cu
 			doc:id="2dbdc422-a67d-44a2-b961-01cb84171931"
 			message="START - Brand Lookup" />
 		<try doc:name="Try" doc:id="935c55d8-8b21-48f4-99cb-9ebc76d8577c">
-			<os:retrieve doc:name="Retrieve Bridge Brand" doc:id="f0508aee-fac2-4908-81a9-6ceed8e7f4bb" key="#['bridge-' ++ vars.formattedSubscriberData.prefix]" objectStore="Object_bridge"/>
+			<os:retrieve doc:name="Retrieve Bridge Brand" doc:id="f0508aee-fac2-4908-81a9-6ceed8e7f4bb" key="#['bridge' ++ vars.formattedSubscriberData.prefix]" objectStore="Object_bridge"/>
 			<error-handler>
 				<on-error-continue enableNotifications="true"
 					logException="true" doc:name="On Error Continue"
@@ -145,7 +145,7 @@ else
 					</ee:message>
 				</ee:transform>
 				<async doc:name="Async" doc:id="051a82b4-2e0c-48df-9082-f86f199c35de" >
-					<os:store doc:name="Store Bridge Brand" doc:id="3b7b8b1d-4f15-47d5-b0ee-104484b6e29a" key="#['bridge-' ++ vars.formattedSubscriberData.prefix]" objectStore="Object_bridge"/>
+					<os:store doc:name="Store Bridge Brand" doc:id="3b7b8b1d-4f15-47d5-b0ee-104484b6e29a" key="#['bridge' ++ vars.formattedSubscriberData.prefix]" objectStore="Object_state"/>
 				</async>
 			</when>
 		</choice>
